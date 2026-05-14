@@ -1,0 +1,29 @@
+# Ephemeral scratch (see .cursor/rules/tmp-artifacts.mdc)
+tmp/
+
+# Large local corpora and pipeline artifacts (rebuild with CLI)
+input/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+
+# Env / secrets
+.env
+.env.*
+
+# OS / IDE
+Thumbs.db
+Desktop.ini
+.idea/
