@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import multiprocessing as mp
 import os
+import queue
 import re
 import shutil
 import tempfile
@@ -15,6 +17,7 @@ from mr_norm.tools.schema import ParagraphRecord, StructuredDocument
 
 POINT_PATTERNS = [
     re.compile(r"^\s*\{([^}]*\d[^}]*)\}"),
+    re.compile(r"^\s*(\d+(?:[\.\-]\d+)+)(?=\s)"),
     re.compile(r"^\s*(\d+(?:[\.\-]\d+)*)\."),
     re.compile(r"^\s*пункт[ае]?\s+(\d+(?:[\.\-]\d+)*)", re.IGNORECASE),
 ]
@@ -41,6 +44,8 @@ def should_skip_paragraph(text: str) -> bool:
         return True
     if re.fullmatch(r"Страница\s+\d+", text, re.IGNORECASE):
         return True
+    if re.fullmatch(r"Переход к Содержанию документа осуществляется по ссылке", text, re.IGNORECASE):
+        return True
     return False
 
 
@@ -52,6 +57,10 @@ def infer_heading_level(text: str, outline_level: int, style_name: str = "") -> 
     if style_match:
         return min(int(style_match.group(2)), 6)
     stripped = text.strip()
+    if len(stripped) < 180 and re.match(r"^ГОСТ\s+(?:Р\s+)?[A-Za-zА-Яа-я0-9.\-]+", stripped, re.IGNORECASE):
+        return 1
+    if len(stripped) < 180 and re.match(r"^(?:СО|РД)\s+\d+(?:[.\-]\d+)+", stripped, re.IGNORECASE):
+        return 1
     if re.match(r"^(Раздел|Глава|Статья)\s+[IVXLCDM0-9]+", stripped, re.IGNORECASE):
         return 1 if stripped.lower().startswith("раздел") else 2
     if len(stripped) < 180 and re.match(r"^[IVXLCDM]+\.\s+\S+", stripped):
@@ -127,6 +136,22 @@ class RtfProcessResult:
 
 class RtfReadError(RuntimeError):
     """Word COM read failed or produced no extractable paragraphs; outputs must not be written."""
+
+
+DEFAULT_RTF_PER_FILE_TIMEOUT_SEC = 120.0
+
+
+def _rtf_process_worker(root: str, source_path: str, result_queue: object) -> None:
+    paths = ProjectPaths.from_root(Path(root))
+    processor = RtfProcessor(paths)
+    try:
+        result = processor.process_file(Path(source_path), word=None)
+    except Exception as exc:
+        result = processor._failed_rtf_result(Path(source_path), f"{source_path}: {type(exc).__name__}: {exc}")
+    try:
+        result_queue.put(result.__dict__)  # type: ignore[attr-defined]
+    except Exception:
+        pass
 
 
 def _close_open_word_documents(word: object) -> None:
@@ -239,6 +264,7 @@ class RtfProcessor:
         self,
         limit: int | None = None,
         only_paths: list[Path] | None = None,
+        per_file_timeout_sec: float = DEFAULT_RTF_PER_FILE_TIMEOUT_SEC,
     ) -> list[RtfProcessResult]:
         if only_paths is not None:
             files = [Path(p).resolve() for p in only_paths]
@@ -246,15 +272,56 @@ class RtfProcessor:
             files = sorted(path for path in self.paths.input_dir.glob("*.rtf") if not path.name.startswith("~$"))
         if limit is not None:
             files = files[:limit]
+        if not files:
+            self.last_word_cleanup = {"status": "not_started", "mode": "isolated_per_file", "files_total": 0}
+            return []
         results: list[RtfProcessResult] = []
-        word = self._open_word()
-        try:
-            for path in files:
-                results.append(self.process_file(path, word=word))
-                _close_open_word_documents(word)
-        finally:
-            self.last_word_cleanup = _safe_shutdown_word(word, timeout_sec=25.0)
+        timed_out = 0
+        for path in files:
+            result = self._process_file_isolated(path, per_file_timeout_sec=per_file_timeout_sec)
+            if result.error and "timed out" in result.error:
+                timed_out += 1
+            results.append(result)
+        self.last_word_cleanup = {
+            "status": "ok" if timed_out == 0 else "timeouts",
+            "mode": "isolated_per_file",
+            "files_total": len(files),
+            "files_timed_out": timed_out,
+            "per_file_timeout_sec": per_file_timeout_sec,
+        }
         return results
+
+    def _process_file_isolated(self, path: Path, per_file_timeout_sec: float) -> RtfProcessResult:
+        ctx = mp.get_context("spawn")
+        result_queue = ctx.Queue(maxsize=1)
+        process = ctx.Process(
+            target=_rtf_process_worker,
+            args=(str(self.paths.root), str(path), result_queue),
+            daemon=False,
+        )
+        process.start()
+        process.join(per_file_timeout_sec)
+        if process.is_alive():
+            process.terminate()
+            process.join(10)
+            if process.is_alive():
+                process.kill()
+                process.join(5)
+            result_queue.close()
+            result_queue.join_thread()
+            return self._failed_rtf_result(
+                path,
+                f"{path}: Word COM read timed out after {per_file_timeout_sec:g}s",
+            )
+        try:
+            data = result_queue.get_nowait()
+        except queue.Empty:
+            exit_code = process.exitcode
+            return self._failed_rtf_result(path, f"{path}: isolated Word worker exited without result (exit_code={exit_code})")
+        finally:
+            result_queue.close()
+            result_queue.join_thread()
+        return RtfProcessResult(**data)
 
     def _failed_rtf_result(self, path: Path, message: str) -> RtfProcessResult:
         """Per-file failure: do not write marked/structured outputs (see RtfReadError docstring)."""

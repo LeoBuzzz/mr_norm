@@ -1,0 +1,80 @@
+[
+  {
+    "name": "approved_order_with_heading_and_point",
+    "document": {
+      "source_file": "golden_order.rtf",
+      "filename": "golden_order.txt",
+      "paragraphs": [
+        {
+          "text": "ПРАВИЛА ТЕХНИЧЕСКОЙ ЭКСПЛУАТАЦИИ",
+          "outline_level": 10,
+          "style_name": ""
+        },
+        {
+          "text": "Утверждены Приказом Министерства энергетики Российской Федерации от 12 августа 2022 г. N 811",
+          "outline_level": 10,
+          "style_name": ""
+        },
+        {
+          "text": "Раздел I. Общие положения",
+          "outline_level": 1,
+          "style_name": "Heading 1"
+        },
+        {
+          "text": "1. Настоящие Правила устанавливают требования к эксплуатации.",
+          "outline_level": 10,
+          "style_name": ""
+        }
+      ]
+    },
+    "expected_payload": {
+      "doc_name": "ПРАВИЛА ТЕХНИЧЕСКОЙ ЭКСПЛУАТАЦИИ",
+      "doc_reg_contains": "Приказом Министерства энергетики Российской Федерации",
+      "doc_kind": "приказ",
+      "doc_number": "811",
+      "doc_date": "12 августа 2022",
+      "authority": "Министерство энергетики Российской Федерации",
+      "heading_path_text": "Раздел I. Общие положения",
+      "point_number": "1"
+    }
+  },
+  {
+    "name": "gost_with_approval_order",
+    "document": {
+      "source_file": "golden_gost.rtf",
+      "filename": "ГОСТ 32144-2013.txt",
+      "paragraphs": [
+        {
+          "text": "ГОСТ 32144-2013",
+          "outline_level": 1,
+          "style_name": "Heading 1"
+        },
+        {
+          "text": "Приказом Федерального агентства по техническому регулированию и метрологии от 22 июля 2013 г. N 400-ст",
+          "outline_level": 10,
+          "style_name": ""
+        },
+        {
+          "text": "1. Область применения",
+          "outline_level": 1,
+          "style_name": "Heading 1"
+        },
+        {
+          "text": "1.1 Настоящий стандарт устанавливает требования.",
+          "outline_level": 10,
+          "style_name": ""
+        }
+      ]
+    },
+    "expected_payload": {
+      "doc_name": "ГОСТ 32144-2013",
+      "doc_reg_contains": "400-ст",
+      "doc_kind": "ГОСТ",
+      "doc_number": "32144-2013",
+      "doc_date": "22 июля 2013",
+      "authority": "Федеральное агентство по техническому регулированию и метрологии (Росстандарт)",
+      "heading_path_text": "1. Область применения",
+      "point_number": "1.1"
+    }
+  }
+]

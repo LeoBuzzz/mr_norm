@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from mr_norm.eval.chunk_quality import build_quality_report, chunk_quality_score
+from mr_norm.eval.chunk_quality import (
+    build_quality_report,
+    chunk_quality_penalties,
+    chunk_quality_score,
+    render_quality_markdown,
+)
 from mr_norm.tools.chunker import ChunkBuilder
 from tests.test_marking_payload_quality import make_approved_order_document, make_structured_document
 
@@ -17,6 +22,9 @@ def test_quality_report_counts_payload_and_structure() -> None:
     assert report["structure"]["chunks_without_heading_path_text"] < len(chunks)
     assert report["points"]["chunks_with_point_number"] >= 2
     assert report["worst_chunks"]
+    assert "penalties" in report["worst_chunks"][0]
+    assert report["passes_quality_gate"]
+    assert report["blocking_defects"] == []
 
 
 def test_chunk_quality_score_penalizes_bad_chunk() -> None:
@@ -24,6 +32,12 @@ def test_chunk_quality_score_penalizes_bad_chunk() -> None:
     bad = {"text": "Оборванный:", "payload": {}}
 
     assert chunk_quality_score(good) > chunk_quality_score(bad)
+    assert {item["code"] for item in chunk_quality_penalties(bad)} >= {
+        "missing_doc_name",
+        "missing_heading_path_text",
+        "looks_truncated",
+        "missing_required_payload_keys",
+    }
 
 
 def test_quality_report_scores_document_metadata() -> None:
@@ -37,3 +51,19 @@ def test_quality_report_scores_document_metadata() -> None:
     assert metadata_quality["missing_counts"]["doc_date"] == 0
     assert metadata_quality["missing_counts"]["authority"] == 0
     assert metadata_quality["missing_counts"]["approving_act"] == 0
+
+
+def test_quality_report_records_blocking_defects_and_markdown() -> None:
+    bad = {"chunk_id": "dup", "text": "// Оборванный: \\", "payload": {}}
+
+    report = build_quality_report([bad, bad], run_context={"command": "quality-report", "scope": "test"})
+    markdown = render_quality_markdown(report)
+
+    assert not report["passes_quality_gate"]
+    assert {item["code"] for item in report["blocking_defects"]} >= {
+        "missing_required_payload_keys",
+        "service_markers_in_text",
+        "missing_doc_name",
+    }
+    assert "# Chunk Quality Report" in markdown
+    assert "FAIL" in markdown

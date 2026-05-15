@@ -185,7 +185,20 @@ def test_metadata_is_not_filled_from_filename_when_content_lacks_it() -> None:
 def test_point_number_formats() -> None:
     assert extract_point_number("{3} Требование") == "3"
     assert extract_point_number("3. Требование") == "3"
+    assert extract_point_number("1.1 Настоящий стандарт устанавливает требования") == "1.1"
     assert extract_point_number("пункт 3 должен выполняться") == "3"
+
+
+def test_service_navigation_paragraph_is_skipped() -> None:
+    assert make_paragraph(0, "Переход к Содержанию документа осуществляется по ссылке") is None
+
+
+def test_standard_designation_heading_is_inferred() -> None:
+    paragraph = make_paragraph(0, "СО 34.20.185-94 Инструкция по эксплуатации")
+
+    assert paragraph is not None
+    assert paragraph.is_heading
+    assert paragraph.heading_level == 1
 
 
 def test_pue_fragment_without_body_act_uses_seventh_edition_canonical() -> None:
@@ -243,3 +256,16 @@ def test_chunk_ids_are_stable_for_same_structured_document() -> None:
     second = ChunkBuilder(paths=None).build_document_chunks(document)  # type: ignore[arg-type]
 
     assert [chunk["chunk_id"] for chunk in first] == [chunk["chunk_id"] for chunk in second]
+
+
+def test_same_document_metadata_from_different_sources_has_distinct_ids() -> None:
+    first = make_structured_document()
+    second = make_structured_document()
+    second.source_file = "synthetic_copy.rtf"
+    second.filename = "synthetic_copy.txt"
+
+    first_chunk = ChunkBuilder(paths=None).build_document_chunks(first)[0]  # type: ignore[arg-type]
+    second_chunk = ChunkBuilder(paths=None).build_document_chunks(second)[0]  # type: ignore[arg-type]
+
+    assert first_chunk["payload"]["doc_id"] != second_chunk["payload"]["doc_id"]
+    assert first_chunk["chunk_id"] != second_chunk["chunk_id"]

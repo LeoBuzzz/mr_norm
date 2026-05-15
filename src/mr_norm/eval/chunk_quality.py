@@ -17,7 +17,7 @@ from mr_norm.tools.chunker import (
     normalize_for_hash,
     stable_id,
 )
-from mr_norm.tools.rtf_processor import atomic_write_json
+from mr_norm.tools.rtf_processor import atomic_write_json, atomic_write_text
 
 
 def percentile(values: list[int], pct: float) -> float:
@@ -38,26 +38,41 @@ def looks_truncated(text: str) -> bool:
     return stripped.endswith(":") or stripped.endswith("(") or stripped.endswith(",")
 
 
-def chunk_quality_score(chunk: dict[str, Any]) -> int:
+def chunk_quality_penalties(chunk: dict[str, Any]) -> list[dict[str, Any]]:
     payload = chunk.get("payload") or {}
     text = chunk.get("text") or ""
-    score = 100
+    penalties: list[dict[str, Any]] = []
     if not payload.get("doc_name"):
-        score -= 25
+        penalties.append({"code": "missing_doc_name", "points": 25, "stage": "metadata_extraction"})
     if not payload.get("heading_path_text"):
-        score -= 20
+        penalties.append({"code": "missing_heading_path_text", "points": 20, "stage": "heading_parsing"})
     if len(text.strip()) < 20:
-        score -= 20
+        penalties.append({"code": "empty_or_tiny_text", "points": 20, "stage": "chunk_splitting"})
     if has_service_markers(text):
-        score -= 15
+        penalties.append({"code": "service_markers_in_text", "points": 15, "stage": "rtf_processing"})
     if looks_truncated(text):
-        score -= 15
+        penalties.append({"code": "looks_truncated", "points": 15, "stage": "chunk_splitting"})
     if not payload.get("point_number") and has_point_structure(chunk):
-        score -= 10
+        penalties.append({"code": "missing_point_number", "points": 10, "stage": "point_parsing"})
     if len(text) > 1800:
-        score -= 10
-    if missing_payload_keys(chunk):
-        score -= 20
+        penalties.append({"code": "text_over_target", "points": 10, "stage": "chunk_splitting"})
+    missing_keys = sorted(missing_payload_keys(chunk))
+    if missing_keys:
+        penalties.append(
+            {
+                "code": "missing_required_payload_keys",
+                "points": 20,
+                "stage": "payload_compatibility",
+                "keys": missing_keys,
+            }
+        )
+    return penalties
+
+
+def chunk_quality_score(chunk: dict[str, Any]) -> int:
+    score = 100
+    for penalty in chunk_quality_penalties(chunk):
+        score -= int(penalty["points"])
     return max(0, score)
 
 
@@ -70,19 +85,29 @@ def has_point_structure(chunk: dict[str, Any]) -> bool:
 class ChunkQualityReporter:
     paths: ProjectPaths
 
-    def report(self, chunks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    def report(
+        self,
+        chunks: list[dict[str, Any]] | None = None,
+        run_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         if chunks is None:
             chunks = load_chunks(self.paths.chunks_json)
-        report = build_quality_report(chunks)
+        report = build_quality_report(chunks, run_context=run_context)
         self.paths.ensure_output_dirs()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         path = self.paths.reports_dir / f"chunk_quality_{timestamp}.json"
         atomic_write_json(path, report)
         report["report_path"] = str(path)
+        markdown_path = self.paths.reports_dir / f"chunk_quality_{timestamp}.md"
+        atomic_write_text(markdown_path, render_quality_markdown(report))
+        report["markdown_report_path"] = str(markdown_path)
         return report
 
 
-def build_quality_report(chunks: list[dict[str, Any]]) -> dict[str, Any]:
+def build_quality_report(
+    chunks: list[dict[str, Any]],
+    run_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     payloads = [chunk.get("payload") or {} for chunk in chunks]
     filenames = [payload.get("filename", "") for payload in payloads]
     docs = sorted(set(name for name in filenames if name))
@@ -92,8 +117,11 @@ def build_quality_report(chunks: list[dict[str, Any]]) -> dict[str, Any]:
     score_rows = [
         {
             "score": chunk_quality_score(chunk),
+            "penalties": chunk_quality_penalties(chunk),
             "chunk_id": chunk.get("chunk_id"),
             "filename": (chunk.get("payload") or {}).get("filename"),
+            "doc_name": (chunk.get("payload") or {}).get("doc_name"),
+            "heading_path_text": (chunk.get("payload") or {}).get("heading_path_text"),
             "point_number": (chunk.get("payload") or {}).get("point_number"),
             "text_preview": (chunk.get("text") or "")[:240],
         }
@@ -109,10 +137,15 @@ def build_quality_report(chunks: list[dict[str, Any]]) -> dict[str, Any]:
         for payload in payloads
         if payload.get("filename") and payload.get("doc_id")
     }
-    point_ids = [payload.get("point_id") for payload in payloads if payload.get("point_id")]
+    point_ids = [
+        payload.get("point_id")
+        for payload in payloads
+        if payload.get("point_id") and not payload.get("is_split")
+    ]
     doc_metadata = build_document_metadata_quality(payloads)
-    return {
+    report = {
         "schema_version": "mr_chunk_quality_v1",
+        "run_context": run_context or {},
         "documents": {
             "documents_total": len(docs),
             "documents_processed_ok": len(docs),
@@ -157,9 +190,73 @@ def build_quality_report(chunks: list[dict[str, Any]]) -> dict[str, Any]:
             "required_payload_keys_coverage": 1.0 if not chunks else (len(chunks) - missing_key_chunks) / len(chunks),
             "empty_text_chunks": sum(1 for chunk in chunks if not (chunk.get("text") or "").strip()),
             "stable_chunk_ids_unique": len(set(chunk.get("chunk_id") for chunk in chunks)) == len(chunks),
+            "duplicate_chunk_ids": duplicates([str(chunk.get("chunk_id") or "") for chunk in chunks]),
         },
         "worst_chunks": score_rows[:20],
     }
+    report["blocking_defects"] = build_blocking_defects(report)
+    report["passes_quality_gate"] = not report["blocking_defects"]
+    return report
+
+
+def build_run_context(
+    *,
+    command: str,
+    paths: ProjectPaths,
+    scope: str,
+    input_paths: list[Path] | None = None,
+    baseline_path: Path | None = None,
+    elapsed_sec: float | None = None,
+) -> dict[str, Any]:
+    return {
+        "command": command,
+        "scope": scope,
+        "project_root": str(paths.root),
+        "input_dir": str(paths.input_dir),
+        "chunks_json": str(paths.chunks_json),
+        "baseline_chunks_json": str(baseline_path or paths.baseline_chunks_json),
+        "input_paths": [str(path) for path in input_paths] if input_paths is not None else None,
+        "elapsed_sec": round(elapsed_sec, 3) if elapsed_sec is not None else None,
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def build_blocking_defects(report: dict[str, Any]) -> list[dict[str, Any]]:
+    defects: list[dict[str, Any]] = []
+    documents = report["documents"]
+    structure = report["structure"]
+    chunks = report["chunks"]
+    retrieval = report["retrieval_readiness"]
+    points = report["points"]
+    if documents["documents_total"] == 0:
+        defects.append({"code": "no_documents_processed", "stage": "rtf_processing", "count": 1})
+    if retrieval["chunks_missing_required_payload_keys"]:
+        defects.append(
+            {
+                "code": "missing_required_payload_keys",
+                "stage": "payload_compatibility",
+                "count": retrieval["chunks_missing_required_payload_keys"],
+            }
+        )
+    if retrieval["empty_text_chunks"]:
+        defects.append({"code": "empty_text_chunks", "stage": "chunk_splitting", "count": retrieval["empty_text_chunks"]})
+    if not retrieval["stable_chunk_ids_unique"]:
+        defects.append({"code": "duplicate_chunk_ids", "stage": "chunk_splitting", "count": retrieval["duplicate_chunk_ids"]})
+    if chunks["chunks_with_service_markers"]:
+        defects.append({"code": "service_markers_in_text", "stage": "rtf_processing", "count": chunks["chunks_with_service_markers"]})
+    if documents["chunks_without_doc_name"]:
+        defects.append({"code": "missing_doc_name", "stage": "metadata_extraction", "count": documents["chunks_without_doc_name"]})
+    if structure["chunks_without_heading_path_text"]:
+        defects.append(
+            {
+                "code": "missing_heading_path_text",
+                "stage": "heading_parsing",
+                "count": structure["chunks_without_heading_path_text"],
+            }
+        )
+    if points["duplicate_point_ids"]:
+        defects.append({"code": "duplicate_point_ids", "stage": "point_parsing", "count": points["duplicate_point_ids"]})
+    return defects
 
 
 def build_document_metadata_quality(payloads: list[dict[str, Any]]) -> dict[str, Any]:
@@ -226,10 +323,16 @@ def duplicates(values: list[str]) -> int:
 
 
 def compare_quality(new_chunks: list[dict[str, Any]], baseline_chunks: list[dict[str, Any]]) -> dict[str, Any]:
+    baseline_scope = baseline_scope_info(new_chunks, baseline_chunks)
     baseline_chunks = filter_baseline_to_new_filenames(new_chunks, baseline_chunks)
     new_report = build_quality_report(new_chunks)
     baseline_report = build_quality_report(normalize_baseline_chunks(baseline_chunks))
     comparisons = {
+        "documents_total": compare_number(
+            new_report["documents"]["documents_total"],
+            baseline_report["documents"]["documents_total"],
+            higher_is_better=True,
+        ),
         "chunks_total": compare_number(
             new_report["chunks"]["chunks_total"],
             baseline_report["chunks"]["chunks_total"],
@@ -287,13 +390,46 @@ def compare_quality(new_chunks: list[dict[str, Any]], baseline_chunks: list[dict
             higher_is_better=False,
         ),
     }
+    blocking_defects = build_comparison_blocking_defects(new_report, comparisons, baseline_scope)
     return {
         "schema_version": "mr_baseline_comparison_v1",
+        "baseline_scope": baseline_scope,
         "new": new_report,
         "baseline": baseline_report,
         "comparisons": comparisons,
-        "passes": all(row["passes"] for row in comparisons.values() if row.get("gate", True))
-        and new_report["retrieval_readiness"]["chunks_missing_required_payload_keys"] == 0,
+        "blocking_defects": blocking_defects,
+        "passes": not blocking_defects,
+    }
+
+
+def baseline_scope_info(
+    new_chunks: list[dict[str, Any]],
+    baseline_chunks: list[dict[str, Any]],
+) -> dict[str, Any]:
+    new_filenames = sorted(
+        {
+            (chunk.get("payload") or {}).get("filename")
+            for chunk in new_chunks
+            if (chunk.get("payload") or {}).get("filename")
+        }
+    )
+    baseline_filenames = sorted(
+        {
+            (chunk.get("payload") or {}).get("filename")
+            for chunk in baseline_chunks
+            if (chunk.get("payload") or {}).get("filename")
+        }
+    )
+    matched_filenames = sorted(set(new_filenames) & set(baseline_filenames))
+    extra_new_filenames = sorted(set(new_filenames) - set(baseline_filenames))
+    missing_in_new = sorted(set(baseline_filenames) - set(new_filenames))
+    return {
+        "new_filenames": new_filenames,
+        "baseline_filenames_total": len(baseline_filenames),
+        "matched_filenames": matched_filenames,
+        "extra_new_filenames": extra_new_filenames,
+        "missing_in_new": missing_in_new,
+        "same_document_scope": bool(new_filenames) and bool(matched_filenames) and not missing_in_new,
     }
 
 
@@ -311,7 +447,7 @@ def filter_baseline_to_new_filenames(
     filtered = [
         chunk for chunk in baseline_chunks if (chunk.get("payload") or {}).get("filename") in new_filenames
     ]
-    return filtered or baseline_chunks
+    return filtered
 
 
 def normalize_baseline_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -348,13 +484,148 @@ def compare_number(
     }
 
 
+def build_comparison_blocking_defects(
+    new_report: dict[str, Any],
+    comparisons: dict[str, dict[str, Any]],
+    baseline_scope: dict[str, Any],
+) -> list[dict[str, Any]]:
+    defects = list(new_report.get("blocking_defects") or [])
+    for metric, row in comparisons.items():
+        if row.get("gate", True) and not row["passes"]:
+            defects.append(
+                {
+                    "code": f"baseline_metric_failed:{metric}",
+                    "stage": "baseline_comparison",
+                    "new": row["new"],
+                    "baseline": row["baseline"],
+                }
+            )
+    if baseline_scope["new_filenames"] and not baseline_scope["matched_filenames"]:
+        defects.append(
+            {
+                "code": "baseline_scope_mismatch",
+                "stage": "baseline_comparison",
+                "extra_new_filenames": baseline_scope["extra_new_filenames"],
+                "missing_in_new": baseline_scope["missing_in_new"],
+            }
+        )
+    elif baseline_scope["missing_in_new"]:
+        defects.append(
+            {
+                "code": "baseline_documents_missing_in_new",
+                "stage": "baseline_comparison",
+                "missing_in_new": baseline_scope["missing_in_new"],
+            }
+        )
+    return defects
+
+
 def save_baseline_comparison(paths: ProjectPaths, baseline_path: Path | None = None) -> dict[str, Any]:
     baseline = baseline_path or paths.baseline_chunks_json
     new_chunks = load_chunks(paths.chunks_json)
-    baseline_chunks = load_chunks(baseline)
-    result = compare_quality(new_chunks, baseline_chunks)
+    if baseline.exists():
+        baseline_chunks = load_chunks(baseline)
+        result = compare_quality(new_chunks, baseline_chunks)
+    else:
+        new_report = build_quality_report(new_chunks)
+        result = {
+            "schema_version": "mr_baseline_comparison_v1",
+            "baseline_scope": {
+                "new_filenames": sorted(
+                    {
+                        (chunk.get("payload") or {}).get("filename")
+                        for chunk in new_chunks
+                        if (chunk.get("payload") or {}).get("filename")
+                    }
+                ),
+                "baseline_filenames_total": 0,
+                "matched_filenames": [],
+                "extra_new_filenames": [],
+                "missing_in_new": [],
+                "same_document_scope": False,
+            },
+            "new": new_report,
+            "baseline": {},
+            "comparisons": {},
+            "blocking_defects": [
+                {
+                    "code": "baseline_chunks_json_missing",
+                    "stage": "baseline_comparison",
+                    "path": str(baseline),
+                }
+            ],
+            "passes": False,
+        }
+    result["run_context"] = build_run_context(
+        command="compare-baseline",
+        paths=paths,
+        scope="existing-output",
+        baseline_path=baseline,
+    )
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     report_path = paths.reports_dir / f"baseline_comparison_{timestamp}.json"
     atomic_write_json(report_path, result)
     result["report_path"] = str(report_path)
+    markdown_path = paths.reports_dir / f"baseline_comparison_{timestamp}.md"
+    atomic_write_text(markdown_path, render_comparison_markdown(result))
+    result["markdown_report_path"] = str(markdown_path)
     return result
+
+
+def render_quality_markdown(report: dict[str, Any]) -> str:
+    ctx = report.get("run_context") or {}
+    lines = [
+        "# Chunk Quality Report",
+        "",
+        f"- Status: {'PASS' if report.get('passes_quality_gate') else 'FAIL'}",
+        f"- Scope: {ctx.get('scope', '')}",
+        f"- Command: {ctx.get('command', '')}",
+        f"- Chunks: {report['chunks']['chunks_total']}",
+        f"- Documents: {report['documents']['documents_total']}",
+        f"- Required payload coverage: {report['retrieval_readiness']['required_payload_keys_coverage']:.4f}",
+        "",
+        "## Blocking Defects",
+        "",
+    ]
+    defects = report.get("blocking_defects") or []
+    if defects:
+        lines.extend(f"- `{item['code']}` ({item['stage']}): {item.get('count', '')}" for item in defects)
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Worst Chunks", ""])
+    for item in report.get("worst_chunks", [])[:20]:
+        penalties = ", ".join(p["code"] for p in item.get("penalties", [])) or "none"
+        lines.append(
+            f"- score={item['score']} chunk_id=`{item.get('chunk_id')}` file=`{item.get('filename')}` "
+            f"point=`{item.get('point_number')}` penalties={penalties}"
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_comparison_markdown(result: dict[str, Any]) -> str:
+    lines = [
+        "# Baseline Comparison Report",
+        "",
+        f"- Status: {'PASS' if result.get('passes') else 'FAIL'}",
+        f"- Same document scope: {result.get('baseline_scope', {}).get('same_document_scope')}",
+        "",
+        "## Metrics",
+        "",
+        "| Metric | New | Baseline | Delta Better | Pass |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for metric, row in result.get("comparisons", {}).items():
+        lines.append(
+            f"| `{metric}` | {row['new']} | {row['baseline']} | {row['delta_in_better_direction']} | {row['passes']} |"
+        )
+    lines.extend(["", "## Blocking Defects", ""])
+    defects = result.get("blocking_defects") or []
+    if defects:
+        lines.extend(f"- `{item['code']}` ({item['stage']})" for item in defects)
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Worst New Chunks", ""])
+    for item in result.get("new", {}).get("worst_chunks", [])[:20]:
+        penalties = ", ".join(p["code"] for p in item.get("penalties", [])) or "none"
+        lines.append(f"- score={item['score']} chunk_id=`{item.get('chunk_id')}` penalties={penalties}")
+    return "\n".join(lines).rstrip() + "\n"

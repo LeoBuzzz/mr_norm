@@ -84,8 +84,11 @@ mr_norm/
    - Подготовить адаптер Qdrant.
    - Разнести payload schema и embedding config.
    - Проверить, что новый `qdrant_chunks.json` пригоден для vector, payload и point lookup.
+   - Зафиксировать ожидаемые Qdrant payload indexes как контракт коллекции, а не только как наличие полей в payload.
 
 4. **Этап 4: Retrieval tools**
+   - Перед live-поиском выполнить remediation коллекции: `index-schema-verify` -> `index-ensure-payload-indexes` -> повторный `index-schema-verify`.
+   - Считать live collection готовой только если фактическая `payload_schema` содержит все индексы, требуемые retrieval tools.
    - Реализовать независимые tools: `vector`, `payload`, `point`, позднее `graph`, аналогичные текущим tool-id из `rag_norm/llm_data_stores_and_retrieval.json`.
    - У каждого tool должен быть единый контракт запроса, ответа, trace и метрик.
    - Покрыть tools contract tests: входной DTO -> результаты -> trace -> ошибки.
@@ -138,6 +141,7 @@ ToolResult:
 
 - unit tests для нормализации запроса, фильтров и парсинга `point_number`;
 - contract tests для каждого tool на маленьком fixture `qdrant_chunks.json`;
+- contract tests для Qdrant collection schema: expected payload indexes -> live/fake `payload_schema` -> missing/wrong/pass report;
 - mocked Qdrant tests для `vector` и `payload`, чтобы не требовать живую БД в обычном pytest;
 - fixture graph snapshot для `graph`, включая ambiguous abbreviation и fallback без LLM;
 - trace tests: каждый tool возвращает используемые filters, лимиты, latency и причину пустого результата.

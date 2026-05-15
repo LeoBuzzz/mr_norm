@@ -11,7 +11,12 @@ from typing import Any
 from mr_norm.config.paths import ProjectPaths
 from mr_norm.tools.chunker_document_menu import internal_doc_kind_to_payload_label, resolve_payload_authority
 from mr_norm.tools.metadata_manifest import MetadataManifestEntry, write_metadata_manifest
-from mr_norm.tools.rtf_processor import atomic_write_json, extract_point_number
+from mr_norm.tools.rtf_processor import (
+    atomic_write_json,
+    extract_point_number,
+    infer_heading_level,
+    should_skip_paragraph,
+)
 from mr_norm.tools.schema import SCHEMA_VERSION, ParagraphRecord, StructuredDocument
 
 
@@ -404,7 +409,7 @@ class ChunkBuilder:
     def build_all(self, structured_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         self.manifest_pue = []
         self.manifest_other = []
-        paths = structured_paths or sorted(self.paths.marked_docs_dir.glob("*.structured.json"))
+        paths = structured_paths if structured_paths is not None else sorted(self.paths.marked_docs_dir.glob("*.structured.json"))
         chunks: list[dict[str, Any]] = []
         for path in paths:
             document = StructuredDocument.from_json_path(path)
@@ -452,7 +457,8 @@ class ChunkBuilder:
             metadata, _, _ = extract_metadata(document)
             validate_chunk_metadata(metadata, document.source_file or document.filename)
         doc_identity = metadata["doc_name"] or document.source_file or document.filename
-        doc_id = stable_id("doc", doc_identity, metadata["doc_reg"])
+        doc_source_identity = document.source_file or document.filename
+        doc_id = stable_id("doc", doc_identity, metadata["doc_reg"], doc_source_identity)
         units = self._make_units(document)
         chunks: list[dict[str, Any]] = []
         for chunk_index, unit in enumerate(units):
@@ -488,9 +494,16 @@ class ChunkBuilder:
             current_point = ""
 
         for paragraph in document.paragraphs:
-            if paragraph.is_heading:
+            if should_skip_paragraph(paragraph.text):
+                continue
+            inferred_heading_level = infer_heading_level(
+                paragraph.text,
+                paragraph.outline_level,
+                paragraph.style_name,
+            )
+            if paragraph.is_heading or inferred_heading_level is not None:
                 flush()
-                level = int(paragraph.heading_level or 1)
+                level = int(paragraph.heading_level or inferred_heading_level or 1)
                 while heading_stack and heading_stack[-1][0] >= level:
                     heading_stack.pop()
                 heading_stack.append((level, clean_marker_text(paragraph.text)))
