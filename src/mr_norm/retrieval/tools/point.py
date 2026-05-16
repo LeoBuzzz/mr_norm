@@ -26,7 +26,7 @@ def run_point_tool(
     client = client or QdrantRetrievalClient(config)
     point_filters, warnings = select_point_filters(request.filters)
     filter_spec = build_filter_spec(point_filters)
-    if point_filters:
+    if point_filters and is_point_lookup_filters(point_filters):
         items = client.payload_search(filter_spec, limit=clamp_limit(request.limit), source_tool="point")
     else:
         items: list[RetrievedItem] = []
@@ -48,6 +48,12 @@ def run_point_tool(
     )
 
 
+def is_point_lookup_filters(filters: dict[str, Any]) -> bool:
+    if filters.get("chunk_id") or filters.get("point_identity_key"):
+        return True
+    return bool(filters.get("point_number") or filters.get("heading_path_text"))
+
+
 def select_point_filters(filters: dict[str, Any] | None) -> tuple[dict[str, Any], list[str]]:
     source = filters or {}
     warnings: list[str] = []
@@ -61,8 +67,11 @@ def select_point_filters(filters: dict[str, Any] | None) -> tuple[dict[str, Any]
             selected[key] = doc_name_variants(source[key]) if key == "doc_name" else source[key]
     if not selected:
         warnings.append("point tool requires chunk_id, point_identity_key, or document point filters")
-    elif not selected.get("point_number") and not selected.get("heading_path_text"):
-        warnings.append("point tool is document-scoped but has no point_number or heading_path_text")
+    elif not is_point_lookup_filters(selected):
+        warnings.append(
+            "point tool requires point_number, heading_path_text, chunk_id, or point_identity_key; "
+            "document-only filters are not supported"
+        )
     return selected, warnings
 
 

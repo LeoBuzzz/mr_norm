@@ -17,7 +17,12 @@ from mr_norm.indexing.qdrant_adapter import (
     save_index_verify_report,
     verify_qdrant_payload_indexes,
 )
-from mr_norm.retrieval.compare import run_retrieval_compare, save_retrieval_compare_report
+from mr_norm.retrieval.compare import (
+    run_retrieval_compare,
+    run_retrieval_compare_batch,
+    save_retrieval_compare_batch_report,
+    save_retrieval_compare_report,
+)
 from mr_norm.retrieval.contracts import ToolRequest
 from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool
@@ -101,6 +106,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     retrieval_compare.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
 
+    retrieval_compare_batch = sub.add_parser(
+        "retrieval-compare-batch",
+        help="Compare deterministic retrieval pipelines for a JSON question set.",
+    )
+    retrieval_compare_batch.add_argument(
+        "--questions",
+        type=Path,
+        default=None,
+        help="Path to retrieval questions JSON. Defaults to tests/fixtures/retrieval_questions.json.",
+    )
+    retrieval_compare_batch.add_argument(
+        "--pipelines",
+        default="point,payload,vector,hybrid",
+        help="Comma-separated pipelines: point,payload,vector,hybrid.",
+    )
+    retrieval_compare_batch.add_argument("--limit", type=int, default=5)
+    retrieval_compare_batch.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
+    retrieval_compare_batch.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+
     return parser
 
 
@@ -179,6 +203,17 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.save_report:
                 result = save_retrieval_compare_report(result, paths.reports_dir)
+        elif args.command == "retrieval-compare-batch":
+            questions_path = resolve_questions_path(paths, args.questions)
+            result = run_retrieval_compare_batch(
+                load_retrieval_questions(questions_path),
+                resolve_indexing_config(args),
+                pipelines=args.pipelines,
+                limit=args.limit,
+            )
+            result["questions_path"] = str(questions_path)
+            if args.save_report:
+                result = save_retrieval_compare_batch_report(result, paths.reports_dir)
         else:
             raise ValueError(f"Unsupported command: {args.command}")
     except (RtfReadError, MetadataExtractionError) as exc:
@@ -230,6 +265,20 @@ def build_tool_request(args: argparse.Namespace) -> ToolRequest:
         profile=args.profile,
         trace_id=args.trace_id,
     )
+
+
+def resolve_questions_path(paths: ProjectPaths, questions_path: Path | None) -> Path:
+    path = questions_path or paths.root / "tests" / "fixtures" / "retrieval_questions.json"
+    if not path.is_absolute():
+        path = paths.root / path
+    return path
+
+
+def load_retrieval_questions(path: Path) -> list[dict[str, Any]]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, list):
+        raise ValueError("retrieval questions file must contain a JSON array")
+    return data
 
 
 def run_ingest(

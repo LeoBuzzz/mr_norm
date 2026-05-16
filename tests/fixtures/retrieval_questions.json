@@ -1,0 +1,89 @@
+[
+  {
+    "id": "pue_grounding_requirements",
+    "query": "требования к заземлению",
+    "filters": {
+      "doc_name": "Правила устройства электроустановок"
+    },
+    "limit": 5,
+    "expected": {
+      "doc_name": "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",
+      "point_number": "1.7.1",
+      "chunk_id": "chunk_035583de36ba207b"
+    },
+    "manual_judgement": {
+      "relevant": true,
+      "best_pipeline": "payload",
+      "notes": "Payload finds chapter 1.7 intro; point tool skips document-only filters."
+    }
+  },
+  {
+    "id": "pue_insulation_pollution",
+    "query": "изоляция в районах загрязнения",
+    "filters": {
+      "doc_name": "Правила устройства электроустановок"
+    },
+    "limit": 5,
+    "expected": {
+      "doc_name": "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",
+      "point_number": "1.9.28",
+      "chunk_id": "chunk_e2e5daaf63fce629"
+    },
+    "manual_judgement": {
+      "relevant": true,
+      "best_pipeline": "payload",
+      "notes": "Payload matches 1.9.28; point requires point_number and is not used for doc-only filters."
+    }
+  },
+  {
+    "id": "general_fire_safety_requirements",
+    "query": "требования пожарной безопасности",
+    "filters": {},
+    "limit": 5,
+    "expected": {
+      "doc_name": "Об утверждении Правил противопожарного режима в Российской Федерации",
+      "point_number": "1",
+      "chunk_id": "chunk_7d14e952328e557a"
+    },
+    "manual_judgement": {
+      "relevant": true,
+      "best_pipeline": "vector",
+      "notes": "Cross-document query; vector top-2 includes general point 1, payload top is nearby section 392."
+    }
+  },
+  {
+    "id": "pue_point_lookup_1_7_1",
+    "query": "",
+    "filters": {
+      "doc_name": "Правила устройства электроустановок",
+      "point_number": "1.7.1"
+    },
+    "limit": 3,
+    "expected": {
+      "doc_name": "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",
+      "point_number": "1.7.1",
+      "chunk_id": "chunk_035583de36ba207b"
+    },
+    "manual_judgement": {
+      "relevant": true,
+      "best_pipeline": "point",
+      "notes": "Deterministic point lookup benchmark with doc_name + point_number filters."
+    }
+  },
+  {
+    "id": "pue_grounding_vector_unscoped",
+    "query": "требования к заземлению электроустановок",
+    "filters": {},
+    "limit": 5,
+    "expected": {
+      "doc_name": "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",
+      "point_number": "",
+      "chunk_id": ""
+    },
+    "manual_judgement": {
+      "relevant": null,
+      "best_pipeline": "",
+      "notes": "Unscoped vector benchmark; fill exact point/chunk after doc_name variant fix is verified."
+    }
+  }
+]

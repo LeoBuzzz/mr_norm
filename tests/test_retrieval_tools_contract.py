@@ -111,6 +111,18 @@ def test_payload_tool_expands_doc_name_variants_for_exact_filters() -> None:
     } in payload["trace"]["qdrant_filter"]["must"]
 
 
+def test_point_tool_rejects_document_only_filters_without_qdrant_call() -> None:
+    client = FakePayloadClient()
+    request = ToolRequest(filters={"doc_name": "Правила устройства электроустановок"}, limit=5)
+
+    result = run_point_tool(request, IndexingConfig(collection_name="test_collection"), client=client)
+    payload = result.to_dict()
+
+    assert client.calls == 0
+    assert payload["items"] == []
+    assert "document-only filters are not supported" in payload["warnings"][0]
+
+
 def test_point_tool_prefers_stable_identity_filters() -> None:
     assert select_point_filters({"chunk_id": "chunk_1", "point_identity_key": "point_key"}) == (
         {"chunk_id": "chunk_1"},
@@ -183,6 +195,33 @@ def test_vector_tool_contract_uses_embedder_vector_and_payload_filters() -> None
     assert payload["trace"]["tool_name"] == "vector"
     assert payload["trace"]["vector_name"] == "bge-m3"
     assert payload["items"][0]["score"] == 0.91
+
+
+def test_vector_tool_expands_doc_name_variants_for_filters() -> None:
+    client = FakeVectorClient()
+    embedder = FakeEmbedder()
+    request = ToolRequest(
+        query="требования к заземлению",
+        filters={"doc_name": "Правила устройства электроустановок"},
+        limit=3,
+    )
+
+    result = run_vector_tool(
+        request,
+        IndexingConfig(collection_name="test_collection"),
+        client=client,
+        embedder=embedder,
+    )
+    payload = result.to_dict()
+
+    assert payload["trace"]["normalized_filters"] == {
+        "doc_name": ["Правила устройства электроустановок", "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"],
+    }
+    assert {
+        "field": "doc_name",
+        "kind": "keyword",
+        "any": ["Правила устройства электроустановок", "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"],
+    } in payload["trace"]["qdrant_filter"]["must"]
 
 
 def test_stage_four_expected_payload_indexes_include_point_and_heading_fields() -> None:

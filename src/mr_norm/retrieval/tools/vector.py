@@ -5,7 +5,7 @@ from typing import Protocol
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.indexing.qdrant_adapter import SentenceTransformerEmbedder
 from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest, ToolResult, clamp_limit
-from mr_norm.retrieval.filters import build_filter_spec
+from mr_norm.retrieval.filters import build_filter_spec, expand_doc_name_filter_variants
 from mr_norm.retrieval.qdrant_adapter import QdrantRetrievalClient
 from mr_norm.retrieval.tools.common import build_result, start_timer
 
@@ -38,7 +38,8 @@ def run_vector_tool(
     config = config or IndexingConfig.from_env()
     client = client or QdrantRetrievalClient(config)
     embedder = embedder or SentenceTransformerEmbedder(config)
-    filter_spec = build_filter_spec(request.filters)
+    expanded_filters = expand_doc_name_filter_variants(request.filters)
+    filter_spec = build_filter_spec(expanded_filters)
     warnings = []
     query = request.query.strip()
     if not query:
@@ -49,7 +50,13 @@ def run_vector_tool(
         items = client.vector_search(vector, filter_spec, limit=clamp_limit(request.limit), source_tool="vector")
     return build_result(
         tool_name="vector",
-        request=request,
+        request=ToolRequest(
+            query=request.query,
+            filters=expanded_filters,
+            limit=request.limit,
+            profile=request.profile,
+            trace_id=request.trace_id,
+        ),
         config=config,
         filter_spec=filter_spec,
         items=items,
