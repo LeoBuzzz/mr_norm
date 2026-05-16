@@ -181,15 +181,46 @@ def primary_exact_phrase(phrases: tuple[str, ...] | list[str]) -> str:
     return pruned[0] if pruned else ""
 
 
+COMMON_PHRASE_FILLERS = frozenset(
+    {
+        "правила",
+        "технической",
+        "эксплуатации",
+        "электрических",
+        "электроустановок",
+        "электроэнергетике",
+        "требования",
+        "порядок",
+        "станций",
+        "сетей",
+        "работы",
+        "меры",
+    }
+)
+
+MAX_REQUIRED_TOKENS = 3
+
+
 def phrase_required_tokens(phrase: str) -> tuple[str, ...]:
     phrase_norm = normalize_catalog_text(phrase)
-    words = [token for token in phrase_norm.split() if len(token) >= 3]
+    words = [token for token in phrase_norm.split() if len(token) >= 4]
+    if len(words) > 5:
+        distinctive = [token for token in words if token not in COMMON_PHRASE_FILLERS]
+        if len(distinctive) >= 2:
+            return tuple(distinctive[:MAX_REQUIRED_TOKENS])
+        return ()
+
+    distinctive = [token for token in words if token not in COMMON_PHRASE_FILLERS]
+    if len(distinctive) >= 2:
+        return tuple(distinctive[:MAX_REQUIRED_TOKENS])
+
     if len(words) >= 2:
-        return tuple(words)
+        return tuple(words[:MAX_REQUIRED_TOKENS])
+
     tokens = _significant_phrase_tokens(phrase_norm)
     if len(tokens) >= 2:
-        return tuple(tokens)
-    if phrase_norm:
+        return tuple(tokens[:MAX_REQUIRED_TOKENS])
+    if phrase_norm and len(phrase_norm) >= 8:
         return (phrase_norm,)
     return ()
 

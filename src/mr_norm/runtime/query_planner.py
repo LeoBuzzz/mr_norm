@@ -112,6 +112,22 @@ def _topic_alias_ambiguous(candidates: list[dict[str, Any]], term_matches: Query
     return scores[0] - scores[1] < AMBIGUITY_SCORE_GAP
 
 
+def _should_skip_title_phrase_doc_filter(
+    term_matches: QueryTermMatches,
+    resolved_doc_names: list[str],
+) -> bool:
+    if not resolved_doc_names or not term_matches.exact_phrase_terms:
+        return False
+    primary = primary_exact_phrase(term_matches.exact_phrase_terms)
+    if not primary:
+        return False
+    resolved_norm = normalize_catalog_text(resolved_doc_names[0])
+    primary_norm = normalize_catalog_text(primary)
+    if len(primary_norm.split()) < 4:
+        return False
+    return primary_norm in resolved_norm or resolved_norm in primary_norm
+
+
 def _should_skip_topic_alias_doc_filter(
     candidates: list[dict[str, Any]],
     term_matches: QueryTermMatches,
@@ -631,7 +647,13 @@ def prepare_query(
                 resolved_doc_names = []
                 ambiguous = True
         explicit_doc_hint = _query_mentions_pue(original_query) or bool(term_matches.document_hints)
-        if resolved_doc_names and (
+        if resolved_doc_names and _should_skip_title_phrase_doc_filter(term_matches, resolved_doc_names):
+            warnings.append(
+                "resolved document title equals query phrase; doc_name filter not applied"
+            )
+            resolved_doc_names = []
+            ambiguous = True
+        elif resolved_doc_names and (
             (
                 _topic_alias_ambiguous(candidates, term_matches)
                 and not (enable_pue_aliases and explicit_doc_hint)

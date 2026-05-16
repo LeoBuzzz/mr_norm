@@ -21,6 +21,13 @@ def test_prune_exact_phrases_prefers_longest_composite() -> None:
     assert "наведенное" not in pruned
 
 
+def test_phrase_required_tokens_caps_long_document_titles() -> None:
+    tokens = phrase_required_tokens(
+        "Правила технической эксплуатации электрических станций и сетей"
+    )
+    assert len(tokens) <= 3
+
+
 def test_primary_exact_phrase_for_induced_voltage_query() -> None:
     knowledge = load_sample_knowledge()
     matches = match_query_terms("Какое наведенное напряжение безопасно?", knowledge)
