@@ -26,7 +26,12 @@ def run_payload_tool(
     config = config or IndexingConfig.from_env()
     client = client or QdrantRetrievalClient(config)
     expanded_filters = expand_doc_name_filter_variants(request.filters)
-    filter_spec = build_payload_filter_spec(request.query, expanded_filters, search_fields=search_fields)
+    filter_spec = build_payload_filter_spec(
+        request.query,
+        expanded_filters,
+        search_fields=search_fields,
+        required_tokens=request.required_tokens,
+    )
     warnings = []
     if not request.query.strip() and not filter_spec.get("must"):
         warnings.append("payload tool received no query or filters")

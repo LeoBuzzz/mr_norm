@@ -50,6 +50,7 @@ def _plan_from_prepared(request: RuntimeRequest, profile: ProfileConfig) -> tupl
                     limit=limit,
                     profile=profile.name,
                     trace_id=request.trace_id,
+                    required_tokens=entry.required_tokens,
                 ),
                 reason=f"prepared query plan selected {entry.tool_name}",
                 priority=priority,

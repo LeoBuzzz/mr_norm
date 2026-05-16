@@ -117,6 +117,7 @@ def run_runtime(
                     limit=step.request.limit,
                     profile=step.request.profile,
                     trace_id=step.request.trace_id,
+                    required_tokens=step.request.required_tokens,
                 )
                 per_query_results.append(runner(tool_request, config))
             result = _merge_tool_results(

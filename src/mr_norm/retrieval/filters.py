@@ -73,6 +73,7 @@ def build_payload_filter_spec(
     filters: dict[str, Any] | None,
     *,
     search_fields: list[str] | None = None,
+    required_tokens: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
     spec = build_filter_spec(filters)
     query_text = (query or "").strip()
@@ -83,6 +84,12 @@ def build_payload_filter_spec(
             for field in fields
             if field in SUPPORTED_FILTER_FIELDS
         ]
+    tokens = [str(token).strip() for token in (required_tokens or ()) if str(token).strip()]
+    if tokens:
+        must = list(spec.get("must") or [])
+        for token in tokens:
+            must.append({"field": "text", "kind": "text", "value": token})
+        spec["must"] = must
     return spec
 
 

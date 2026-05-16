@@ -11,6 +11,7 @@ class ToolRequest:
     limit: int = 10
     profile: str = "fast"
     trace_id: str = ""
+    required_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
