@@ -26,6 +26,17 @@ LOW_PRIORITY_FOR_DOC_LOOKUP = (
     "профессиональный стандарт",
 )
 
+FEDERAL_LAW_QUERY_MARKERS = (
+    "какой документ",
+    "какие документы",
+    "устанавливает общие",
+)
+
+SUBORDINATE_ACT_MARKERS = (
+    "правила технологического функционирования",
+    "об утверждении правил",
+)
+
 
 def _item_blob(item: RetrievedItem) -> str:
     return normalize_catalog_text(
@@ -70,6 +81,13 @@ def _intent_rank_key(item: RetrievedItem, intent: str, query_norm: str) -> tuple
                 subject_norm = normalize_catalog_text(subject_match.group(1))
                 if subject_norm and subject_norm in blob:
                     priority = 0
+        if intent == "document_lookup" and any(
+            marker in query_norm for marker in FEDERAL_LAW_QUERY_MARKERS
+        ):
+            if "35-фз" in blob or "об электроэнергетике" in blob:
+                priority = 0
+            elif any(marker in blob for marker in SUBORDINATE_ACT_MARKERS) and "35-фз" not in blob:
+                priority = max(priority, 2)
     score = float(item.score) if item.score is not None else 0.0
     return priority, -score, item.chunk_id or ""
 

@@ -55,6 +55,19 @@ def test_prepare_query_point_lookup_prefers_likvidation_rules_not_investigation_
     assert "point" in plan.selected_tools
 
 
+def test_prepare_query_resolves_federal_energy_law_from_intent() -> None:
+    plan = prepare_query(
+        "Какой документ устанавливает общие правила работы электроэнергетической системы РФ?",
+        catalog=load_sample_catalog(),
+        knowledge=load_sample_knowledge(),
+        mode="auto",
+    )
+
+    assert plan.question_type == "document_lookup"
+    assert plan.resolved_doc_names == ("Об электроэнергетике",)
+    assert not plan.document_resolution.ambiguous
+
+
 def test_apply_prepared_plan_keeps_original_query() -> None:
     plan = prepare_query(
         "Какое наведенное напряжение безопасно?",

@@ -180,6 +180,64 @@ def _deterministic_resolve(candidates: list[dict[str, Any]]) -> tuple[list[str],
     return [str(top["doc_name"])], confidence, False, warnings
 
 
+INTENT_DOC_TARGETS: dict[str, str] = {
+    "об электроэнергетике": "Об электроэнергетике",
+    "35-фз": "Об электроэнергетике",
+    "федеральный закон об электроэнергетике": "Об электроэнергетике",
+}
+
+ENERGY_LAW_INTENT_MARKERS = frozenset(INTENT_DOC_TARGETS.keys())
+
+
+def _catalog_doc_for_energy_federal_law(catalog: DocumentCatalog) -> str:
+    for entry in catalog.entries:
+        blob = normalize_catalog_text(" ".join((entry.doc_name, entry.filename)))
+        if "35-фз" in blob and "электроэнергетик" in blob:
+            return entry.doc_name
+    return ""
+
+
+def _resolve_doc_from_intent_hints(
+    catalog: DocumentCatalog,
+    intent_terms: list[str],
+) -> tuple[list[str], float, bool, list[str]]:
+    warnings: list[str] = []
+    by_name = catalog.by_doc_name()
+    for term in intent_terms:
+        norm_term = normalize_catalog_text(term)
+        target = INTENT_DOC_TARGETS.get(norm_term)
+        if target and target in by_name:
+            warnings.append(f"document resolved from intent hint: {target!r}")
+            return [target], 0.88, False, warnings
+        if norm_term in ENERGY_LAW_INTENT_MARKERS or "электроэнергетик" in norm_term:
+            resolved = _catalog_doc_for_energy_federal_law(catalog)
+            if resolved:
+                warnings.append(f"document resolved from catalog filename hint: {resolved!r}")
+                return [resolved], 0.88, False, warnings
+    return [], 0.0, True, warnings
+
+
+def _apply_intent_document_resolution(
+    *,
+    catalog: DocumentCatalog,
+    original_query: str,
+    question_type: str,
+    resolved_doc_names: list[str],
+    confidence: float,
+    ambiguous: bool,
+    warnings: list[str],
+) -> tuple[list[str], float, bool, list[str]]:
+    if question_type != "document_lookup":
+        return resolved_doc_names, confidence, ambiguous, warnings
+    intent_terms = intent_search_terms(original_query, question_type)
+    intent_docs, intent_conf, intent_amb, intent_warnings = _resolve_doc_from_intent_hints(
+        catalog, intent_terms
+    )
+    if not intent_docs or (resolved_doc_names and not ambiguous):
+        return resolved_doc_names, confidence, ambiguous, warnings
+    return intent_docs, max(confidence, intent_conf), intent_amb, [*warnings, *intent_warnings]
+
+
 def _phrase_context_queries(original_query: str, phrase: str) -> list[str]:
     original = re.sub(r"\s+", " ", original_query.strip())
     phrase_clean = re.sub(r"\s+", " ", phrase.strip())
@@ -654,6 +712,15 @@ def prepare_query(
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
             resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
             warnings.extend(det_warnings)
+            resolved_doc_names, confidence, ambiguous, warnings = _apply_intent_document_resolution(
+                catalog=catalog,
+                original_query=original_query,
+                question_type=question_type,
+                resolved_doc_names=resolved_doc_names,
+                confidence=confidence,
+                ambiguous=ambiguous,
+                warnings=warnings,
+            )
             resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
                 {},
@@ -665,6 +732,15 @@ def prepare_query(
     else:
         resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
         warnings.extend(det_warnings)
+        resolved_doc_names, confidence, ambiguous, warnings = _apply_intent_document_resolution(
+            catalog=catalog,
+            original_query=original_query,
+            question_type=question_type,
+            resolved_doc_names=resolved_doc_names,
+            confidence=confidence,
+            ambiguous=ambiguous,
+            warnings=warnings,
+        )
         if resolved_doc_names and not _query_mentions_pue(original_query) and not enable_pue_aliases:
             if any(is_pue_document_name(name) for name in resolved_doc_names):
                 warnings.append(
