@@ -1,0 +1,14 @@
+{
+  "name": "final_answer",
+  "version": "1",
+  "role": "final_answer",
+  "inputs": {
+    "query": "string",
+    "evidence": "array"
+  },
+  "output_contract": {
+    "schema_version": "mr_final_answer_v1",
+    "required_fields": ["answer", "citations"]
+  },
+  "prompt": "Answer only from provided evidence chunks. Every citation must reference an existing chunk_id, doc_name, and point_number from evidence."
+}

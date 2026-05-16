@@ -27,6 +27,8 @@ from mr_norm.retrieval.contracts import ToolRequest
 from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
+from mr_norm.runtime.contracts import RuntimeRequest
+from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
 from mr_norm.tools.chunker import ChunkBuilder, MetadataExtractionError
 from mr_norm.tools.rtf_processor import RtfProcessor, RtfReadError, atomic_write_json, pick_size_diverse_rtf_paths
 
@@ -125,6 +127,23 @@ def build_parser() -> argparse.ArgumentParser:
     retrieval_compare_batch.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
     retrieval_compare_batch.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
 
+    rag_runtime = sub.add_parser("rag-runtime", help="Run deterministic RAG runtime evidence retrieval.")
+    add_retrieval_args(rag_runtime, query_required=False)
+    rag_runtime.add_argument("--mode", default="evidence", help="Runtime mode, default: evidence.")
+    rag_runtime.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+
+    rag_runtime_batch = sub.add_parser("rag-runtime-batch", help="Run deterministic RAG runtime for a JSON question set.")
+    rag_runtime_batch.add_argument(
+        "--questions",
+        type=Path,
+        default=None,
+        help="Path to retrieval questions JSON. Defaults to tests/fixtures/retrieval_questions.json.",
+    )
+    rag_runtime_batch.add_argument("--profile", choices=["fast", "balanced", "deep"], default="balanced")
+    rag_runtime_batch.add_argument("--limit", type=int, default=10)
+    rag_runtime_batch.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
+    rag_runtime_batch.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+
     return parser
 
 
@@ -214,6 +233,29 @@ def main(argv: list[str] | None = None) -> int:
             result["questions_path"] = str(questions_path)
             if args.save_report:
                 result = save_retrieval_compare_batch_report(result, paths.reports_dir)
+        elif args.command == "rag-runtime":
+            runtime_request = RuntimeRequest(
+                query=args.query,
+                filters=build_tool_request(args).filters,
+                limit=args.limit,
+                profile=args.profile,
+                trace_id=args.trace_id,
+                mode=args.mode,
+            )
+            result = run_runtime(runtime_request, resolve_indexing_config(args)).to_dict()
+            if getattr(args, "save_report", False):
+                result = save_runtime_report(result, paths.reports_dir)
+        elif args.command == "rag-runtime-batch":
+            questions_path = resolve_questions_path(paths, args.questions)
+            result = run_runtime_batch(
+                load_retrieval_questions(questions_path),
+                resolve_indexing_config(args),
+                profile=args.profile,
+                limit=args.limit,
+            )
+            result["questions_path"] = str(questions_path)
+            if args.save_report:
+                result = save_runtime_report(result, paths.reports_dir, prefix="rag_runtime_batch")
         else:
             raise ValueError(f"Unsupported command: {args.command}")
     except (RtfReadError, MetadataExtractionError) as exc:

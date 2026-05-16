@@ -18,6 +18,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "mr_norm.data" = ["*.json"]
+"mr_norm.config" = ["prompts/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
