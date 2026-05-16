@@ -62,7 +62,8 @@ def test_ollama_chat_client_builds_openai_payload() -> None:
 
     assert seen["url"] == "http://localhost:11434/v1/chat/completions"
     assert "Authorization" not in seen["headers"]
-    assert seen["body"]["response_format"] == {"type": "json_object"}
+    assert seen["body"]["format"] == "json"
+    assert "response_format" not in seen["body"]
     assert response.content.startswith('{"answer"')
 
 
@@ -80,6 +81,28 @@ def test_polza_chat_client_sends_bearer_token(tmp_path: Path, monkeypatch) -> No
 
     assert seen["url"] == "https://polza.ai/api/v1/chat/completions"
     assert seen["headers"]["Authorization"] == "Bearer secret-key"
+
+
+def test_ollama_chat_client_maps_json_object_to_format_json() -> None:
+    seen: dict[str, object] = {}
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        seen["body"] = json.loads(body.decode("utf-8"))
+        return {
+            "choices": [{"message": {"content": '{"status":"ok"}'}}],
+        }
+
+    client = OllamaChatClient(model="qwen3:8b", http_post=fake_http_post)
+    client.chat(
+        LLMRequest(
+            messages=[{"role": "user", "content": "test"}],
+            model="qwen3:8b",
+            response_format={"type": "json_object"},
+        )
+    )
+
+    assert seen["body"]["format"] == "json"
+    assert "response_format" not in seen["body"]
 
 
 def test_build_chat_client_rejects_unknown_provider() -> None:

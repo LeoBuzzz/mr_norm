@@ -7,9 +7,11 @@ from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.runtime.contracts import Citation
 
 
-def _normalize_citation(raw: Mapping[str, Any] | Citation) -> Citation:
+def _normalize_citation(raw: Mapping[str, Any] | Citation | str) -> Citation:
     if isinstance(raw, Citation):
         return raw
+    if isinstance(raw, str):
+        return Citation(chunk_id=raw.strip())
     chunk_id = str(raw.get("chunk_id") or "").strip()
     return Citation(
         chunk_id=chunk_id,

@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any, Callable
 
 DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434/v1"
@@ -59,6 +60,8 @@ def parse_json_object(content: str) -> dict[str, Any]:
         text = fence_match.group(1).strip()
 
     payload = json.loads(text)
+    if isinstance(payload, list):
+        return {"ranked_chunk_ids": payload}
     if not isinstance(payload, dict):
         raise ValueError("LLM response JSON must be an object")
     return payload
@@ -142,6 +145,16 @@ class OpenAICompatibleChatClient:
         return LLMResponse(content=content, model=str(raw.get("model") or payload["model"]), raw=raw)
 
 
+def extract_message_content(message: Mapping[str, Any]) -> str:
+    content = str(message.get("content") or "").strip()
+    if content:
+        return content
+    reasoning = str(message.get("reasoning") or "").strip()
+    if reasoning:
+        return reasoning
+    return ""
+
+
 class OllamaChatClient(OpenAICompatibleChatClient):
     provider_name = "ollama"
 
@@ -160,6 +173,40 @@ class OllamaChatClient(OpenAICompatibleChatClient):
             timeout_sec=timeout_sec,
             http_post=http_post,
         )
+
+    def chat(self, request: LLMRequest) -> LLMResponse:
+        payload: dict[str, Any] = {
+            "model": request.model or self._model,
+            "messages": request.messages,
+            "temperature": request.temperature,
+            "max_tokens": request.max_tokens,
+            "stream": False,
+        }
+        json_mode = request.response_format is not None and request.response_format.get("type") == "json_object"
+        if request.response_format is not None:
+            if json_mode:
+                payload["format"] = "json"
+                if int(payload["max_tokens"]) < 512:
+                    payload["max_tokens"] = 512
+            else:
+                payload["response_format"] = request.response_format
+
+        raw = self._http_post(
+            f"{self._base_url}/chat/completions",
+            {"Content-Type": "application/json"},
+            json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            self._timeout_sec,
+        )
+        choices = raw.get("choices") or []
+        if not choices:
+            raise RuntimeError("LLM response missing choices")
+        message = choices[0].get("message") or {}
+        content = str(message.get("content") or "").strip()
+        if not content and not json_mode:
+            content = str(message.get("reasoning") or "").strip()
+        if not content:
+            raise RuntimeError("LLM response missing message content")
+        return LLMResponse(content=content, model=str(raw.get("model") or payload["model"]), raw=raw)
 
 
 class PolzaChatClient(OpenAICompatibleChatClient):
