@@ -27,7 +27,7 @@ Premium manual override (not a default fallback): `anthropic/claude-sonnet-4.6` 
 Fast path without waiting for local Llama 70B:
 
 ```bash
-python tmp/run_live_llm_smoke.py
+python scripts/run_live_llm_smoke.py
 ```
 
 The script uses profile defaults with automatic fallback. For Ollama final answer it uses `qwen3:30b` explicitly to avoid a long Llama-only smoke run.
