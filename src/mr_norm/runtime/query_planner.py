@@ -13,12 +13,16 @@ from mr_norm.retrieval.document_catalog import (
     load_default_document_catalog,
     normalize_catalog_text,
 )
+from mr_norm.config.pue_aliases import PUE_ALIAS_KEY
 from mr_norm.retrieval.document_knowledge import (
     DocumentKnowledgeIndex,
     KnowledgeCandidate,
+    QueryTermMatches,
     find_knowledge_candidates,
+    is_pue_document_name,
     load_document_knowledge,
-    match_terms_in_query,
+    match_query_terms,
+    phrase_required_tokens,
 )
 from mr_norm.runtime.contracts import (
     DocumentResolution,
@@ -36,6 +40,19 @@ MIN_DOC_CONFIDENCE = 0.55
 AMBIGUITY_SCORE_GAP = 0.08
 ALLOWED_TOOLS = frozenset({"point", "payload", "vector"})
 MAX_QUERIES_PER_TOOL = 4
+
+LOOSE_SINGLE_WORDS = frozenset(
+    {
+        "напряжение",
+        "напряжением",
+        "безопасно",
+        "безопасность",
+        "безопасные",
+        "заземление",
+        "электроустановок",
+        "пуэ",
+    }
+)
 
 
 def _merge_candidates(
@@ -80,6 +97,46 @@ def _merge_candidates(
     return ranked
 
 
+def _topic_alias_ambiguous(candidates: list[dict[str, Any]], term_matches: QueryTermMatches) -> bool:
+    if not term_matches.exact_phrase_terms:
+        return False
+    alias_hits = [
+        candidate
+        for candidate in candidates
+        if any(str(reason).startswith("topic_alias:") for reason in candidate.get("reasons") or [])
+    ]
+    if len(alias_hits) < 2:
+        return False
+    scores = sorted((float(item["score"]) for item in alias_hits), reverse=True)
+    return scores[0] - scores[1] < AMBIGUITY_SCORE_GAP
+
+
+def _should_skip_topic_alias_doc_filter(
+    candidates: list[dict[str, Any]],
+    term_matches: QueryTermMatches,
+    resolved_doc_names: list[str],
+    *,
+    point_number_hints: list[str],
+    enable_pue_aliases: bool,
+    original_query: str,
+) -> bool:
+    if not term_matches.exact_phrase_terms or not resolved_doc_names or not candidates:
+        return False
+    if point_number_hints:
+        return False
+    if enable_pue_aliases and _query_mentions_pue(original_query):
+        return False
+    top = candidates[0]
+    if str(top.get("doc_name") or "") != resolved_doc_names[0]:
+        return False
+    reasons = [str(reason) for reason in top.get("reasons") or []]
+    if any(reason.startswith("known_alias:") for reason in reasons):
+        return False
+    if any(reason.startswith("order_number:") for reason in reasons):
+        return False
+    return any(reason.startswith("topic_alias:") for reason in reasons)
+
+
 def _deterministic_resolve(candidates: list[dict[str, Any]]) -> tuple[list[str], float, bool, list[str]]:
     warnings: list[str] = []
     if not candidates:
@@ -105,10 +162,76 @@ def _deterministic_resolve(candidates: list[dict[str, Any]]) -> tuple[list[str],
     return [str(top["doc_name"])], confidence, False, warnings
 
 
-def _normalize_tool_queries(raw: Any, original_query: str, significant_words: list[str]) -> dict[str, list[str]]:
-    queries: dict[str, list[str]] = {tool: [] for tool in ALLOWED_TOOLS}
+def _phrase_context_queries(original_query: str, phrase: str) -> list[str]:
+    original = re.sub(r"\s+", " ", original_query.strip())
+    phrase_clean = re.sub(r"\s+", " ", phrase.strip())
+    queries: list[str] = []
+    if original:
+        queries.append(original)
+    if phrase_clean and phrase_clean not in queries:
+        queries.append(phrase_clean)
+    return queries
+
+
+def _build_default_tool_queries(
+    original_query: str,
+    term_matches: QueryTermMatches,
+    *,
+    significant_words: list[str],
+) -> dict[str, list[str]]:
+    original = original_query.strip()
+    exact_phrases = list(term_matches.exact_phrase_terms)
+    support = list(
+        dict.fromkeys(
+            [
+                *exact_phrases,
+                *term_matches.abbreviation_expansions,
+                *significant_words,
+                *term_matches.loose_terms,
+            ]
+        )
+    )
+
+    payload_queries: list[str] = []
+    vector_queries: list[str] = []
+
+    if exact_phrases:
+        primary = exact_phrases[0]
+        for candidate in _phrase_context_queries(original, primary):
+            if candidate not in payload_queries:
+                payload_queries.append(candidate)
+        if original and original not in vector_queries:
+            vector_queries.append(original)
+        for candidate in _phrase_context_queries(original, primary):
+            if candidate not in vector_queries:
+                vector_queries.append(candidate)
+    else:
+        core = [original, *support] if original else support
+        payload_queries = [term for term in core if term]
+        vector_queries = [term for term in core if term]
+
+    return {
+        "point": [],
+        "payload": payload_queries[:MAX_QUERIES_PER_TOOL],
+        "vector": vector_queries[:MAX_QUERIES_PER_TOOL],
+    }
+
+
+def _normalize_tool_queries(
+    raw: Any,
+    original_query: str,
+    *,
+    term_matches: QueryTermMatches,
+    significant_words: list[str],
+) -> dict[str, list[str]]:
+    defaults = _build_default_tool_queries(
+        original_query,
+        term_matches,
+        significant_words=significant_words,
+    )
+    queries: dict[str, list[str]] = {tool: list(defaults.get(tool, [])) for tool in ALLOWED_TOOLS}
     if not isinstance(raw, dict):
-        raw = {}
+        return queries
 
     for tool_name in ALLOWED_TOOLS:
         values = raw.get(tool_name, [])
@@ -121,16 +244,111 @@ def _normalize_tool_queries(raw: Any, original_query: str, significant_words: li
             text = re.sub(r"\s+", " ", str(value).strip())
             if text and text not in cleaned:
                 cleaned.append(text)
-        queries[tool_name] = cleaned[:MAX_QUERIES_PER_TOOL]
+        if cleaned:
+            merged = [*queries[tool_name], *cleaned]
+            queries[tool_name] = list(dict.fromkeys(merged))[:MAX_QUERIES_PER_TOOL]
 
-    core_terms = [original_query.strip(), *significant_words]
-    for tool_name in ("payload", "vector"):
-        if not queries[tool_name]:
-            queries[tool_name] = [term for term in core_terms if term][:MAX_QUERIES_PER_TOOL]
-        elif original_query.strip() and original_query.strip() not in queries[tool_name]:
-            queries[tool_name] = [original_query.strip(), *queries[tool_name]][:MAX_QUERIES_PER_TOOL]
+    if term_matches.exact_phrase_terms:
+        primary = term_matches.exact_phrase_terms[0]
+        for tool_name in ("payload", "vector"):
+            prioritized = _phrase_context_queries(original_query, primary)
+            merged = [*prioritized, *queries[tool_name]]
+            queries[tool_name] = list(dict.fromkeys(merged))[:MAX_QUERIES_PER_TOOL]
 
     return queries
+
+
+def _query_mentions_pue(query: str) -> bool:
+    return normalize_catalog_text(PUE_ALIAS_KEY) in normalize_catalog_text(query)
+
+
+def _sanitize_llm_plan_fields(
+    payload: dict[str, Any],
+    *,
+    original_query: str,
+    enable_pue_aliases: bool,
+    term_matches: QueryTermMatches,
+) -> tuple[dict[str, Any], list[str]]:
+    warnings: list[str] = []
+    query_norm = normalize_catalog_text(original_query)
+    mentions_pue = _query_mentions_pue(original_query)
+
+    significant_raw = payload.get("significant_words", [])
+    if isinstance(significant_raw, str):
+        significant_words = [part.strip() for part in significant_raw.split(",") if part.strip()]
+    elif isinstance(significant_raw, list):
+        significant_words = [str(item).strip() for item in significant_raw if str(item).strip()]
+    else:
+        significant_words = []
+
+    blocked = {normalize_catalog_text(PUE_ALIAS_KEY), "пуэ", "снн", "безопасное напряжение"}
+    if not enable_pue_aliases:
+        blocked.update(
+            {
+                normalize_catalog_text("правила устройства электроустановок"),
+                normalize_catalog_text("электроустановок"),
+            }
+        )
+
+    cleaned_significant: list[str] = []
+    for word in significant_words:
+        word_norm = normalize_catalog_text(word)
+        if word_norm in blocked and not mentions_pue:
+            warnings.append(f"removed llm significant_word not present in query: {word!r}")
+            continue
+        if term_matches.exact_phrase_terms:
+            phrase_norms = [normalize_catalog_text(item) for item in term_matches.exact_phrase_terms]
+            if word_norm in LOOSE_SINGLE_WORDS and not any(word_norm in phrase for phrase in phrase_norms):
+                warnings.append(f"removed loose llm term in favor of exact phrase: {word!r}")
+                continue
+        cleaned_significant.append(word)
+    payload["significant_words"] = cleaned_significant
+
+    resolved = payload.get("resolved_doc_names", [])
+    if isinstance(resolved, str):
+        resolved = [part.strip() for part in resolved.split(",") if part.strip()]
+    if isinstance(resolved, list):
+        filtered_docs: list[str] = []
+        for doc_name in resolved:
+            if is_pue_document_name(str(doc_name)) and not mentions_pue and not enable_pue_aliases:
+                warnings.append(f"removed llm resolved_doc_name without explicit ПУЭ mention: {doc_name!r}")
+                continue
+            filtered_docs.append(str(doc_name))
+        payload["resolved_doc_names"] = filtered_docs
+
+    tool_queries = payload.get("tool_queries")
+    if isinstance(tool_queries, dict) and term_matches.exact_phrase_terms:
+        primary = term_matches.exact_phrase_terms[0]
+        for tool_name in ("payload", "vector"):
+            values = tool_queries.get(tool_name, [])
+            if isinstance(values, str):
+                values = [part.strip() for part in values.split(",") if part.strip()]
+            if not isinstance(values, list):
+                continue
+            sanitized: list[str] = []
+            for value in values:
+                value_norm = normalize_catalog_text(str(value))
+                if value_norm in blocked and primary and value_norm != normalize_catalog_text(primary):
+                    warnings.append(f"removed llm {tool_name} query replaced by exact phrase")
+                    continue
+                sanitized.append(str(value).strip())
+            prioritized = _phrase_context_queries(original_query, primary)
+            payload["tool_queries"][tool_name] = list(dict.fromkeys([*prioritized, *sanitized]))[
+                :MAX_QUERIES_PER_TOOL
+            ]
+
+    if query_norm and not mentions_pue:
+        payload.setdefault("warnings", [])
+        if isinstance(payload["warnings"], list):
+            payload["warnings"] = list(payload["warnings"])
+
+    return payload, warnings
+
+
+def _payload_required_tokens(term_matches: QueryTermMatches) -> tuple[str, ...]:
+    if not term_matches.exact_phrase_terms:
+        return ()
+    return phrase_required_tokens(term_matches.exact_phrase_terms[0])
 
 
 def _build_tool_query_objects(
@@ -138,9 +356,11 @@ def _build_tool_query_objects(
     *,
     point_number_hints: list[str],
     resolved_doc_names: list[str],
+    term_matches: QueryTermMatches,
 ) -> tuple[tuple[str, ...], tuple[PreparedToolQuery, ...]]:
     selected: list[str] = []
     prepared: list[PreparedToolQuery] = []
+    required_tokens = _payload_required_tokens(term_matches)
 
     if point_number_hints and resolved_doc_names:
         selected.append("point")
@@ -151,7 +371,13 @@ def _build_tool_query_objects(
         if not queries:
             continue
         selected.append(tool_name)
-        prepared.append(PreparedToolQuery(tool_name=tool_name, queries=tuple(queries)))
+        prepared.append(
+            PreparedToolQuery(
+                tool_name=tool_name,
+                queries=tuple(queries),
+                required_tokens=required_tokens if tool_name == "payload" else (),
+            )
+        )
 
     if not selected:
         fallback_query = tool_queries.get("vector", []) or tool_queries.get("payload", [])
@@ -159,7 +385,11 @@ def _build_tool_query_objects(
         if query:
             selected = ["payload", "vector"]
             prepared = [
-                PreparedToolQuery(tool_name="payload", queries=(query,)),
+                PreparedToolQuery(
+                    tool_name="payload",
+                    queries=(query,),
+                    required_tokens=required_tokens,
+                ),
                 PreparedToolQuery(tool_name="vector", queries=(query,)),
             ]
 
@@ -277,6 +507,7 @@ def prepare_query(
     mode: str = "auto",
     llm_provider: str = "none",
     keys_path: Path | None = None,
+    enable_pue_aliases: bool = False,
 ) -> PreparedQueryPlan:
     original_query = (query or "").strip()
     if mode == "off" or not original_query:
@@ -288,15 +519,26 @@ def prepare_query(
     explicit_doc_name = str((filters or {}).get("doc_name") or "").strip()
     point_hint = extract_point_number_hint(original_query)
     point_number_hints = [point_hint] if point_hint else []
-    matched_terms = match_terms_in_query(original_query, knowledge)
+    term_matches = match_query_terms(
+        original_query,
+        knowledge,
+        enable_pue_aliases=enable_pue_aliases,
+    )
+    matched_terms = term_matches.flat_terms()
 
     catalog_candidates = find_catalog_candidates(
         original_query,
         catalog,
         explicit_doc_name=explicit_doc_name,
         limit=8,
+        enable_pue_aliases=enable_pue_aliases,
     )
-    knowledge_candidates = find_knowledge_candidates(original_query, knowledge, limit=12)
+    knowledge_candidates = find_knowledge_candidates(
+        original_query,
+        knowledge,
+        limit=12,
+        enable_pue_aliases=enable_pue_aliases,
+    )
     candidates = _merge_candidates(catalog, catalog_candidates, knowledge_candidates)
 
     resolver = "deterministic"
@@ -306,8 +548,19 @@ def prepare_query(
     ambiguous = False
     question_type = "point_lookup" if point_number_hints else "factual"
     answer_shape = "narrow"
-    concepts: list[str] = list(matched_terms[:8])
-    significant_words: list[str] = list(matched_terms[:12])
+    concepts: list[str] = list(
+        dict.fromkeys([*term_matches.exact_phrase_terms, *term_matches.abbreviation_expansions[:4]])
+    )[:8]
+    significant_words: list[str] = list(
+        dict.fromkeys(
+            [
+                *term_matches.exact_phrase_terms,
+                *term_matches.document_hints,
+                *term_matches.abbreviation_expansions,
+                *term_matches.loose_terms,
+            ]
+        )
+    )[:12]
     tool_queries: dict[str, list[str]] = {tool: [] for tool in ALLOWED_TOOLS}
 
     if mode == "llm" and llm_provider != "none" and candidates:
@@ -320,7 +573,14 @@ def prepare_query(
                 llm_provider=llm_provider,
                 keys_path=keys_path,
             )
+            llm_data, sanitize_warnings = _sanitize_llm_plan_fields(
+                llm_data,
+                original_query=original_query,
+                enable_pue_aliases=enable_pue_aliases,
+                term_matches=term_matches,
+            )
             warnings.extend(llm_warnings)
+            warnings.extend(sanitize_warnings)
             question_type = llm_data.get("question_type", question_type)
             answer_shape = llm_data.get("answer_shape", answer_shape)
             concepts = list(dict.fromkeys([*concepts, *llm_data.get("concepts", [])]))
@@ -344,23 +604,62 @@ def prepare_query(
             tool_queries = _normalize_tool_queries(
                 llm_data.get("tool_queries"),
                 original_query,
-                significant_words,
+                term_matches=term_matches,
+                significant_words=significant_words,
             )
         except Exception as exc:
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
             resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
             warnings.extend(det_warnings)
             resolver = "deterministic_fallback"
-            tool_queries = _normalize_tool_queries({}, original_query, significant_words)
+            tool_queries = _normalize_tool_queries(
+                {},
+                original_query,
+                term_matches=term_matches,
+                significant_words=significant_words,
+            )
     else:
         resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
         warnings.extend(det_warnings)
-        tool_queries = _normalize_tool_queries({}, original_query, significant_words)
+        if resolved_doc_names and not _query_mentions_pue(original_query) and not enable_pue_aliases:
+            if any(is_pue_document_name(name) for name in resolved_doc_names):
+                warnings.append(
+                    "removed deterministic ПУЭ doc filter without explicit mention or enable_pue_aliases"
+                )
+                resolved_doc_names = []
+                ambiguous = True
+        explicit_doc_hint = _query_mentions_pue(original_query) or bool(term_matches.document_hints)
+        if resolved_doc_names and (
+            (
+                _topic_alias_ambiguous(candidates, term_matches)
+                and not (enable_pue_aliases and explicit_doc_hint)
+            )
+            or _should_skip_topic_alias_doc_filter(
+                candidates,
+                term_matches,
+                resolved_doc_names,
+                point_number_hints=point_number_hints,
+                enable_pue_aliases=enable_pue_aliases,
+                original_query=original_query,
+            )
+        ):
+            warnings.append(
+                "exact phrase resolved via topic alias only; doc_name filter not applied"
+            )
+            resolved_doc_names = []
+            ambiguous = True
+        tool_queries = _normalize_tool_queries(
+            {},
+            original_query,
+            term_matches=term_matches,
+            significant_words=significant_words,
+        )
 
     selected_tools, prepared_tool_queries = _build_tool_query_objects(
         tool_queries,
         point_number_hints=point_number_hints,
         resolved_doc_names=resolved_doc_names,
+        term_matches=term_matches,
     )
 
     top_candidate = candidates[0] if candidates else {}
@@ -455,7 +754,10 @@ def plan_query(
     llm_provider: str = "none",
     keys_path: Path | None = None,
     project_paths: ProjectPaths | None = None,
+    enable_pue_aliases: bool | None = None,
 ) -> PreparedQueryPlan:
+    from mr_norm.config.pue_aliases import resolve_enable_pue_aliases
+
     paths = project_paths or ProjectPaths.from_root(None)
     return prepare_query(
         query,
@@ -465,4 +767,5 @@ def plan_query(
         mode=mode,
         llm_provider=llm_provider,
         keys_path=keys_path,
+        enable_pue_aliases=resolve_enable_pue_aliases(enable_pue_aliases),
     )

@@ -10,11 +10,13 @@ from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest, ToolResult
 class PreparedToolQuery:
     tool_name: str
     queries: tuple[str, ...] = ()
+    required_tokens: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "tool_name": self.tool_name,
             "queries": list(self.queries),
+            "required_tokens": list(self.required_tokens),
         }
 
 
