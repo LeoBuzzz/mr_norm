@@ -1,0 +1,15 @@
+{
+  "name": "reranker_evidence",
+  "version": "1",
+  "role": "reranker",
+  "inputs": {
+    "query": "string",
+    "evidence": "array",
+    "profile": "fast|balanced|deep"
+  },
+  "output_contract": {
+    "schema_version": "mr_rerank_v1",
+    "required_fields": ["ranked_chunk_ids"]
+  },
+  "prompt": "Reorder evidence chunks by relevance to the user query. Return only chunk_id values that exist in the provided evidence."
+}
