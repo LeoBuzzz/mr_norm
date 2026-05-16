@@ -29,6 +29,7 @@ from mr_norm.retrieval.tools.point import run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeRequest
 from mr_norm.runtime.final_answer import build_final_answer
+from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
 from mr_norm.runtime.pipeline import run_pipeline, save_pipeline_report
 from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.reranker import build_reranker
@@ -171,6 +172,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Final answer backend.",
     )
     rag_pipeline.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+    rag_pipeline.add_argument(
+        "--llm-provider",
+        choices=["none", "ollama", "polza"],
+        default="none",
+        help="Optional live LLM provider for prompt backends. Default: none.",
+    )
+    rag_pipeline.add_argument("--planner-model", default="", help="Override planner LLM model id.")
+    rag_pipeline.add_argument("--reranker-model", default="", help="Override reranker LLM model id.")
+    rag_pipeline.add_argument(
+        "--final-answer-model",
+        default="",
+        help="Override final answer LLM model id.",
+    )
+    rag_pipeline.add_argument(
+        "--keys-path",
+        type=Path,
+        default=None,
+        help="Path to local keys file for Polza. Defaults to project-root keys when present.",
+    )
 
     return parser
 
@@ -293,12 +313,25 @@ def main(argv: list[str] | None = None) -> int:
                 trace_id=args.trace_id,
                 mode=args.mode,
             )
+            llm_providers = build_pipeline_llm_providers(
+                args.llm_provider,
+                planner_model=args.planner_model or None,
+                reranker_model=args.reranker_model or None,
+                final_answer_model=args.final_answer_model or None,
+                planner_backend=args.planner,
+                reranker_backend=args.reranker,
+                final_answer_backend=args.final_answer_backend,
+                keys_path=resolve_keys_path(paths, args.keys_path),
+            )
             pipeline = run_pipeline(
                 runtime_request,
                 resolve_indexing_config(args),
-                planner=build_planner(args.planner),
-                reranker=build_reranker(args.reranker),
-                final_answer=build_final_answer(args.final_answer_backend),
+                planner=build_planner(args.planner, provider=llm_providers.planner),
+                reranker=build_reranker(args.reranker, provider=llm_providers.reranker),
+                final_answer=build_final_answer(
+                    args.final_answer_backend,
+                    provider=llm_providers.final_answer,
+                ),
             )
             result = pipeline.to_dict()
             if getattr(args, "save_report", False):
@@ -354,6 +387,14 @@ def build_tool_request(args: argparse.Namespace) -> ToolRequest:
         profile=args.profile,
         trace_id=args.trace_id,
     )
+
+
+def resolve_keys_path(paths: ProjectPaths, keys_path: Path | None) -> Path | None:
+    if keys_path is not None:
+        path = keys_path if keys_path.is_absolute() else paths.root / keys_path
+        return path if path.is_file() else None
+    candidate = paths.root / "keys"
+    return candidate if candidate.is_file() else None
 
 
 def resolve_questions_path(paths: ProjectPaths, questions_path: Path | None) -> Path:

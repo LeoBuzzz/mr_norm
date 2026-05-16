@@ -82,6 +82,57 @@ def test_save_pipeline_report_writes_files(tmp_path: Path) -> None:
     assert Path(saved["markdown_report_path"]).is_file()
 
 
+def test_rag_pipeline_cli_passes_llm_provider_to_factory(monkeypatch, tmp_path, capsys) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_build_pipeline_llm_providers(llm_provider, **kwargs):
+        seen["llm_provider"] = llm_provider
+        seen["kwargs"] = kwargs
+        from mr_norm.runtime.llm_providers import PipelineLLMProviders
+
+        return PipelineLLMProviders()
+
+    monkeypatch.setattr(app_main, "build_pipeline_llm_providers", fake_build_pipeline_llm_providers)
+    monkeypatch.setattr(
+        app_main,
+        "run_pipeline",
+        lambda *args, **kwargs: type(
+            "Pipeline",
+            (),
+            {
+                "to_dict": lambda self: {
+                    "trace": {"planner_backend": "deterministic"},
+                    "runtime": {"items": [], "trace": {}},
+                    "final_answer": {"answer": "", "citations": []},
+                }
+            },
+        )(),
+    )
+
+    exit_code = app_main.main(
+        [
+            "--root",
+            str(tmp_path),
+            "rag-pipeline",
+            "--collection-name",
+            "test_collection",
+            "--query",
+            "заземление",
+            "--llm-provider",
+            "ollama",
+            "--planner",
+            "prompt",
+            "--planner-model",
+            "qwen3:30b",
+        ]
+    )
+
+    assert exit_code == 0
+    assert seen["llm_provider"] == "ollama"
+    assert seen["kwargs"]["planner_model"] == "qwen3:30b"
+    assert seen["kwargs"]["planner_backend"] == "prompt"
+
+
 def test_rag_pipeline_cli_routes_to_pipeline(monkeypatch, tmp_path, capsys) -> None:
     seen: dict[str, object] = {}
 
