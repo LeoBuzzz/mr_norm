@@ -6,7 +6,9 @@ from pathlib import Path
 import pytest
 
 PROMPT_PACK_REQUIRED_FIELDS = ("name", "version", "role", "inputs", "output_contract", "prompt")
-PROMPT_PACK_ROLES = frozenset({"planner", "reranker", "final_answer"})
+PROMPT_PACK_ROLES = frozenset(
+    {"planner", "reranker", "final_answer", "query_understanding", "query_planning"}
+)
 PROMPTS_DIR = Path(__file__).resolve().parents[1] / "src" / "mr_norm" / "config" / "prompts"
 
 

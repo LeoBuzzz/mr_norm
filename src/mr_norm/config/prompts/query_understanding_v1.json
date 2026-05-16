@@ -1,0 +1,21 @@
+{
+  "name": "query_understanding",
+  "version": "1",
+  "role": "query_understanding",
+  "inputs": {
+    "query": "string",
+    "candidates": "array"
+  },
+  "output_contract": {
+    "schema_version": "mr_query_understanding_v1",
+    "required_fields": [
+      "search_query",
+      "document_hints",
+      "selected_catalog_ids",
+      "point_number_hints",
+      "confidence",
+      "warnings"
+    ]
+  },
+  "prompt": "Resolve the user question against the provided document catalog candidates only. Return JSON with keys search_query (string), document_hints (array of strings), selected_catalog_ids (array of catalog_id strings from candidates only), point_number_hints (array of strings), confidence (number 0..1), warnings (array of strings). Do not invent documents outside candidates. If confidence is below 0.55 or candidates are ambiguous, return empty selected_catalog_ids and explain in warnings. Return only one JSON object. No markdown fences, no reasoning text, no prose before or after JSON, no extra keys outside the contract."
+}

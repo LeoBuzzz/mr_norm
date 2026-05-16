@@ -58,6 +58,7 @@ def test_run_norm_lookup_maps_pipeline_to_skill_contract() -> None:
         profile="balanced",
         limit=1,
         trace_id="skill_trace",
+        understand_query_mode="off",
     )
 
     with patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()):
@@ -80,6 +81,7 @@ def test_norm_lookup_golden_fixture_shape() -> None:
         query="требования к заземлению",
         filters={"doc_name": "Правила устройства электроустановок"},
         limit=5,
+        understand_query_mode="off",
     )
 
     with patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()):

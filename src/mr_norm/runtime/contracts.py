@@ -7,6 +7,85 @@ from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest, ToolResult
 
 
 @dataclass(frozen=True)
+class PreparedToolQuery:
+    tool_name: str
+    queries: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "tool_name": self.tool_name,
+            "queries": list(self.queries),
+        }
+
+
+@dataclass(frozen=True)
+class DocumentResolution:
+    catalog_id: str = ""
+    doc_name: str = ""
+    confidence: float = 0.0
+    ambiguous: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class QueryPlannerTrace:
+    mode: str = "off"
+    resolver: str = "deterministic"
+    knowledge_source: str = ""
+    catalog_source: str = ""
+    candidates_total: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class PreparedQueryPlan:
+    original_query: str = ""
+    question_type: str = ""
+    answer_shape: str = "narrow"
+    concepts: tuple[str, ...] = ()
+    significant_words: tuple[str, ...] = ()
+    document_resolution: DocumentResolution = field(default_factory=DocumentResolution)
+    resolved_doc_names: tuple[str, ...] = ()
+    point_number_hints: tuple[str, ...] = ()
+    selected_tools: tuple[str, ...] = ()
+    tool_queries: tuple[PreparedToolQuery, ...] = ()
+    confidence: float = 0.0
+    ambiguous: bool = False
+    warnings: tuple[str, ...] = ()
+    trace: QueryPlannerTrace = field(default_factory=QueryPlannerTrace)
+    candidates: tuple[dict[str, Any], ...] = ()
+
+    def primary_query_for(self, tool_name: str) -> str:
+        for entry in self.tool_queries:
+            if entry.tool_name == tool_name and entry.queries:
+                return entry.queries[0]
+        return self.original_query
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "original_query": self.original_query,
+            "question_type": self.question_type,
+            "answer_shape": self.answer_shape,
+            "concepts": list(self.concepts),
+            "significant_words": list(self.significant_words),
+            "document_resolution": self.document_resolution.to_dict(),
+            "resolved_doc_names": list(self.resolved_doc_names),
+            "point_number_hints": list(self.point_number_hints),
+            "selected_tools": list(self.selected_tools),
+            "tool_queries": [entry.to_dict() for entry in self.tool_queries],
+            "confidence": self.confidence,
+            "ambiguous": self.ambiguous,
+            "warnings": list(self.warnings),
+            "trace": self.trace.to_dict(),
+            "candidates": list(self.candidates),
+        }
+
+
+@dataclass(frozen=True)
 class RuntimeRequest:
     query: str = ""
     filters: dict[str, Any] = field(default_factory=dict)
@@ -14,6 +93,7 @@ class RuntimeRequest:
     profile: str = "balanced"
     trace_id: str = ""
     mode: str = "evidence"
+    prepared_plan: PreparedQueryPlan | None = None
 
 
 @dataclass(frozen=True)
@@ -22,6 +102,7 @@ class ToolCallPlan:
     request: ToolRequest
     reason: str
     priority: int = 0
+    queries: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -133,6 +214,47 @@ class FinalAnswerResult:
             "answer": self.answer,
             "citations": [citation.to_dict() for citation in self.citations],
             "warnings": list(self.warnings),
+        }
+
+
+@dataclass(frozen=True)
+class QueryUnderstandingTrace:
+    mode: str = "off"
+    resolver: str = "deterministic"
+    catalog_source: str = ""
+    candidates_total: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class QueryUnderstandingResult:
+    original_query: str = ""
+    search_query: str = ""
+    document_hints: list[str] = field(default_factory=list)
+    resolved_doc_names: list[str] = field(default_factory=list)
+    point_number_hints: list[str] = field(default_factory=list)
+    tool_hints: list[str] = field(default_factory=list)
+    confidence: float = 0.0
+    ambiguous: bool = False
+    warnings: list[str] = field(default_factory=list)
+    trace: QueryUnderstandingTrace = field(default_factory=QueryUnderstandingTrace)
+    candidates: list[dict[str, Any]] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "original_query": self.original_query,
+            "search_query": self.search_query,
+            "document_hints": list(self.document_hints),
+            "resolved_doc_names": list(self.resolved_doc_names),
+            "point_number_hints": list(self.point_number_hints),
+            "tool_hints": list(self.tool_hints),
+            "confidence": self.confidence,
+            "ambiguous": self.ambiguous,
+            "warnings": list(self.warnings),
+            "trace": self.trace.to_dict(),
+            "candidates": list(self.candidates),
         }
 
 

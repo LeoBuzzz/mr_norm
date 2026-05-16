@@ -34,6 +34,7 @@ from mr_norm.runtime.pipeline import PipelineBatchDefaults, run_pipeline, run_pi
 from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.reranker import build_reranker
 from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
+from mr_norm.apps.human_cli import HumanCliOptions, collect_interactive_options, run_human_norm_lookup
 from mr_norm.tools.chunker import ChunkBuilder, MetadataExtractionError
 from mr_norm.tools.rtf_processor import RtfProcessor, RtfReadError, atomic_write_json, pick_size_diverse_rtf_paths
 
@@ -246,6 +247,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to local keys file for Polza. Defaults to project-root keys when present.",
     )
 
+    norm_lookup = sub.add_parser(
+        "norm-lookup",
+        help="Human-friendly norm lookup: mode menu, short status, answer and sources.",
+    )
+    norm_lookup.add_argument("--query", default="", help="Question text. Omit for interactive prompts.")
+    norm_lookup.add_argument(
+        "--mode-preset",
+        choices=["deterministic", "ollama", "polza"],
+        default="",
+        help="Work mode preset. Omit for interactive menu.",
+    )
+    norm_lookup.add_argument("--doc-name", default="", help="Optional doc_name filter.")
+    norm_lookup.add_argument("--limit", type=int, default=10)
+    norm_lookup.add_argument("--profile", choices=["fast", "balanced", "deep"], default="balanced")
+    norm_lookup.add_argument(
+        "--final-answer-model",
+        default="",
+        help="Override final answer LLM model (ollama/polza presets).",
+    )
+    norm_lookup.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
+    norm_lookup.add_argument(
+        "--keys-path",
+        type=Path,
+        default=None,
+        help="Path to local keys file for Polza. Defaults to project-root keys when present.",
+    )
+    norm_lookup.add_argument(
+        "--understand-query",
+        choices=["auto", "off", "llm"],
+        default="",
+        help="Pre-retrieval query understanding: auto (catalog), llm (catalog+LLM), off.",
+    )
+
     return parser
 
 
@@ -411,10 +445,34 @@ def main(argv: list[str] | None = None) -> int:
             result["questions_path"] = str(questions_path)
             if args.save_report:
                 result = save_pipeline_report(result, paths.reports_dir, prefix="rag_pipeline_batch")
+        elif args.command == "norm-lookup":
+            base_options = HumanCliOptions(
+                query=args.query,
+                mode_preset=args.mode_preset,
+                doc_name=args.doc_name,
+                limit=args.limit,
+                profile=args.profile,
+                final_answer_model=args.final_answer_model or None,
+                understand_query=args.understand_query,
+            )
+            if not base_options.query or not base_options.mode_preset:
+                options = collect_interactive_options(base_options)
+            else:
+                options = base_options
+            run_human_norm_lookup(
+                options,
+                resolve_indexing_config(args),
+                keys_path=resolve_keys_path(paths, args.keys_path),
+                project_paths=paths,
+            )
+            return exit_code
         else:
             raise ValueError(f"Unsupported command: {args.command}")
     except (RtfReadError, MetadataExtractionError) as exc:
         print(json.dumps({"error": type(exc).__name__, "message": str(exc)}, ensure_ascii=False, indent=2))
+        return 1
+    except ValueError as exc:
+        print(str(exc))
         return 1
 
     print(json.dumps(to_printable_result(result), ensure_ascii=False, indent=2))

@@ -1,8 +1,35 @@
 from __future__ import annotations
 
-from mr_norm.runtime.contracts import RuntimeRequest
+from mr_norm.runtime.contracts import PreparedQueryPlan, PreparedToolQuery, RuntimeRequest
 from mr_norm.runtime.profiles import get_profile_config
 from mr_norm.runtime.router import route_runtime
+
+
+def test_route_runtime_uses_prepared_plan_tools_and_queries() -> None:
+    plan, warnings = route_runtime(
+        RuntimeRequest(
+            query="Какое наведенное напряжение безопасно?",
+            profile="balanced",
+            prepared_plan=PreparedQueryPlan(
+                original_query="Какое наведенное напряжение безопасно?",
+                selected_tools=("payload", "vector"),
+                tool_queries=(
+                    PreparedToolQuery(
+                        tool_name="payload",
+                        queries=("наведенное напряжение", "Какое наведенное напряжение безопасно?"),
+                    ),
+                    PreparedToolQuery(
+                        tool_name="vector",
+                        queries=("наведенное напряжение",),
+                    ),
+                ),
+            ),
+        )
+    )
+
+    assert warnings == []
+    assert [step.tool_name for step in plan] == ["payload", "vector"]
+    assert plan[0].queries == ("наведенное напряжение", "Какое наведенное напряжение безопасно?")
 
 
 def test_route_runtime_rejects_empty_query_and_filters() -> None:

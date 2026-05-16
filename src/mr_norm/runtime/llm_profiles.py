@@ -33,6 +33,8 @@ class LLMProviderProfiles:
     planner: LLMRoleProfile
     reranker: LLMRoleProfile
     final_answer: LLMRoleProfile
+    query_understanding: LLMRoleProfile
+    query_planning: LLMRoleProfile
 
 
 OLLAMA_PROFILES = LLMProviderProfiles(
@@ -51,6 +53,16 @@ OLLAMA_PROFILES = LLMProviderProfiles(
         fallback_model=OLLAMA_FINAL_ANSWER_FALLBACK_MODEL,
         max_tokens=4096,
     ),
+    query_understanding=LLMRoleProfile(
+        model=OLLAMA_PLANNER_MODEL,
+        fallback_model=OLLAMA_PLANNER_FALLBACK_MODEL,
+        max_tokens=1024,
+    ),
+    query_planning=LLMRoleProfile(
+        model=OLLAMA_PLANNER_MODEL,
+        fallback_model=OLLAMA_PLANNER_FALLBACK_MODEL,
+        max_tokens=1536,
+    ),
 )
 
 POLZA_PROFILES = LLMProviderProfiles(
@@ -68,6 +80,16 @@ POLZA_PROFILES = LLMProviderProfiles(
         model=POLZA_FINAL_ANSWER_MODEL,
         fallback_model=POLZA_FINAL_ANSWER_FALLBACK_MODEL,
         max_tokens=4096,
+    ),
+    query_understanding=LLMRoleProfile(
+        model=POLZA_PLANNER_MODEL,
+        fallback_model=POLZA_PLANNER_FALLBACK_MODEL,
+        max_tokens=1024,
+    ),
+    query_planning=LLMRoleProfile(
+        model=POLZA_PLANNER_MODEL,
+        fallback_model=POLZA_PLANNER_FALLBACK_MODEL,
+        max_tokens=1536,
     ),
 )
 
@@ -88,6 +110,10 @@ def get_role_profile(provider: str, role: str) -> LLMRoleProfile:
         return profiles.reranker
     if role == "final_answer":
         return profiles.final_answer
+    if role == "query_understanding":
+        return profiles.query_understanding
+    if role == "query_planning":
+        return profiles.query_planning
     raise ValueError(f"unsupported LLM role: {role}")
 
 

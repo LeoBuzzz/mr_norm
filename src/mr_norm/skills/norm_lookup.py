@@ -5,8 +5,20 @@ from pathlib import Path
 from typing import Any
 
 from mr_norm.config.indexing import IndexingConfig
+from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem
-from mr_norm.runtime.contracts import Citation, PipelineResult, RuntimeRequest
+from mr_norm.runtime.contracts import (
+    Citation,
+    PipelineResult,
+    PreparedQueryPlan,
+    QueryUnderstandingResult,
+    RuntimeRequest,
+)
+from mr_norm.runtime.query_planner import (
+    apply_prepared_plan,
+    plan_query,
+    prepared_plan_to_understanding,
+)
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
 from mr_norm.runtime.pipeline import run_pipeline
@@ -30,6 +42,7 @@ class NormLookupRequest:
     planner_model: str | None = None
     reranker_model: str | None = None
     final_answer_model: str | None = None
+    understand_query_mode: str = "auto"
 
     def to_runtime_request(self) -> RuntimeRequest:
         return RuntimeRequest(
@@ -72,9 +85,11 @@ class NormLookupResult:
     trace: NormLookupTrace
     warnings: list[str]
     pipeline: PipelineResult
+    understanding: QueryUnderstandingResult | None = None
+    prepared_plan: PreparedQueryPlan | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "answer": self.answer,
             "citations": [citation.to_dict() for citation in self.citations],
             "evidence": [asdict(item) for item in self.evidence],
@@ -82,6 +97,11 @@ class NormLookupResult:
             "warnings": list(self.warnings),
             "pipeline": self.pipeline.to_dict(),
         }
+        if self.understanding is not None:
+            payload["understanding"] = self.understanding.to_dict()
+        if self.prepared_plan is not None:
+            payload["prepared_plan"] = self.prepared_plan.to_dict()
+        return payload
 
 
 def run_norm_lookup(
@@ -90,7 +110,39 @@ def run_norm_lookup(
     *,
     keys_path: Path | None = None,
     tool_runners: dict[str, ToolRunner] | None = None,
+    project_paths: ProjectPaths | None = None,
 ) -> NormLookupResult:
+    understanding: QueryUnderstandingResult | None = None
+    prepared_plan: PreparedQueryPlan | None = None
+    effective_query = request.query
+    effective_filters = dict(request.filters)
+
+    if request.understand_query_mode != "off":
+        prepared_plan = plan_query(
+            request.query,
+            filters=request.filters,
+            mode=request.understand_query_mode,
+            llm_provider=request.llm_provider,
+            keys_path=keys_path,
+            project_paths=project_paths,
+        )
+        understanding = prepared_plan_to_understanding(prepared_plan)
+        effective_query, effective_filters = apply_prepared_plan(
+            request.query,
+            request.filters,
+            prepared_plan,
+        )
+
+    runtime_request = RuntimeRequest(
+        query=effective_query,
+        filters=effective_filters,
+        limit=request.limit,
+        profile=request.profile,
+        trace_id=request.trace_id or "norm_lookup",
+        mode=request.mode,
+        prepared_plan=prepared_plan,
+    )
+
     llm_providers = build_pipeline_llm_providers(
         request.llm_provider,
         planner_model=request.planner_model,
@@ -102,7 +154,7 @@ def run_norm_lookup(
         keys_path=keys_path,
     )
     pipeline = run_pipeline(
-        request.to_runtime_request(),
+        runtime_request,
         config,
         tool_runners=tool_runners,
         planner=build_planner(request.planner_backend, provider=llm_providers.planner),
@@ -126,6 +178,10 @@ def run_norm_lookup(
             trace_id=runtime_trace.trace_id,
             selected_tools=tuple(runtime_trace.selected_tools),
         ),
-        warnings=list(pipeline.warnings),
+        warnings=list(pipeline.warnings)
+        + list(prepared_plan.warnings if prepared_plan else [])
+        + list(understanding.warnings if understanding else []),
         pipeline=pipeline,
+        understanding=understanding,
+        prepared_plan=prepared_plan,
     )

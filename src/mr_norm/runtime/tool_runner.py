@@ -8,9 +8,9 @@ from typing import Any, Callable
 
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.retrieval.compare import reciprocal_rank_fusion
-from mr_norm.retrieval.contracts import ToolMetrics, ToolRequest, ToolResult, ToolTrace
+from mr_norm.retrieval.contracts import RetrievedItem, ToolMetrics, ToolRequest, ToolResult, ToolTrace
 from mr_norm.retrieval.tools.payload import run_payload_tool
-from mr_norm.retrieval.tools.point import run_point_tool
+from mr_norm.retrieval.tools.point import is_point_lookup_filters, run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace, ToolCallPlan
 from mr_norm.runtime.profiles import get_profile_config
@@ -18,6 +18,46 @@ from mr_norm.runtime.router import route_runtime
 from mr_norm.tools.rtf_processor import atomic_write_json, atomic_write_text
 
 ToolRunner = Callable[[ToolRequest, IndexingConfig], ToolResult]
+
+
+def _merge_tool_results(results: list[ToolResult], *, tool_name: str, trace_id: str) -> ToolResult:
+    if not results:
+        return ToolResult(
+            items=[],
+            trace=ToolTrace(tool_name=tool_name, trace_id=trace_id),
+            metrics=ToolMetrics(elapsed_sec=0.0, candidates_returned=0, qdrant_calls=0),
+            warnings=[],
+        )
+    if len(results) == 1:
+        return results[0]
+
+    seen: set[str] = set()
+    merged_items: list[RetrievedItem] = []
+    warnings: list[str] = []
+    qdrant_calls = 0
+    elapsed = 0.0
+    for result in results:
+        qdrant_calls += result.metrics.qdrant_calls
+        elapsed += result.metrics.elapsed_sec
+        warnings.extend(result.warnings)
+        for item in result.items:
+            key = item.chunk_id or f"{item.doc_name}:{item.point_number}:{item.text[:80]}"
+            if key in seen:
+                continue
+            seen.add(key)
+            merged_items.append(item)
+
+    base = results[0]
+    return ToolResult(
+        items=merged_items,
+        trace=base.trace,
+        metrics=ToolMetrics(
+            elapsed_sec=round(elapsed, 6),
+            candidates_returned=len(merged_items),
+            qdrant_calls=qdrant_calls,
+        ),
+        warnings=list(dict.fromkeys(warnings)),
+    )
 
 
 def default_runtime_tool_runners() -> dict[str, ToolRunner]:
@@ -59,8 +99,31 @@ def run_runtime(
         if runner is None:
             warnings.append(f"unknown runtime tool: {step.tool_name}")
             continue
+        queries = tuple(query.strip() for query in step.queries if query.strip())
+        if not queries:
+            queries = (step.request.query.strip(),) if step.request.query.strip() else ()
+        if not queries and step.tool_name == "point" and is_point_lookup_filters(dict(step.request.filters)):
+            queries = ("",)
+        if not queries and step.tool_name != "point":
+            warnings.append(f"{step.tool_name} skipped: empty query list")
+            continue
+
         try:
-            result = runner(step.request, config)
+            per_query_results: list[ToolResult] = []
+            for query_text in queries:
+                tool_request = ToolRequest(
+                    query=query_text,
+                    filters=dict(step.request.filters),
+                    limit=step.request.limit,
+                    profile=step.request.profile,
+                    trace_id=step.request.trace_id,
+                )
+                per_query_results.append(runner(tool_request, config))
+            result = _merge_tool_results(
+                per_query_results,
+                tool_name=step.tool_name,
+                trace_id=step.request.trace_id,
+            )
         except Exception as exc:
             warnings.append(f"{step.tool_name} failed: {type(exc).__name__}: {exc}")
             continue

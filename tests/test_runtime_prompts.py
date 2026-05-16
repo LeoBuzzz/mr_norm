@@ -29,7 +29,7 @@ def test_list_prompt_packs_loads_all_roles() -> None:
     packs = list_prompt_packs()
 
     roles = {pack["role"] for pack in packs}
-    assert roles == {"planner", "reranker", "final_answer"}
+    assert roles == {"planner", "reranker", "final_answer", "query_understanding", "query_planning"}
 
 
 def test_load_prompt_pack_by_role_returns_expected_schema_versions() -> None:
