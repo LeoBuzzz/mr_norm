@@ -25,6 +25,7 @@ DOMAIN_TERM_HINTS: dict[str, tuple[str, ...]] = {
     "электроэнергет": (
         "об электроэнергетике",
         "федеральный закон об электроэнергетике",
+        "35-фз",
         "электроэнергетика",
     ),
     "технологическ": (
@@ -68,14 +69,39 @@ def detect_query_intent(query: str) -> str:
     return "factual"
 
 
-def intent_search_terms(query: str, intent: str) -> list[str]:
-    if intent != "document_lookup":
+_REGULATION_SUBJECT_RE = re.compile(
+    r"(?:что|чем)\s+регулиру(?:ет|ется|ют|ются)\s+(.+?)(?:\?|$)",
+    re.IGNORECASE,
+)
+
+
+def _regulation_subject_terms(query: str) -> list[str]:
+    match = _REGULATION_SUBJECT_RE.search(query.strip())
+    if not match:
         return []
-    norm = normalize_catalog_text(query)
+    subject = re.sub(r"\s+", " ", match.group(1).strip(" \"'«»"))
+    if len(subject) < 8:
+        return []
+    return [subject]
+
+
+def _domain_hint_terms(norm: str) -> list[str]:
     terms: list[str] = []
     for marker, hints in DOMAIN_TERM_HINTS.items():
         if marker in norm:
             for hint in hints:
                 if hint not in terms:
                     terms.append(hint)
+    return terms
+
+
+def intent_search_terms(query: str, intent: str) -> list[str]:
+    if intent not in {"document_lookup", "regulation_scope"}:
+        return []
+    norm = normalize_catalog_text(query)
+    terms = _domain_hint_terms(norm)
+    if intent == "regulation_scope":
+        for subject in _regulation_subject_terms(query):
+            if subject not in terms:
+                terms.insert(0, subject)
     return terms[:4]

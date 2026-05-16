@@ -16,6 +16,15 @@ def test_intent_search_terms_for_energy_law() -> None:
         "document_lookup",
     )
     assert any("электроэнергетик" in term for term in terms)
+    assert any("35-фз" in term for term in terms)
+
+
+def test_intent_search_terms_for_regulation_scope() -> None:
+    terms = intent_search_terms(
+        "Что регулирует Правила технической эксплуатации электрических станций и сетей?",
+        "regulation_scope",
+    )
+    assert any("технической эксплуатации" in term for term in terms)
 
 
 def test_intent_boost_prefers_legal_act_over_gost() -> None:

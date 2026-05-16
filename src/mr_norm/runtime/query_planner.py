@@ -231,7 +231,7 @@ def _build_default_tool_queries(
 
     intent = question_type or detect_query_intent(original_query)
     intent_terms = intent_search_terms(original_query, intent)
-    if intent == "document_lookup" and intent_terms:
+    if intent in {"document_lookup", "regulation_scope"} and intent_terms:
         payload_queries = list(
             dict.fromkeys([*intent_terms, *payload_queries])
         )[:MAX_QUERIES_PER_TOOL]
@@ -713,7 +713,9 @@ def prepare_query(
         term_matches=term_matches,
         question_type=question_type,
     )
-    if question_type == "document_lookup" and intent_search_terms(original_query, question_type):
+    if question_type in {"document_lookup", "regulation_scope"} and intent_search_terms(
+        original_query, question_type
+    ):
         prepared_tool_queries = tuple(
             entry for entry in prepared_tool_queries if entry.tool_name in {"payload", "point"}
         )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -78,22 +79,25 @@ def chat_json_with_model_fallback(
 
     errors: list[str] = []
     for model in models:
-        try:
-            client = build_chat_client(
-                llm_provider,
-                model,
-                keys_path=keys_path,
-                http_post=http_post,
-            )
-            return _chat_json(
-                client,
-                system_prompt=system_prompt,
-                user_payload=user_payload,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-        except Exception as exc:
-            errors.append(f"{model}: {type(exc).__name__}: {exc}")
+        for attempt in range(2):
+            try:
+                client = build_chat_client(
+                    llm_provider,
+                    model,
+                    keys_path=keys_path,
+                    http_post=http_post,
+                )
+                return _chat_json(
+                    client,
+                    system_prompt=system_prompt,
+                    user_payload=user_payload,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+            except Exception as exc:
+                errors.append(f"{model}[{attempt}]: {type(exc).__name__}: {exc}")
+                if attempt == 0:
+                    time.sleep(1.5)
 
     raise RuntimeError("LLM call failed for all models: " + "; ".join(errors))
 

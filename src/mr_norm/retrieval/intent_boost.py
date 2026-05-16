@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.query_intent import detect_query_intent
 from mr_norm.retrieval.text_normalize import normalize_catalog_text
@@ -51,7 +53,7 @@ def _query_focus_tokens(query_norm: str) -> list[str]:
 def _intent_rank_key(item: RetrievedItem, intent: str, query_norm: str) -> tuple[int, int, float]:
     blob = _item_blob(item)
     priority = 1
-    if intent == "document_lookup":
+    if intent in {"document_lookup", "regulation_scope"}:
         if any(marker in blob for marker in LEGAL_ACT_MARKERS):
             priority = 0
         elif any(marker in blob for marker in LOW_PRIORITY_FOR_DOC_LOOKUP) and "гост" not in query_norm:
@@ -59,6 +61,15 @@ def _intent_rank_key(item: RetrievedItem, intent: str, query_norm: str) -> tuple
         focus_hits = sum(1 for token in _query_focus_tokens(query_norm) if token in blob)
         if focus_hits:
             priority = max(0, priority - focus_hits)
+        if intent == "regulation_scope":
+            subject_match = re.search(
+                r"(?:что|чем)\s+регулиру(?:ет|ется|ют|ются)\s+(.+?)(?:\?|$)",
+                query_norm,
+            )
+            if subject_match:
+                subject_norm = normalize_catalog_text(subject_match.group(1))
+                if subject_norm and subject_norm in blob:
+                    priority = 0
     score = float(item.score) if item.score is not None else 0.0
     return priority, -score, item.chunk_id or ""
 
