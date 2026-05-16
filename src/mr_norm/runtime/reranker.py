@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Protocol
 
 from mr_norm.retrieval.contracts import RetrievedItem
+from mr_norm.retrieval.phrase_boost import rerank_items_for_exact_phrase
 from mr_norm.runtime.contracts import RerankResult, RuntimeRequest, RuntimeResult
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
@@ -44,7 +45,14 @@ class PassthroughReranker:
         limit: int | None = None,
     ) -> RerankResult:
         effective_limit = limit if limit is not None else request.limit
-        items = list(runtime.items[:effective_limit])
+        items = list(runtime.items)
+        if request.prepared_plan and request.prepared_plan.exact_phrase_terms:
+            items = rerank_items_for_exact_phrase(
+                items,
+                request.prepared_plan.exact_phrase_terms,
+                limit=max(effective_limit, len(items)),
+            )
+        items = items[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
         return RerankResult(items=items, scores=scores)
 
@@ -64,6 +72,12 @@ class ScoreReranker:
             runtime.items,
             key=lambda item: (-_item_score(item), _tool_priority(item), item.chunk_id),
         )
+        if request.prepared_plan and request.prepared_plan.exact_phrase_terms:
+            ranked = rerank_items_for_exact_phrase(
+                ranked,
+                request.prepared_plan.exact_phrase_terms,
+                limit=max(effective_limit, len(ranked)),
+            )
         items = ranked[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
         return RerankResult(items=items, scores=scores)

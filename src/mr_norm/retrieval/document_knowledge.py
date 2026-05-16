@@ -154,6 +154,33 @@ def phrase_matches_query(phrase: str, query: str) -> bool:
     return all(token in query_norm for token in tokens)
 
 
+def prune_exact_phrases(phrases: list[str]) -> list[str]:
+    if not phrases:
+        return []
+    items = [(phrase, normalize_catalog_text(phrase)) for phrase in phrases]
+    kept: list[str] = []
+    for phrase, norm in items:
+        words = norm.split()
+        if len(words) == 1 and norm in LOOSE_TOPIC_TOKENS:
+            continue
+        dominated = False
+        for other_phrase, other_norm in items:
+            if phrase == other_phrase:
+                continue
+            if len(other_norm.split()) > len(words) and norm in other_norm:
+                dominated = True
+                break
+        if not dominated:
+            kept.append(phrase)
+    kept.sort(key=lambda item: len(normalize_catalog_text(item).split()), reverse=True)
+    return kept
+
+
+def primary_exact_phrase(phrases: tuple[str, ...] | list[str]) -> str:
+    pruned = prune_exact_phrases(list(phrases))
+    return pruned[0] if pruned else ""
+
+
 def phrase_required_tokens(phrase: str) -> tuple[str, ...]:
     phrase_norm = normalize_catalog_text(phrase)
     words = [token for token in phrase_norm.split() if len(token) >= 3]
@@ -386,7 +413,7 @@ def match_query_terms(
         if expansion:
             _append_unique(abbreviations, expansion)
 
-    exact_phrases = exact_phrases[:limit]
+    exact_phrases = prune_exact_phrases(exact_phrases)[:limit]
     abbreviations = abbreviations[:limit]
     loose = [term for term in loose if term not in exact_phrases][:limit]
     doc_hints = doc_hints[:limit]

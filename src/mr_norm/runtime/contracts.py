@@ -48,6 +48,7 @@ class PreparedQueryPlan:
     original_query: str = ""
     question_type: str = ""
     answer_shape: str = "narrow"
+    exact_phrase_terms: tuple[str, ...] = ()
     concepts: tuple[str, ...] = ()
     significant_words: tuple[str, ...] = ()
     document_resolution: DocumentResolution = field(default_factory=DocumentResolution)
@@ -72,6 +73,7 @@ class PreparedQueryPlan:
             "original_query": self.original_query,
             "question_type": self.question_type,
             "answer_shape": self.answer_shape,
+            "exact_phrase_terms": list(self.exact_phrase_terms),
             "concepts": list(self.concepts),
             "significant_words": list(self.significant_words),
             "document_resolution": self.document_resolution.to_dict(),

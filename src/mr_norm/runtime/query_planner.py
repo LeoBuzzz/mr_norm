@@ -23,6 +23,7 @@ from mr_norm.retrieval.document_knowledge import (
     load_document_knowledge,
     match_query_terms,
     phrase_required_tokens,
+    primary_exact_phrase,
 )
 from mr_norm.runtime.contracts import (
     DocumentResolution,
@@ -196,7 +197,7 @@ def _build_default_tool_queries(
     vector_queries: list[str] = []
 
     if exact_phrases:
-        primary = exact_phrases[0]
+        primary = primary_exact_phrase(exact_phrases)
         for candidate in _phrase_context_queries(original, primary):
             if candidate not in payload_queries:
                 payload_queries.append(candidate)
@@ -249,7 +250,7 @@ def _normalize_tool_queries(
             queries[tool_name] = list(dict.fromkeys(merged))[:MAX_QUERIES_PER_TOOL]
 
     if term_matches.exact_phrase_terms:
-        primary = term_matches.exact_phrase_terms[0]
+        primary = primary_exact_phrase(term_matches.exact_phrase_terms)
         for tool_name in ("payload", "vector"):
             prioritized = _phrase_context_queries(original_query, primary)
             merged = [*prioritized, *queries[tool_name]]
@@ -346,9 +347,10 @@ def _sanitize_llm_plan_fields(
 
 
 def _payload_required_tokens(term_matches: QueryTermMatches) -> tuple[str, ...]:
-    if not term_matches.exact_phrase_terms:
+    primary = primary_exact_phrase(term_matches.exact_phrase_terms)
+    if not primary:
         return ()
-    return phrase_required_tokens(term_matches.exact_phrase_terms[0])
+    return phrase_required_tokens(primary)
 
 
 def _build_tool_query_objects(
@@ -674,6 +676,7 @@ def prepare_query(
         original_query=original_query,
         question_type=question_type,
         answer_shape=answer_shape,
+        exact_phrase_terms=tuple(term_matches.exact_phrase_terms),
         concepts=tuple(concepts),
         significant_words=tuple(significant_words),
         document_resolution=document_resolution,
