@@ -11,5 +11,5 @@
     "schema_version": "mr_rerank_v1",
     "required_fields": ["ranked_chunk_ids"]
   },
-  "prompt": "Reorder evidence chunks by relevance to the user query. Return only chunk_id values that exist in the provided evidence."
+  "prompt": "Reorder evidence chunks by relevance to the user query. Return JSON with key ranked_chunk_ids as an array of chunk_id strings from the provided evidence only. Return only one JSON object. No markdown fences, no reasoning text, no prose before or after JSON, no extra keys outside the contract."
 }

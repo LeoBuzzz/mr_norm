@@ -30,7 +30,7 @@ from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeRequest
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
-from mr_norm.runtime.pipeline import run_pipeline, save_pipeline_report
+from mr_norm.runtime.pipeline import PipelineBatchDefaults, run_pipeline, run_pipeline_batch, save_pipeline_report
 from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.reranker import build_reranker
 from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
@@ -192,6 +192,60 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to local keys file for Polza. Defaults to project-root keys when present.",
     )
 
+    rag_pipeline_batch = sub.add_parser(
+        "rag-pipeline-batch",
+        help="Run full RAG pipeline for a JSON question set with evaluation metrics.",
+    )
+    rag_pipeline_batch.add_argument(
+        "--questions",
+        type=Path,
+        default=None,
+        help="Path to retrieval questions JSON. Defaults to tests/fixtures/retrieval_questions.json.",
+    )
+    rag_pipeline_batch.add_argument("--profile", choices=["fast", "balanced", "deep"], default="balanced")
+    rag_pipeline_batch.add_argument("--limit", type=int, default=10)
+    rag_pipeline_batch.add_argument("--mode", default="evidence", help="Runtime mode, default: evidence.")
+    rag_pipeline_batch.add_argument(
+        "--planner",
+        choices=["deterministic", "prompt"],
+        default="deterministic",
+        help="Planner backend.",
+    )
+    rag_pipeline_batch.add_argument(
+        "--reranker",
+        choices=["passthrough", "score", "prompt"],
+        default="passthrough",
+        help="Reranker backend.",
+    )
+    rag_pipeline_batch.add_argument(
+        "--final-answer",
+        dest="final_answer_backend",
+        choices=["evidence", "prompt"],
+        default="evidence",
+        help="Final answer backend.",
+    )
+    rag_pipeline_batch.add_argument(
+        "--llm-provider",
+        choices=["none", "ollama", "polza"],
+        default="none",
+        help="Optional live LLM provider for prompt backends. Default: none.",
+    )
+    rag_pipeline_batch.add_argument("--planner-model", default="", help="Override planner LLM model id.")
+    rag_pipeline_batch.add_argument("--reranker-model", default="", help="Override reranker LLM model id.")
+    rag_pipeline_batch.add_argument(
+        "--final-answer-model",
+        default="",
+        help="Override final answer LLM model id.",
+    )
+    rag_pipeline_batch.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
+    rag_pipeline_batch.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+    rag_pipeline_batch.add_argument(
+        "--keys-path",
+        type=Path,
+        default=None,
+        help="Path to local keys file for Polza. Defaults to project-root keys when present.",
+    )
+
     return parser
 
 
@@ -336,6 +390,27 @@ def main(argv: list[str] | None = None) -> int:
             result = pipeline.to_dict()
             if getattr(args, "save_report", False):
                 result = save_pipeline_report(result, paths.reports_dir)
+        elif args.command == "rag-pipeline-batch":
+            questions_path = resolve_questions_path(paths, args.questions)
+            result = run_pipeline_batch(
+                load_retrieval_questions(questions_path),
+                resolve_indexing_config(args),
+                defaults=PipelineBatchDefaults(
+                    profile=args.profile,
+                    limit=args.limit,
+                    planner_backend=args.planner,
+                    reranker_backend=args.reranker,
+                    final_answer_backend=args.final_answer_backend,
+                    llm_provider=args.llm_provider,
+                    planner_model=args.planner_model or None,
+                    reranker_model=args.reranker_model or None,
+                    final_answer_model=args.final_answer_model or None,
+                    keys_path=resolve_keys_path(paths, args.keys_path),
+                ),
+            )
+            result["questions_path"] = str(questions_path)
+            if args.save_report:
+                result = save_pipeline_report(result, paths.reports_dir, prefix="rag_pipeline_batch")
         else:
             raise ValueError(f"Unsupported command: {args.command}")
     except (RtfReadError, MetadataExtractionError) as exc:

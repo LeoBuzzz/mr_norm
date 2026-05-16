@@ -70,15 +70,16 @@ class ScoreReranker:
 
 
 def _parse_ranked_chunk_ids(payload: Mapping[str, Any], evidence: Sequence[RetrievedItem]) -> tuple[list[RetrievedItem], list[str]]:
-    warnings: list[str] = []
-    raw_ids = payload.get("ranked_chunk_ids")
-    if not isinstance(raw_ids, list):
-        raise ValueError("ranked_chunk_ids must be a list")
+    from mr_norm.runtime.llm_payloads import normalize_reranker_payload
+
+    normalized, normalize_warnings = normalize_reranker_payload(payload)
+    warnings = list(normalize_warnings)
+    raw_ids = normalized["ranked_chunk_ids"]
 
     by_id = {item.chunk_id: item for item in evidence if item.chunk_id}
     items: list[RetrievedItem] = []
     for chunk_id in raw_ids:
-        key = str(chunk_id).strip()
+        key = chunk_id
         if not key:
             warnings.append("reranker ignored empty chunk_id")
             continue

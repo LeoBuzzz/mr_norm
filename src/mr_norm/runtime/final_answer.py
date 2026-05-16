@@ -74,15 +74,13 @@ def _parse_final_answer_payload(
     payload: Mapping[str, Any],
     evidence: Sequence[RetrievedItem],
 ) -> tuple[str, list[Citation], list[str]]:
-    answer = str(payload.get("answer") or "").strip()
-    if not answer:
-        raise ValueError("answer must be a non-empty string")
+    from mr_norm.runtime.llm_payloads import normalize_final_answer_payload
 
-    raw_citations = payload.get("citations")
-    if not isinstance(raw_citations, list):
-        raise ValueError("citations must be a list")
-
-    citations, warnings = validate_citations(evidence, raw_citations)
+    normalized, normalize_warnings = normalize_final_answer_payload(payload)
+    warnings = list(normalize_warnings)
+    citations, citation_warnings = validate_citations(evidence, normalized["citations"])
+    warnings.extend(citation_warnings)
+    answer = normalized["answer"]
     if not citations:
         warnings = list(warnings) + ["final answer returned no valid citations"]
     return answer, citations, warnings

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -51,20 +50,9 @@ def default_http_post(url: str, headers: dict[str, str], body: bytes, timeout_se
 
 
 def parse_json_object(content: str) -> dict[str, Any]:
-    text = content.strip()
-    if not text:
-        raise ValueError("LLM response content is empty")
+    from mr_norm.runtime.llm_payloads import parse_llm_payload
 
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, flags=re.IGNORECASE)
-    if fence_match:
-        text = fence_match.group(1).strip()
-
-    payload = json.loads(text)
-    if isinstance(payload, list):
-        return {"ranked_chunk_ids": payload}
-    if not isinstance(payload, dict):
-        raise ValueError("LLM response JSON must be an object")
-    return payload
+    return parse_llm_payload(content)
 
 
 def load_polza_api_key(*, keys_path: Path | None = None) -> str:

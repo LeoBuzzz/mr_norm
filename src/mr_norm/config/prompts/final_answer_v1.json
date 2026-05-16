@@ -10,5 +10,5 @@
     "schema_version": "mr_final_answer_v1",
     "required_fields": ["answer", "citations"]
   },
-  "prompt": "Answer only from provided evidence chunks. Every citation must reference an existing chunk_id, doc_name, and point_number from evidence."
+  "prompt": "Answer only from provided evidence chunks. Return JSON with keys answer (string) and citations (array). Each citation must be an object with chunk_id and optional doc_name and point_number from evidence, or a chunk_id string. Return only one JSON object. No markdown fences, no reasoning text, no prose before or after JSON, no extra keys outside the contract."
 }

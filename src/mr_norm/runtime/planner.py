@@ -40,25 +40,14 @@ class DeterministicPlanner:
 
 
 def _parse_planner_payload(payload: Mapping[str, Any]) -> tuple[list[str], list[str], list[str]]:
-    warnings: list[str] = []
-    raw_tools = payload.get("selected_tools")
-    if not isinstance(raw_tools, list):
-        raise ValueError("selected_tools must be a list")
-    selected_tools: list[str] = []
-    for tool_name in raw_tools:
-        name = str(tool_name).strip()
-        if name not in ALLOWED_RUNTIME_TOOLS:
-            warnings.append(f"planner ignored unknown tool: {name!r}")
-            continue
-        if name not in selected_tools:
-            selected_tools.append(name)
+    from mr_norm.runtime.llm_payloads import normalize_planner_payload
 
-    raw_reasons = payload.get("routing_reasons")
-    if not isinstance(raw_reasons, list):
-        raise ValueError("routing_reasons must be a list")
-    routing_reasons = [str(reason) for reason in raw_reasons]
-
-    return selected_tools, routing_reasons, warnings
+    normalized, warnings = normalize_planner_payload(payload)
+    return (
+        list(normalized["selected_tools"]),
+        list(normalized["routing_reasons"]),
+        warnings,
+    )
 
 
 class PromptPackPlanner:

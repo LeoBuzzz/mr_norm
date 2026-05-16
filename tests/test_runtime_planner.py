@@ -65,7 +65,7 @@ def test_prompt_pack_planner_falls_back_on_invalid_payload() -> None:
     request = RuntimeRequest(query="заземление", profile="balanced")
 
     def provider(_request, _runtime, _pack):
-        return {"selected_tools": "bad", "routing_reasons": []}
+        return {"selected_tools": 42, "routing_reasons": []}
 
     plan = PromptPackPlanner(provider=provider).plan(request)
 

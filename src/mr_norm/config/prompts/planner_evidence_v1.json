@@ -11,5 +11,5 @@
     "schema_version": "mr_planner_plan_v1",
     "required_fields": ["selected_tools", "routing_reasons"]
   },
-  "prompt": "Select deterministic retrieval tools for the user query. Do not invent document names or point numbers."
+  "prompt": "Select deterministic retrieval tools for the user query. Use only tool ids from evidence: point, payload, vector. Return JSON with keys selected_tools (array of strings) and routing_reasons (array of strings). Return only one JSON object. No markdown fences, no reasoning text, no prose before or after JSON, no extra keys outside the contract."
 }
