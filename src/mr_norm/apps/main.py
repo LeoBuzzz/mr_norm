@@ -28,6 +28,10 @@ from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeRequest
+from mr_norm.runtime.final_answer import build_final_answer
+from mr_norm.runtime.pipeline import run_pipeline, save_pipeline_report
+from mr_norm.runtime.planner import build_planner
+from mr_norm.runtime.reranker import build_reranker
 from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
 from mr_norm.tools.chunker import ChunkBuilder, MetadataExtractionError
 from mr_norm.tools.rtf_processor import RtfProcessor, RtfReadError, atomic_write_json, pick_size_diverse_rtf_paths
@@ -144,6 +148,30 @@ def build_parser() -> argparse.ArgumentParser:
     rag_runtime_batch.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
     rag_runtime_batch.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
 
+    rag_pipeline = sub.add_parser("rag-pipeline", help="Run deterministic RAG runtime plus post-retrieval pipeline.")
+    add_retrieval_args(rag_pipeline, query_required=False)
+    rag_pipeline.add_argument("--mode", default="evidence", help="Runtime mode, default: evidence.")
+    rag_pipeline.add_argument(
+        "--planner",
+        choices=["deterministic", "prompt"],
+        default="deterministic",
+        help="Planner backend.",
+    )
+    rag_pipeline.add_argument(
+        "--reranker",
+        choices=["passthrough", "score", "prompt"],
+        default="passthrough",
+        help="Reranker backend.",
+    )
+    rag_pipeline.add_argument(
+        "--final-answer",
+        dest="final_answer_backend",
+        choices=["evidence", "prompt"],
+        default="evidence",
+        help="Final answer backend.",
+    )
+    rag_pipeline.add_argument("--save-report", action="store_true", help="Save JSON and Markdown reports.")
+
     return parser
 
 
@@ -256,6 +284,25 @@ def main(argv: list[str] | None = None) -> int:
             result["questions_path"] = str(questions_path)
             if args.save_report:
                 result = save_runtime_report(result, paths.reports_dir, prefix="rag_runtime_batch")
+        elif args.command == "rag-pipeline":
+            runtime_request = RuntimeRequest(
+                query=args.query,
+                filters=build_tool_request(args).filters,
+                limit=args.limit,
+                profile=args.profile,
+                trace_id=args.trace_id,
+                mode=args.mode,
+            )
+            pipeline = run_pipeline(
+                runtime_request,
+                resolve_indexing_config(args),
+                planner=build_planner(args.planner),
+                reranker=build_reranker(args.reranker),
+                final_answer=build_final_answer(args.final_answer_backend),
+            )
+            result = pipeline.to_dict()
+            if getattr(args, "save_report", False):
+                result = save_pipeline_report(result, paths.reports_dir)
         else:
             raise ValueError(f"Unsupported command: {args.command}")
     except (RtfReadError, MetadataExtractionError) as exc:
