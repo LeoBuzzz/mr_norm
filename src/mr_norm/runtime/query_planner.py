@@ -432,10 +432,7 @@ def _build_tool_query_objects(
                 PreparedToolQuery(tool_name="vector", queries=(query,)),
             ]
 
-    if question_type == "document_lookup" and any(entry.tool_name == "payload" for entry in prepared):
-        prepared = [entry for entry in prepared if entry.tool_name in {"payload", "point"}]
-        selected = [entry.tool_name for entry in prepared]
-    elif question_type == "regulation_scope" and not selected:
+    if question_type == "regulation_scope" and not selected:
         selected = ["payload", "vector"]
 
     return tuple(dict.fromkeys(selected)), tuple(prepared)
@@ -716,6 +713,11 @@ def prepare_query(
         term_matches=term_matches,
         question_type=question_type,
     )
+    if question_type == "document_lookup" and intent_search_terms(original_query, question_type):
+        prepared_tool_queries = tuple(
+            entry for entry in prepared_tool_queries if entry.tool_name in {"payload", "point"}
+        )
+        selected_tools = tuple(entry.tool_name for entry in prepared_tool_queries)
 
     top_candidate = candidates[0] if candidates else {}
     document_resolution = DocumentResolution(
