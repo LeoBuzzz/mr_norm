@@ -15,7 +15,7 @@ from mr_norm.runtime.llm_clients import (
     build_chat_client,
     parse_json_object,
 )
-from mr_norm.runtime.llm_profiles import resolve_role_profile
+from mr_norm.runtime.llm_profiles import resolve_role_models, resolve_role_profile
 from mr_norm.runtime.planner import PlannerProvider
 from mr_norm.runtime.reranker import RerankerProvider
 
@@ -62,11 +62,50 @@ def _chat_json(
     return parse_json_object(response.content)
 
 
+def chat_json_with_model_fallback(
+    llm_provider: str,
+    models: list[str],
+    *,
+    keys_path: Path | None = None,
+    http_post: HttpPost | None = None,
+    system_prompt: str,
+    user_payload: dict[str, Any],
+    temperature: float,
+    max_tokens: int,
+) -> dict[str, Any]:
+    if not models:
+        raise ValueError("at least one LLM model is required")
+
+    errors: list[str] = []
+    for model in models:
+        try:
+            client = build_chat_client(
+                llm_provider,
+                model,
+                keys_path=keys_path,
+                http_post=http_post,
+            )
+            return _chat_json(
+                client,
+                system_prompt=system_prompt,
+                user_payload=user_payload,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        except Exception as exc:
+            errors.append(f"{model}: {type(exc).__name__}: {exc}")
+
+    raise RuntimeError("LLM call failed for all models: " + "; ".join(errors))
+
+
 def build_planner_llm_provider(
-    client: OpenAICompatibleChatClient,
+    llm_provider: str,
+    models: list[str],
     *,
     temperature: float,
     max_tokens: int,
+    keys_path: Path | None = None,
+    http_post: HttpPost | None = None,
 ) -> PlannerProvider:
     def provider(request: RuntimeRequest, runtime: RuntimeResult | None, pack: Mapping[str, Any]) -> dict[str, Any]:
         user_payload = {
@@ -76,8 +115,11 @@ def build_planner_llm_provider(
             "runtime_selected_tools": list(runtime.trace.selected_tools) if runtime else [],
             "output_contract": pack.get("output_contract"),
         }
-        return _chat_json(
-            client,
+        return chat_json_with_model_fallback(
+            llm_provider,
+            models,
+            keys_path=keys_path,
+            http_post=http_post,
             system_prompt=str(pack.get("prompt") or ""),
             user_payload=user_payload,
             temperature=temperature,
@@ -88,11 +130,14 @@ def build_planner_llm_provider(
 
 
 def build_reranker_llm_provider(
-    client: OpenAICompatibleChatClient,
+    llm_provider: str,
+    models: list[str],
     *,
     temperature: float,
     max_tokens: int,
     evidence_limit: int = 20,
+    keys_path: Path | None = None,
+    http_post: HttpPost | None = None,
 ) -> RerankerProvider:
     def provider(request: RuntimeRequest, runtime: RuntimeResult, pack: Mapping[str, Any]) -> dict[str, Any]:
         user_payload = {
@@ -101,8 +146,11 @@ def build_reranker_llm_provider(
             "evidence": _serialize_evidence(runtime.items, limit=evidence_limit),
             "output_contract": pack.get("output_contract"),
         }
-        return _chat_json(
-            client,
+        return chat_json_with_model_fallback(
+            llm_provider,
+            models,
+            keys_path=keys_path,
+            http_post=http_post,
             system_prompt=str(pack.get("prompt") or ""),
             user_payload=user_payload,
             temperature=temperature,
@@ -113,10 +161,13 @@ def build_reranker_llm_provider(
 
 
 def build_final_answer_llm_provider(
-    client: OpenAICompatibleChatClient,
+    llm_provider: str,
+    models: list[str],
     *,
     temperature: float,
     max_tokens: int,
+    keys_path: Path | None = None,
+    http_post: HttpPost | None = None,
 ) -> FinalAnswerProvider:
     def provider(
         request: RuntimeRequest,
@@ -128,8 +179,11 @@ def build_final_answer_llm_provider(
             "evidence": _serialize_evidence(evidence, limit=request.limit),
             "output_contract": pack.get("output_contract"),
         }
-        return _chat_json(
-            client,
+        return chat_json_with_model_fallback(
+            llm_provider,
+            models,
+            keys_path=keys_path,
+            http_post=http_post,
             system_prompt=str(pack.get("prompt") or ""),
             user_payload=user_payload,
             temperature=temperature,
@@ -175,44 +229,35 @@ def build_pipeline_llm_providers(
 
     if planner_backend == "prompt":
         profile = resolve_role_profile(llm_provider, "planner", planner_model)
-        client = build_chat_client(
-            llm_provider,
-            profile.model,
-            keys_path=keys_path,
-            http_post=http_post,
-        )
         planner_provider = build_planner_llm_provider(
-            client,
+            llm_provider,
+            resolve_role_models(llm_provider, "planner", planner_model),
             temperature=profile.temperature,
             max_tokens=profile.max_tokens,
+            keys_path=keys_path,
+            http_post=http_post,
         )
 
     if reranker_backend == "prompt":
         profile = resolve_role_profile(llm_provider, "reranker", reranker_model)
-        client = build_chat_client(
-            llm_provider,
-            profile.model,
-            keys_path=keys_path,
-            http_post=http_post,
-        )
         reranker_provider = build_reranker_llm_provider(
-            client,
+            llm_provider,
+            resolve_role_models(llm_provider, "reranker", reranker_model),
             temperature=profile.temperature,
             max_tokens=profile.max_tokens,
+            keys_path=keys_path,
+            http_post=http_post,
         )
 
     if final_answer_backend == "prompt":
         profile = resolve_role_profile(llm_provider, "final_answer", final_answer_model)
-        client = build_chat_client(
-            llm_provider,
-            profile.model,
-            keys_path=keys_path,
-            http_post=http_post,
-        )
         final_answer_provider = build_final_answer_llm_provider(
-            client,
+            llm_provider,
+            resolve_role_models(llm_provider, "final_answer", final_answer_model),
             temperature=profile.temperature,
             max_tokens=profile.max_tokens,
+            keys_path=keys_path,
+            http_post=http_post,
         )
 
     return PipelineLLMProviders(

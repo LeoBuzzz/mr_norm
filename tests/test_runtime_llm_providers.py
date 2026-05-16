@@ -5,10 +5,9 @@ import json
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace
 from mr_norm.runtime.llm_providers import (
-    build_final_answer_llm_provider,
     build_pipeline_llm_providers,
     build_planner_llm_provider,
-    build_reranker_llm_provider,
+    chat_json_with_model_fallback,
 )
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
@@ -32,9 +31,11 @@ def make_runtime_result() -> RuntimeResult:
 
 
 def test_build_planner_llm_provider_returns_structured_payload() -> None:
+    calls: list[str] = []
+
     def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
         payload = json.loads(body.decode("utf-8"))
-        assert payload["response_format"] == {"type": "json_object"}
+        calls.append(payload["model"])
         return {
             "choices": [
                 {
@@ -51,14 +52,42 @@ def test_build_planner_llm_provider_returns_structured_payload() -> None:
             ]
         }
 
-    from mr_norm.runtime.llm_clients import OllamaChatClient
-
-    client = OllamaChatClient(model="qwen3:30b", http_post=fake_http_post)
-    provider = build_planner_llm_provider(client, temperature=0.1, max_tokens=512)
+    provider = build_planner_llm_provider(
+        "ollama",
+        ["qwen3:30b"],
+        temperature=0.1,
+        max_tokens=512,
+        http_post=fake_http_post,
+    )
     pack = load_prompt_pack_by_role("planner")
     payload = provider(RuntimeRequest(query="заземление", profile="balanced"), make_runtime_result(), pack)
 
     assert payload["selected_tools"] == ["payload", "vector"]
+    assert calls == ["qwen3:30b"]
+
+
+def test_chat_json_with_model_fallback_uses_second_model() -> None:
+    calls: list[str] = []
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        model = json.loads(body.decode("utf-8"))["model"]
+        calls.append(model)
+        if model == "primary-model":
+            raise RuntimeError("primary unavailable")
+        return {"choices": [{"message": {"content": '{"status":"ok"}'}}]}
+
+    payload = chat_json_with_model_fallback(
+        "ollama",
+        ["primary-model", "fallback-model"],
+        http_post=fake_http_post,
+        system_prompt="test",
+        user_payload={"query": "заземление"},
+        temperature=0.1,
+        max_tokens=512,
+    )
+
+    assert payload["status"] == "ok"
+    assert calls == ["primary-model", "fallback-model"]
 
 
 def test_build_pipeline_llm_providers_only_for_prompt_backends() -> None:
