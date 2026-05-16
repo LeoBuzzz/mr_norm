@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Protocol
 
 from mr_norm.retrieval.contracts import RetrievedItem
+from mr_norm.retrieval.intent_boost import rerank_items_for_intent
 from mr_norm.retrieval.phrase_boost import rerank_items_for_exact_phrase
 from mr_norm.runtime.contracts import RerankResult, RuntimeRequest, RuntimeResult
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
@@ -52,6 +53,11 @@ class PassthroughReranker:
                 request.prepared_plan.exact_phrase_terms,
                 limit=max(effective_limit, len(items)),
             )
+        items = rerank_items_for_intent(
+            items,
+            request.query,
+            limit=max(effective_limit, len(items)),
+        )
         items = items[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
         return RerankResult(items=items, scores=scores)
@@ -78,6 +84,11 @@ class ScoreReranker:
                 request.prepared_plan.exact_phrase_terms,
                 limit=max(effective_limit, len(ranked)),
             )
+        ranked = rerank_items_for_intent(
+            ranked,
+            request.query,
+            limit=max(effective_limit, len(ranked)),
+        )
         items = ranked[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
         return RerankResult(items=items, scores=scores)

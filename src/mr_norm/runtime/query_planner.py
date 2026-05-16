@@ -14,6 +14,7 @@ from mr_norm.retrieval.document_catalog import (
     normalize_catalog_text,
 )
 from mr_norm.config.pue_aliases import PUE_ALIAS_KEY
+from mr_norm.retrieval.query_intent import detect_query_intent, intent_search_terms
 from mr_norm.retrieval.document_knowledge import (
     DocumentKnowledgeIndex,
     KnowledgeCandidate,
@@ -195,6 +196,7 @@ def _build_default_tool_queries(
     term_matches: QueryTermMatches,
     *,
     significant_words: list[str],
+    question_type: str = "factual",
 ) -> dict[str, list[str]]:
     original = original_query.strip()
     exact_phrases = list(term_matches.exact_phrase_terms)
@@ -227,6 +229,22 @@ def _build_default_tool_queries(
         payload_queries = [term for term in core if term]
         vector_queries = [term for term in core if term]
 
+    intent = question_type or detect_query_intent(original_query)
+    intent_terms = intent_search_terms(original_query, intent)
+    if intent == "document_lookup" and intent_terms:
+        payload_queries = list(
+            dict.fromkeys([*intent_terms, *payload_queries])
+        )[:MAX_QUERIES_PER_TOOL]
+        vector_queries = list(
+            dict.fromkeys([*intent_terms, *vector_queries])
+        )[:MAX_QUERIES_PER_TOOL]
+    else:
+        for term in intent_terms:
+            if term not in payload_queries:
+                payload_queries.insert(1 if payload_queries else 0, term)
+            if term not in vector_queries:
+                vector_queries.insert(1 if vector_queries else 0, term)
+
     return {
         "point": [],
         "payload": payload_queries[:MAX_QUERIES_PER_TOOL],
@@ -240,11 +258,13 @@ def _normalize_tool_queries(
     *,
     term_matches: QueryTermMatches,
     significant_words: list[str],
+    question_type: str = "factual",
 ) -> dict[str, list[str]]:
     defaults = _build_default_tool_queries(
         original_query,
         term_matches,
         significant_words=significant_words,
+        question_type=question_type,
     )
     queries: dict[str, list[str]] = {tool: list(defaults.get(tool, [])) for tool in ALLOWED_TOOLS}
     if not isinstance(raw, dict):
@@ -375,6 +395,7 @@ def _build_tool_query_objects(
     point_number_hints: list[str],
     resolved_doc_names: list[str],
     term_matches: QueryTermMatches,
+    question_type: str = "factual",
 ) -> tuple[tuple[str, ...], tuple[PreparedToolQuery, ...]]:
     selected: list[str] = []
     prepared: list[PreparedToolQuery] = []
@@ -410,6 +431,10 @@ def _build_tool_query_objects(
                 ),
                 PreparedToolQuery(tool_name="vector", queries=(query,)),
             ]
+
+    if question_type == "document_lookup" and any(entry.tool_name == "payload" for entry in prepared):
+        prepared = [entry for entry in prepared if entry.tool_name in {"payload", "point"}]
+        selected = [entry.tool_name for entry in prepared]
 
     return tuple(dict.fromkeys(selected)), tuple(prepared)
 
@@ -564,7 +589,7 @@ def prepare_query(
     resolved_doc_names: list[str] = []
     confidence = 0.0
     ambiguous = False
-    question_type = "point_lookup" if point_number_hints else "factual"
+    question_type = "point_lookup" if point_number_hints else detect_query_intent(original_query)
     answer_shape = "narrow"
     concepts: list[str] = list(
         dict.fromkeys([*term_matches.exact_phrase_terms, *term_matches.abbreviation_expansions[:4]])
@@ -624,6 +649,7 @@ def prepare_query(
                 original_query,
                 term_matches=term_matches,
                 significant_words=significant_words,
+                question_type=question_type,
             )
         except Exception as exc:
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
@@ -635,6 +661,7 @@ def prepare_query(
                 original_query,
                 term_matches=term_matches,
                 significant_words=significant_words,
+                question_type=question_type,
             )
     else:
         resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
@@ -677,6 +704,7 @@ def prepare_query(
             original_query,
             term_matches=term_matches,
             significant_words=significant_words,
+            question_type=question_type,
         )
 
     selected_tools, prepared_tool_queries = _build_tool_query_objects(
@@ -684,6 +712,7 @@ def prepare_query(
         point_number_hints=point_number_hints,
         resolved_doc_names=resolved_doc_names,
         term_matches=term_matches,
+        question_type=question_type,
     )
 
     top_candidate = candidates[0] if candidates else {}
