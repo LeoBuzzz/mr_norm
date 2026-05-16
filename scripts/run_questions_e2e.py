@@ -95,7 +95,8 @@ def run_e2e(
     for index, item in enumerate(questions, start=1):
         question = str(item.get("question") or "").strip()
         expected = str(item.get("answer") or "").strip()
-        print(f"[{index}/{len(questions)}] {question[:70]}...", flush=True)
+        safe_question = question[:70].encode("cp1251", errors="replace").decode("cp1251")
+        print(f"[{index}/{len(questions)}] {safe_question}...", flush=True)
         request = NormLookupRequest(
             query=question,
             limit=limit,
