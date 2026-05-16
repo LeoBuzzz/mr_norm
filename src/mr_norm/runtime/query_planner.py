@@ -435,6 +435,8 @@ def _build_tool_query_objects(
     if question_type == "document_lookup" and any(entry.tool_name == "payload" for entry in prepared):
         prepared = [entry for entry in prepared if entry.tool_name in {"payload", "point"}]
         selected = [entry.tool_name for entry in prepared]
+    elif question_type == "regulation_scope" and not selected:
+        selected = ["payload", "vector"]
 
     return tuple(dict.fromkeys(selected)), tuple(prepared)
 

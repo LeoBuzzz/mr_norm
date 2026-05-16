@@ -4,11 +4,16 @@ import re
 
 from mr_norm.retrieval.text_normalize import normalize_catalog_text
 
+REGULATION_SCOPE_PATTERNS = (
+    "что регулирует",
+    "чем регулируется",
+    "что устанавливает",
+    "что определяет",
+)
+
 DOCUMENT_LOOKUP_PATTERNS = (
     "какой документ",
     "какие документы",
-    "что регулирует",
-    "чем регулируется",
     "каков порядок",
     "какой порядок",
     "что такое",
@@ -56,6 +61,8 @@ def detect_query_intent(query: str) -> str:
     norm = normalize_catalog_text(query)
     if re.search(r"(?:п\.?|пункт\w*)\s*\d", norm) or re.search(r"\d+\.\d+(?:\.\d+)*", norm):
         return "point_lookup"
+    if any(pattern in norm for pattern in REGULATION_SCOPE_PATTERNS):
+        return "regulation_scope"
     if any(pattern in norm for pattern in DOCUMENT_LOOKUP_PATTERNS):
         return "document_lookup"
     return "factual"

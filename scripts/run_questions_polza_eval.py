@@ -19,7 +19,12 @@ from mr_norm.config.indexing import IndexingConfig
 from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.text_normalize import normalize_catalog_text
 from mr_norm.runtime.llm_clients import LLMRequest, build_chat_client, parse_json_object
-from mr_norm.runtime.llm_profiles import POLZA_FINAL_ANSWER_MODEL, resolve_role_profile
+from mr_norm.runtime.llm_profiles import (
+    POLZA_FINAL_ANSWER_FALLBACK_MODEL,
+    POLZA_FINAL_ANSWER_MODEL,
+    POLZA_RERANKER_FALLBACK_MODEL,
+    resolve_role_profile,
+)
 from mr_norm.skills.norm_lookup import NormLookupRequest, run_norm_lookup
 
 DEFAULT_QUESTIONS = ROOT / "tests" / "questions.json"
@@ -53,42 +58,50 @@ def judge_answer(
     *,
     keys_path: Path | None,
     judge_model: str,
+    judge_fallback_model: str,
 ) -> dict:
     if not actual.strip() or actual.startswith("ERROR:"):
         return {"equivalent": False, "score": 0.0, "reason": "пустой или ошибочный ответ"}
     if actual.startswith("No evidence found"):
         return {"equivalent": False, "score": 0.0, "reason": "нет evidence"}
 
-    profile = resolve_role_profile("polza", "final_answer")
-    client = build_chat_client("polza", judge_model, keys_path=keys_path)
-    response = client.chat(
-        LLMRequest(
-            messages=[
-                {"role": "system", "content": JUDGE_SYSTEM},
-                {
-                    "role": "user",
-                    "content": json.dumps(
+    models = [judge_model, judge_fallback_model, POLZA_FINAL_ANSWER_FALLBACK_MODEL]
+    errors: list[str] = []
+    for model in dict.fromkeys(item for item in models if item):
+        try:
+            client = build_chat_client("polza", model, keys_path=keys_path)
+            response = client.chat(
+                LLMRequest(
+                    messages=[
+                        {"role": "system", "content": JUDGE_SYSTEM},
                         {
-                            "question": question,
-                            "expected_answer": expected,
-                            "actual_answer": actual[:6000],
+                            "role": "user",
+                            "content": json.dumps(
+                                {
+                                    "question": question,
+                                    "expected_answer": expected,
+                                    "actual_answer": actual[:6000],
+                                },
+                                ensure_ascii=False,
+                            ),
                         },
-                        ensure_ascii=False,
-                    ),
-                },
-            ],
-            model=judge_model,
-            temperature=0.0,
-            max_tokens=256,
-            response_format={"type": "json_object"},
-        )
-    )
-    payload = parse_json_object(response.content)
-    return {
-        "equivalent": bool(payload.get("equivalent")),
-        "score": float(payload.get("score", 0.0)),
-        "reason": str(payload.get("reason") or ""),
-    }
+                    ],
+                    model=model,
+                    temperature=0.0,
+                    max_tokens=256,
+                    response_format={"type": "json_object"},
+                )
+            )
+            payload = parse_json_object(response.content)
+            return {
+                "equivalent": bool(payload.get("equivalent")),
+                "score": float(payload.get("score", 0.0)),
+                "reason": str(payload.get("reason") or ""),
+            }
+        except Exception as exc:
+            errors.append(f"{model}: {exc}")
+            time.sleep(1.5)
+    return {"equivalent": False, "score": 0.0, "reason": "judge error: " + "; ".join(errors[:2])}
 
 
 def run_eval(
@@ -98,6 +111,7 @@ def run_eval(
     profile: str = "balanced",
     keys_path: Path | None,
     judge_model: str,
+    judge_fallback_model: str,
     final_answer_model: str,
     max_questions: int | None = None,
     reuse_lookup_path: Path | None = None,
@@ -165,6 +179,7 @@ def run_eval(
                 actual,
                 keys_path=keys_path,
                 judge_model=judge_model,
+                judge_fallback_model=judge_fallback_model,
             )
         except Exception as exc:
             verdict = {"equivalent": False, "score": 0.0, "reason": f"judge error: {exc}"}
@@ -174,6 +189,7 @@ def run_eval(
             equivalent_count += 1
         score_sum += float(verdict["score"])
 
+        time.sleep(0.8)
         entries.append(
             asdict(
                 PolzaEvalEntry(
@@ -217,6 +233,7 @@ def main() -> None:
     parser.add_argument("--profile", default="balanced")
     parser.add_argument("--max-questions", type=int, default=0)
     parser.add_argument("--judge-model", default=JUDGE_MODEL)
+    parser.add_argument("--judge-fallback-model", default=POLZA_RERANKER_FALLBACK_MODEL)
     parser.add_argument("--final-answer-model", default=POLZA_FINAL_ANSWER_MODEL)
     parser.add_argument("--reuse-lookup", type=Path, default=None)
     parser.add_argument("--judge-only", action="store_true")
@@ -233,6 +250,7 @@ def main() -> None:
         profile=args.profile,
         keys_path=keys_path if keys_path.is_file() else None,
         judge_model=args.judge_model,
+        judge_fallback_model=args.judge_fallback_model,
         final_answer_model=args.final_answer_model,
         max_questions=args.max_questions or None,
         reuse_lookup_path=args.reuse_lookup,
