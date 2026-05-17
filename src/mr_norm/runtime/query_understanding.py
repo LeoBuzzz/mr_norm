@@ -27,6 +27,7 @@ def understand_query(
     mode: str = "auto",
     llm_provider: str = "none",
     keys_path: Path | None = None,
+    enable_pue_aliases: bool | None = None,
 ) -> QueryUnderstandingResult:
     plan = plan_query(
         query,
@@ -36,6 +37,7 @@ def understand_query(
         mode=mode,
         llm_provider=llm_provider,
         keys_path=keys_path,
+        enable_pue_aliases=enable_pue_aliases,
     )
     return prepared_plan_to_understanding(plan)
 

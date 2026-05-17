@@ -43,6 +43,7 @@ class NormLookupRequest:
     reranker_model: str | None = None
     final_answer_model: str | None = None
     understand_query_mode: str = "auto"
+    enable_pue_aliases: bool | None = None
 
     def to_runtime_request(self) -> RuntimeRequest:
         return RuntimeRequest(
@@ -125,6 +126,7 @@ def run_norm_lookup(
             llm_provider=request.llm_provider,
             keys_path=keys_path,
             project_paths=project_paths,
+            enable_pue_aliases=request.enable_pue_aliases,
         )
         understanding = prepared_plan_to_understanding(prepared_plan)
         effective_query, effective_filters = apply_prepared_plan(

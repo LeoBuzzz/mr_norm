@@ -279,6 +279,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Pre-retrieval query understanding: auto (catalog), llm (catalog+LLM), off.",
     )
+    norm_lookup.add_argument(
+        "--enable-pue",
+        action="store_true",
+        help="Enable ПУЭ topic/abbreviation aliases in query planning (or set MR_NORM_ENABLE_PUE_ALIASES=1).",
+    )
 
     return parser
 
@@ -446,6 +451,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.save_report:
                 result = save_pipeline_report(result, paths.reports_dir, prefix="rag_pipeline_batch")
         elif args.command == "norm-lookup":
+            enable_pue_aliases = True if args.enable_pue else None
             base_options = HumanCliOptions(
                 query=args.query,
                 mode_preset=args.mode_preset,
@@ -454,6 +460,7 @@ def main(argv: list[str] | None = None) -> int:
                 profile=args.profile,
                 final_answer_model=args.final_answer_model or None,
                 understand_query=args.understand_query,
+                enable_pue_aliases=enable_pue_aliases,
             )
             if not base_options.query or not base_options.mode_preset:
                 options = collect_interactive_options(base_options)

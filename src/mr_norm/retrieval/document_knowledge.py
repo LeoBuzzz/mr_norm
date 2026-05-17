@@ -12,7 +12,10 @@ from mr_norm.config.pue_aliases import (
     active_topic_aliases,
     is_pue_abbreviation_entry,
 )
-from mr_norm.retrieval.text_normalize import normalize_catalog_text
+from mr_norm.retrieval.text_normalize import (
+    morphology_phrase_matches_query,
+    normalize_catalog_text,
+)
 
 KNOWLEDGE_DIR = Path(__file__).resolve().parents[1] / "config" / "knowledge"
 DEFAULT_KNOWLEDGE_PATH = KNOWLEDGE_DIR / "document_knowledge_index.json"
@@ -77,6 +80,7 @@ class KnowledgeCandidate:
 @dataclass(frozen=True)
 class QueryTermMatches:
     exact_phrase_terms: tuple[str, ...] = ()
+    morphology_terms: tuple[str, ...] = ()
     abbreviation_expansions: tuple[str, ...] = ()
     loose_terms: tuple[str, ...] = ()
     document_hints: tuple[str, ...] = ()
@@ -86,6 +90,7 @@ class QueryTermMatches:
             dict.fromkeys(
                 [
                     *self.exact_phrase_terms,
+                    *self.morphology_terms,
                     *self.abbreviation_expansions,
                     *self.loose_terms,
                     *self.document_hints,
@@ -399,6 +404,7 @@ def match_query_terms(
     knowledge = knowledge or load_document_knowledge()
     query_norm = normalize_catalog_text(query)
     exact_phrases: list[str] = []
+    morphology: list[str] = []
     abbreviations: list[str] = []
     loose: list[str] = []
     doc_hints: list[str] = []
@@ -416,17 +422,26 @@ def match_query_terms(
             continue
         if phrase_matches_query(label, query):
             _append_unique(exact_phrases, label)
+        elif morphology_phrase_matches_query(label, query):
+            _append_unique(morphology, label)
         elif label_norm in query_norm:
             _append_unique(loose, label)
 
     for topic in active_topic_aliases(knowledge.topic_aliases, enable_pue_aliases=enable_pue_aliases):
         phrase = str(topic.get("phrase") or "").strip()
-        if phrase and phrase_matches_query(phrase, query):
-            _append_unique(exact_phrases, phrase)
+        if phrase:
+            if phrase_matches_query(phrase, query):
+                _append_unique(exact_phrases, phrase)
+            elif morphology_phrase_matches_query(phrase, query):
+                _append_unique(morphology, phrase)
         for search_term in topic.get("search_terms") or []:
             term = str(search_term).strip()
-            if term and phrase_matches_query(term, query):
+            if not term:
+                continue
+            if phrase_matches_query(term, query):
                 _append_unique(exact_phrases, term)
+            elif morphology_phrase_matches_query(term, query):
+                _append_unique(morphology, term)
 
     pue_norm = normalize_catalog_text(PUE_ALIAS_KEY)
     if pue_norm in query_norm:
@@ -445,12 +460,22 @@ def match_query_terms(
             _append_unique(abbreviations, expansion)
 
     exact_phrases = prune_exact_phrases(exact_phrases)[:limit]
+    morphology = [
+        term
+        for term in morphology
+        if term not in exact_phrases
+    ][:limit]
     abbreviations = abbreviations[:limit]
-    loose = [term for term in loose if term not in exact_phrases][:limit]
+    loose = [
+        term
+        for term in loose
+        if term not in exact_phrases and term not in morphology
+    ][:limit]
     doc_hints = doc_hints[:limit]
 
     return QueryTermMatches(
         exact_phrase_terms=tuple(exact_phrases),
+        morphology_terms=tuple(morphology),
         abbreviation_expansions=tuple(abbreviations),
         loose_terms=tuple(loose),
         document_hints=tuple(doc_hints),

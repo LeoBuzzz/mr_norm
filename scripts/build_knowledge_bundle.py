@@ -132,22 +132,6 @@ def build_terms(limit: int = 4000) -> list[dict]:
     return terms
 
 
-def build_graph_abbreviations(limit: int = 1500) -> list[dict]:
-    snapshot_path = RAG_NORM / "knowledge_graph_snapshot.json"
-    if not snapshot_path.is_file():
-        return []
-    payload = _load_json(snapshot_path)
-    abbreviations: list[dict] = []
-    for item in payload.get("abbreviations") or []:
-        label = str(item.get("label") or "").strip()
-        if not label or len(label) > 20:
-            continue
-        abbreviations.append({"id": str(item.get("id") or ""), "label": label})
-        if len(abbreviations) >= limit:
-            break
-    return abbreviations
-
-
 def main() -> int:
     if not RAG_NORM.is_dir():
         print(f"rag_norm not found at {RAG_NORM}", file=sys.stderr)
@@ -159,7 +143,6 @@ def main() -> int:
         "documents": build_documents(),
         "abbreviations": build_abbreviations(),
         "terms": build_terms(),
-        "graph_abbreviations": build_graph_abbreviations(),
         "topic_aliases": TOPIC_ALIASES,
     }
     OUT_DIR.mkdir(parents=True, exist_ok=True)

@@ -18,11 +18,23 @@ def load_sample_catalog():
     return load_catalog_snapshot(path)
 
 
-def test_understand_query_auto_resolves_pue() -> None:
+def test_understand_query_auto_skips_pue_alias_by_default() -> None:
     result = understand_query(
         "расскажи про ПУЭ по заземлению",
         catalog=load_sample_catalog(),
         mode="auto",
+    )
+
+    assert not result.resolved_doc_names
+    assert result.search_query
+
+
+def test_understand_query_auto_resolves_pue_when_enabled() -> None:
+    result = understand_query(
+        "расскажи про ПУЭ по заземлению",
+        catalog=load_sample_catalog(),
+        mode="auto",
+        enable_pue_aliases=True,
     )
 
     assert result.resolved_doc_names == ["ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"]

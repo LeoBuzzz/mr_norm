@@ -1,0 +1,34 @@
+{
+  "schema_version": "mr_questions_polza_eval_v1",
+  "created_at": "2026-05-16T20:26:23",
+  "questions_path": "C:\\PY\\PythonProject\\mr_norm\\tests\\questions.json",
+  "final_answer_model": "deepseek/deepseek-v4-flash",
+  "judge_model": "qwen/qwen3.5-flash-02-23",
+  "questions_total": 1,
+  "metrics": {
+    "with_evidence": 1,
+    "equivalent_rate": 0.0,
+    "mean_judge_score": 0.2,
+    "elapsed_sec": 35.67
+  },
+  "questions": [
+    {
+      "question": "Какой документ устанавливает общие правила работы электроэнергетической системы РФ?",
+      "expected_answer": "Федеральный закон от 26.03.2003 №35-ФЗ «Об электроэнергетике»",
+      "actual_answer": "Об утверждении Правил технологического функционирования электроэнергетических систем и о внесении изменений в некоторые акты Правительства Российской Федерации",
+      "evidence_count": 5,
+      "top_doc_names": [
+        "Жилищный кодекс Российской Федерации",
+        "Об утверждении Правил технологического функционирования электроэнергетических систем и о внесении изменений в некоторые акты Правительства Российской Федерации",
+        "ГОСТ Р 57114-2022"
+      ],
+      "judge_equivalent": false,
+      "judge_score": 0.2,
+      "judge_reason": "Фактический ответ указывает на Постановление Правительства (Правила технологического функционирования), а эталонный — на Федеральный закон №35-ФЗ. Это разные нормативные акты (подзаконный акт и закон), хотя и регулирующие смежные вопросы.",
+      "warnings": [
+        "document resolution ambiguous; search will run without doc_name filter",
+        "document resolution ambiguous; search will run without doc_name filter"
+      ]
+    }
+  ]
+}

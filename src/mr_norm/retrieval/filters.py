@@ -5,6 +5,7 @@ from typing import Any
 
 KEYWORD_FIELDS = {
     "chunk_id",
+    "doc_id",
     "doc_name",
     "filename",
     "point_identity_key",

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from mr_norm.config.indexing import IndexingConfig
+from mr_norm.config.pue_aliases import resolve_enable_pue_aliases
 from mr_norm.config.paths import ProjectPaths
 from mr_norm.runtime.contracts import QueryUnderstandingResult
 from mr_norm.skills.norm_lookup import NormLookupRequest, NormLookupResult, run_norm_lookup
@@ -33,6 +34,7 @@ class HumanCliOptions:
     profile: str = "balanced"
     final_answer_model: str | None = None
     understand_query: str = ""
+    enable_pue_aliases: bool | None = None
 
 
 def apply_mode_preset(
@@ -95,6 +97,7 @@ def build_norm_lookup_request(options: HumanCliOptions) -> NormLookupRequest:
         profile=options.profile,
         limit=options.limit,
         understand_query_mode=understand_query_mode,
+        enable_pue_aliases=options.enable_pue_aliases,
         **{key: value for key, value in preset_config.items() if key != "understand_query_mode"},
     )
 
@@ -178,6 +181,7 @@ def render_run_summary(request: NormLookupRequest) -> str:
         f"  режим: {request.llm_provider} / final_answer={request.final_answer_backend}\n"
         f"  planner={request.planner_backend}, reranker={request.reranker_backend}\n"
         f"  understand_query={request.understand_query_mode}\n"
+        f"  enable_pue_aliases={resolve_enable_pue_aliases(request.enable_pue_aliases)}\n"
         f"  limit={request.limit}, {filter_line}{model_suffix}"
     )
 

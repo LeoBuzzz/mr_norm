@@ -26,6 +26,10 @@ from mr_norm.retrieval.document_knowledge import (
     phrase_required_tokens,
     primary_exact_phrase,
 )
+from mr_norm.retrieval.knowledge_catalog_mapping import (
+    KnowledgeCatalogLink,
+    load_knowledge_catalog_mapping,
+)
 from mr_norm.runtime.contracts import (
     DocumentResolution,
     PreparedQueryPlan,
@@ -61,9 +65,11 @@ def _merge_candidates(
     catalog: DocumentCatalog,
     catalog_candidates: list[DocumentCandidate],
     knowledge_candidates: list[KnowledgeCandidate],
+    *,
+    knowledge_links: dict[str, KnowledgeCatalogLink] | None = None,
 ) -> list[dict[str, Any]]:
-    by_doc_name = catalog.by_doc_name()
     merged: dict[str, dict[str, Any]] = {}
+    links = knowledge_links or {}
 
     for candidate in catalog_candidates:
         merged[candidate.doc_name] = {
@@ -76,8 +82,14 @@ def _merge_candidates(
         }
 
     for candidate in knowledge_candidates:
+        link = links.get(candidate.doc_id)
         entry = catalog.by_doc_name().get(candidate.doc_name)
-        catalog_id = entry.catalog_id if entry else f"knowledge:{candidate.doc_id}"
+        if link and link.verified:
+            catalog_id = link.catalog_id
+        elif entry:
+            catalog_id = entry.catalog_id
+        else:
+            catalog_id = f"knowledge:{candidate.doc_id}"
         current = merged.get(candidate.doc_name)
         if current is None:
             merged[candidate.doc_name] = {
@@ -155,29 +167,32 @@ def _should_skip_topic_alias_doc_filter(
     return any(reason.startswith("topic_alias:") for reason in reasons)
 
 
-def _deterministic_resolve(candidates: list[dict[str, Any]]) -> tuple[list[str], float, bool, list[str]]:
+def _deterministic_resolve(
+    candidates: list[dict[str, Any]],
+) -> tuple[list[str], str, float, bool, list[str]]:
     warnings: list[str] = []
     if not candidates:
-        return [], 0.0, False, ["no document candidates matched the query"]
+        return [], "", 0.0, False, ["no document candidates matched the query"]
 
     top = candidates[0]
     second_score = float(candidates[1]["score"]) if len(candidates) > 1 else 0.0
     top_score = float(top["score"])
     ambiguous = len(candidates) > 1 and (top_score - second_score) < AMBIGUITY_SCORE_GAP
     confidence = min(1.0, top_score)
+    catalog_id = str(top.get("catalog_id") or "")
 
     if ambiguous:
-        warnings.append("document resolution ambiguous; search will run without doc_name filter")
-        return [], confidence, True, warnings
+        warnings.append("document resolution ambiguous; search will run without doc filter")
+        return [], "", confidence, True, warnings
 
     if confidence < MIN_DOC_CONFIDENCE:
         warnings.append(
             f"document resolution confidence {confidence:.2f} below threshold; "
-            "search will run without doc_name filter"
+            "search will run without doc filter"
         )
-        return [], confidence, False, warnings
+        return [], "", confidence, False, warnings
 
-    return [str(top["doc_name"])], confidence, False, warnings
+    return [str(top["doc_name"])], catalog_id, confidence, False, warnings
 
 
 INTENT_DOC_TARGETS: dict[str, str] = {
@@ -189,32 +204,53 @@ INTENT_DOC_TARGETS: dict[str, str] = {
 ENERGY_LAW_INTENT_MARKERS = frozenset(INTENT_DOC_TARGETS.keys())
 
 
-def _catalog_doc_for_energy_federal_law(catalog: DocumentCatalog) -> str:
+def _catalog_entry_for_energy_federal_law(
+    catalog: DocumentCatalog,
+    knowledge_links: dict[str, KnowledgeCatalogLink],
+) -> tuple[str, str]:
+    """Return (catalog_id, doc_name) for 35-ФЗ «Об электроэнергетике» when known."""
+    for knowledge_doc_id, target_name in (
+        ("f1e439e54e546a403a4cd3", "Об электроэнергетике"),
+    ):
+        link = knowledge_links.get(knowledge_doc_id)
+        if link and link.verified and link.catalog_id:
+            by_name = catalog.by_doc_name()
+            entry = by_name.get(target_name)
+            return link.catalog_id, entry.doc_name if entry else target_name
+
     for entry in catalog.entries:
         blob = normalize_catalog_text(" ".join((entry.doc_name, entry.filename)))
         if "35-фз" in blob and "электроэнергетик" in blob:
-            return entry.doc_name
-    return ""
+            return entry.catalog_id, entry.doc_name
+    return "", ""
 
 
 def _resolve_doc_from_intent_hints(
     catalog: DocumentCatalog,
     intent_terms: list[str],
-) -> tuple[list[str], float, bool, list[str]]:
+    *,
+    knowledge_links: dict[str, KnowledgeCatalogLink],
+) -> tuple[list[str], str, float, bool, list[str]]:
     warnings: list[str] = []
     by_name = catalog.by_doc_name()
     for term in intent_terms:
         norm_term = normalize_catalog_text(term)
         target = INTENT_DOC_TARGETS.get(norm_term)
         if target and target in by_name:
+            entry = by_name[target]
             warnings.append(f"document resolved from intent hint: {target!r}")
-            return [target], 0.88, False, warnings
+            return [target], entry.catalog_id, 0.88, False, warnings
         if norm_term in ENERGY_LAW_INTENT_MARKERS or "электроэнергетик" in norm_term:
-            resolved = _catalog_doc_for_energy_federal_law(catalog)
-            if resolved:
-                warnings.append(f"document resolved from catalog filename hint: {resolved!r}")
-                return [resolved], 0.88, False, warnings
-    return [], 0.0, True, warnings
+            catalog_id, resolved_name = _catalog_entry_for_energy_federal_law(
+                catalog, knowledge_links
+            )
+            if resolved_name:
+                warnings.append(
+                    f"document resolved from catalog/mapping hint: {resolved_name!r} "
+                    f"(catalog_id={catalog_id})"
+                )
+                return [resolved_name], catalog_id, 0.88, False, warnings
+    return [], "", 0.0, True, warnings
 
 
 def _apply_intent_document_resolution(
@@ -223,19 +259,27 @@ def _apply_intent_document_resolution(
     original_query: str,
     question_type: str,
     resolved_doc_names: list[str],
+    resolved_catalog_id: str,
     confidence: float,
     ambiguous: bool,
     warnings: list[str],
-) -> tuple[list[str], float, bool, list[str]]:
+    knowledge_links: dict[str, KnowledgeCatalogLink],
+) -> tuple[list[str], str, float, bool, list[str]]:
     if question_type != "document_lookup":
-        return resolved_doc_names, confidence, ambiguous, warnings
+        return resolved_doc_names, resolved_catalog_id, confidence, ambiguous, warnings
     intent_terms = intent_search_terms(original_query, question_type)
-    intent_docs, intent_conf, intent_amb, intent_warnings = _resolve_doc_from_intent_hints(
-        catalog, intent_terms
+    intent_docs, intent_catalog_id, intent_conf, intent_amb, intent_warnings = (
+        _resolve_doc_from_intent_hints(catalog, intent_terms, knowledge_links=knowledge_links)
     )
     if not intent_docs or (resolved_doc_names and not ambiguous):
-        return resolved_doc_names, confidence, ambiguous, warnings
-    return intent_docs, max(confidence, intent_conf), intent_amb, [*warnings, *intent_warnings]
+        return resolved_doc_names, resolved_catalog_id, confidence, ambiguous, warnings
+    return (
+        intent_docs,
+        intent_catalog_id,
+        max(confidence, intent_conf),
+        intent_amb,
+        [*warnings, *intent_warnings],
+    )
 
 
 def _phrase_context_queries(original_query: str, phrase: str) -> list[str]:
@@ -262,6 +306,7 @@ def _build_default_tool_queries(
         dict.fromkeys(
             [
                 *exact_phrases,
+                *term_matches.morphology_terms,
                 *term_matches.abbreviation_expansions,
                 *significant_words,
                 *term_matches.loose_terms,
@@ -565,6 +610,7 @@ def _normalize_llm_payload(
         "concepts": concepts,
         "significant_words": significant_words,
         "resolved_doc_names": resolved_doc_names,
+        "selected_catalog_ids": selected_ids,
         "point_number_hints": point_number_hints,
         "confidence": max(0.0, min(1.0, confidence)),
         "tool_queries": payload.get("tool_queries", {}),
@@ -639,11 +685,18 @@ def prepare_query(
         limit=12,
         enable_pue_aliases=enable_pue_aliases,
     )
-    candidates = _merge_candidates(catalog, catalog_candidates, knowledge_candidates)
+    knowledge_links = load_knowledge_catalog_mapping()
+    candidates = _merge_candidates(
+        catalog,
+        catalog_candidates,
+        knowledge_candidates,
+        knowledge_links=knowledge_links,
+    )
 
     resolver = "deterministic"
     warnings: list[str] = []
     resolved_doc_names: list[str] = []
+    resolved_catalog_id = ""
     confidence = 0.0
     ambiguous = False
     question_type = "point_lookup" if point_number_hints else detect_query_intent(original_query)
@@ -655,6 +708,7 @@ def prepare_query(
         dict.fromkeys(
             [
                 *term_matches.exact_phrase_terms,
+                *term_matches.morphology_terms,
                 *term_matches.document_hints,
                 *term_matches.abbreviation_expansions,
                 *term_matches.loose_terms,
@@ -692,8 +746,11 @@ def prepare_query(
             )
             confidence = float(llm_data.get("confidence", 0.0))
             candidate_names = llm_data.get("resolved_doc_names", [])
+            selected_ids = llm_data.get("selected_catalog_ids", [])
             if confidence >= MIN_DOC_CONFIDENCE and len(candidate_names) == 1:
                 resolved_doc_names = candidate_names
+                if isinstance(selected_ids, list) and len(selected_ids) == 1:
+                    resolved_catalog_id = str(selected_ids[0])
             elif candidate_names:
                 ambiguous = len(candidate_names) > 1
                 warnings.append(
@@ -710,16 +767,26 @@ def prepare_query(
             )
         except Exception as exc:
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
-            resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
+            resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
+                _deterministic_resolve(candidates)
+            )
             warnings.extend(det_warnings)
-            resolved_doc_names, confidence, ambiguous, warnings = _apply_intent_document_resolution(
+            (
+                resolved_doc_names,
+                resolved_catalog_id,
+                confidence,
+                ambiguous,
+                warnings,
+            ) = _apply_intent_document_resolution(
                 catalog=catalog,
                 original_query=original_query,
                 question_type=question_type,
                 resolved_doc_names=resolved_doc_names,
+                resolved_catalog_id=resolved_catalog_id,
                 confidence=confidence,
                 ambiguous=ambiguous,
                 warnings=warnings,
+                knowledge_links=knowledge_links,
             )
             resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
@@ -730,16 +797,26 @@ def prepare_query(
                 question_type=question_type,
             )
     else:
-        resolved_doc_names, confidence, ambiguous, det_warnings = _deterministic_resolve(candidates)
+        resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
+            _deterministic_resolve(candidates)
+        )
         warnings.extend(det_warnings)
-        resolved_doc_names, confidence, ambiguous, warnings = _apply_intent_document_resolution(
+        (
+            resolved_doc_names,
+            resolved_catalog_id,
+            confidence,
+            ambiguous,
+            warnings,
+        ) = _apply_intent_document_resolution(
             catalog=catalog,
             original_query=original_query,
             question_type=question_type,
             resolved_doc_names=resolved_doc_names,
+            resolved_catalog_id=resolved_catalog_id,
             confidence=confidence,
             ambiguous=ambiguous,
             warnings=warnings,
+            knowledge_links=knowledge_links,
         )
         if resolved_doc_names and not _query_mentions_pue(original_query) and not enable_pue_aliases:
             if any(is_pue_document_name(name) for name in resolved_doc_names):
@@ -747,6 +824,7 @@ def prepare_query(
                     "removed deterministic ПУЭ doc filter without explicit mention or enable_pue_aliases"
                 )
                 resolved_doc_names = []
+                resolved_catalog_id = ""
                 ambiguous = True
         explicit_doc_hint = _query_mentions_pue(original_query) or bool(term_matches.document_hints)
         if resolved_doc_names and _should_skip_title_phrase_doc_filter(term_matches, resolved_doc_names):
@@ -754,6 +832,7 @@ def prepare_query(
                 "resolved document title equals query phrase; doc_name filter not applied"
             )
             resolved_doc_names = []
+            resolved_catalog_id = ""
             ambiguous = True
         elif resolved_doc_names and (
             (
@@ -773,6 +852,7 @@ def prepare_query(
                 "exact phrase resolved via topic alias only; doc_name filter not applied"
             )
             resolved_doc_names = []
+            resolved_catalog_id = ""
             ambiguous = True
         tool_queries = _normalize_tool_queries(
             {},
@@ -799,7 +879,8 @@ def prepare_query(
 
     top_candidate = candidates[0] if candidates else {}
     document_resolution = DocumentResolution(
-        catalog_id=str(top_candidate.get("catalog_id") or ""),
+        catalog_id=resolved_catalog_id
+        or str(top_candidate.get("catalog_id") or ""),
         doc_name=str(resolved_doc_names[0]) if resolved_doc_names else str(top_candidate.get("doc_name") or ""),
         confidence=confidence,
         ambiguous=ambiguous,
@@ -837,8 +918,17 @@ def apply_prepared_plan(
     plan: PreparedQueryPlan,
 ) -> tuple[str, dict[str, Any]]:
     merged_filters = dict(filters or {})
-    if plan.resolved_doc_names and not plan.ambiguous and len(plan.resolved_doc_names) == 1:
-        merged_filters["doc_name"] = plan.resolved_doc_names[0]
+    catalog_id = str(plan.document_resolution.catalog_id or "").strip()
+    if (
+        plan.resolved_doc_names
+        and not plan.ambiguous
+        and len(plan.resolved_doc_names) == 1
+    ):
+        if catalog_id and not catalog_id.startswith("knowledge:"):
+            merged_filters["doc_id"] = catalog_id
+            merged_filters.pop("doc_name", None)
+        else:
+            merged_filters["doc_name"] = plan.resolved_doc_names[0]
     if plan.point_number_hints and "point_number" not in merged_filters:
         merged_filters["point_number"] = plan.point_number_hints[0]
     effective_query = plan.original_query or query
