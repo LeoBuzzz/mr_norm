@@ -23,12 +23,14 @@ class ProjectPaths:
     chunks_json: Path
     baseline_chunks_json: Path
     metadata_manifest_md: Path
+    normative_registry_json: Path
 
     @classmethod
     def from_root(cls, root: Path | None = None) -> "ProjectPaths":
         project_root = (root or find_project_root()).resolve()
         output_dir = project_root / "output"
         reports_dir = output_dir / "reports"
+        data_dir = Path(__file__).resolve().parent.parent / "data"
         return cls(
             root=project_root,
             input_dir=project_root / "input" / "All_raw_docks",
@@ -38,6 +40,7 @@ class ProjectPaths:
             chunks_json=output_dir / "qdrant_chunks.json",
             baseline_chunks_json=project_root.parent / "rag_norm" / "qdrant_chunks.json",
             metadata_manifest_md=reports_dir / "metadata_fallback_manifest.md",
+            normative_registry_json=data_dir / "normative_documents_registry.json",
         )
 
     def ensure_output_dirs(self) -> None:

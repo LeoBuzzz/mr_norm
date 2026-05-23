@@ -279,6 +279,7 @@ def test_qdrant_indexer_ensures_only_missing_payload_indexes() -> None:
 
     assert result["passes"]
     assert indexer.client.created_indexes == [
+        {"field_name": "doc_id", "field_schema": "keyword"},
         {"field_name": "point_number", "field_schema": "keyword"},
         {"field_name": "heading_path_text", "field_schema": "text"},
     ]

@@ -7,7 +7,6 @@ KEYWORD_FIELDS = {
     "chunk_id",
     "doc_id",
     "doc_name",
-    "filename",
     "point_identity_key",
     "point_number",
 }
@@ -79,7 +78,7 @@ def build_payload_filter_spec(
     spec = build_filter_spec(filters)
     query_text = (query or "").strip()
     if query_text:
-        fields = search_fields or ["text", "heading_path_text", "doc_name", "filename"]
+        fields = search_fields or ["text", "heading_path_text", "doc_name"]
         spec["should"] = [
             {"field": field, "kind": "text" if field in TEXT_FIELDS else "keyword", "value": query_text}
             for field in fields

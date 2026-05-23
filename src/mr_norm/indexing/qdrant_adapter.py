@@ -23,6 +23,7 @@ class PointRecord:
 
 EXPECTED_PAYLOAD_INDEXES = {
     "filename": "keyword",
+    "doc_id": "keyword",
     "doc_name": "keyword",
     "point_identity_key": "keyword",
     "chunk_id": "keyword",

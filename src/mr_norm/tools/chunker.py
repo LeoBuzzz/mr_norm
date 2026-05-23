@@ -9,6 +9,15 @@ from pathlib import Path
 from typing import Any
 
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.data.normative_registry import (
+    NormativeRegistry,
+    RegistryLookupError,
+    RegistryMissingMode,
+    default_registry_path,
+    filename_has_pue_marker,
+    load_registry,
+    resolve_metadata_with_registry,
+)
 from mr_norm.tools.chunker_document_menu import internal_doc_kind_to_payload_label, resolve_payload_authority
 from mr_norm.tools.metadata_manifest import MetadataManifestEntry, write_metadata_manifest
 from mr_norm.tools.rtf_processor import (
@@ -21,7 +30,7 @@ from mr_norm.tools.schema import SCHEMA_VERSION, ParagraphRecord, StructuredDocu
 
 
 class MetadataExtractionError(ValueError):
-    """Document body lacks registration/title lines required for chunk payload (no filename guessing)."""
+    """Нет обязательных реквизитов для payload: из реестра или из преамбулы текста (--no-registry)."""
 
 
 REQUIRED_RAG_NORM_PAYLOAD_KEYS = {
@@ -31,7 +40,6 @@ REQUIRED_RAG_NORM_PAYLOAD_KEYS = {
     "doc_title_full",
     "approving_act",
     "metadata_source",
-    "metadata_confidence",
     "headings",
     "nearest_heading",
     "heading_path_text",
@@ -61,6 +69,18 @@ def stable_id(prefix: str, *parts: object, length: int = 16) -> str:
     joined = "\n".join(str(part) for part in parts)
     digest = hashlib.sha1(joined.encode("utf-8", errors="ignore")).hexdigest()[:length]
     return f"{prefix}_{digest}"
+
+
+def resolve_document_id(metadata: dict[str, str]) -> str:
+    """Стабильный идентификатор документа для каталога, фильтров и Qdrant (без имени файла)."""
+    registry_key = (metadata.get("registry_key") or "").strip()
+    if registry_key:
+        return stable_id("doc", registry_key)
+    doc_name = (metadata.get("doc_name") or metadata.get("doc_title_full") or "").strip()
+    doc_reg = (metadata.get("doc_reg") or "").strip()
+    if doc_name:
+        return stable_id("doc", doc_name, doc_reg)
+    return stable_id("doc", "unknown")
 
 
 def clean_marker_text(text: str) -> str:
@@ -303,17 +323,12 @@ def extract_metadata(document: StructuredDocument) -> tuple[dict[str, str], str,
                 title_source = "preamble_o_subject"
                 break
 
-    confidence = "high" if reg_source.startswith("initial") and title_source.startswith("initial") else "medium"
-    if reg_source == "not_extracted" and title_source == "not_extracted":
-        confidence = "low"
-
     result: dict[str, str] = {
         "doc_name": doc_title_full,
         "doc_reg": doc_reg,
         "doc_title_full": doc_title_full,
         "approving_act": doc_reg,
         "metadata_source": f"reg:{reg_source};title:{title_source}",
-        "metadata_confidence": confidence,
     }
     if reg_source == "pue_seventh_edition_canonical":
         result["doc_date"] = PUE_SEVENTH_DOC_DATE
@@ -327,24 +342,29 @@ def extract_metadata(document: StructuredDocument) -> tuple[dict[str, str], str,
     elif title_source in ("preamble_o_subject", "preamble_bracketed_subject"):
         manifest_kind = "title_fallback"
         manifest_detail = f"title_source={title_source}"
-    elif confidence == "low":
+    elif reg_source == "not_extracted" and title_source == "not_extracted":
         manifest_kind = "title_fallback"
-        manifest_detail = "metadata_confidence=low"
+        manifest_detail = "metadata_not_extracted"
 
     return result, manifest_kind, manifest_detail
 
 
-def validate_chunk_metadata(metadata: dict[str, str], source: str) -> None:
+def validate_chunk_metadata(
+    metadata: dict[str, str],
+    source: str,
+    *,
+    from_registry: bool = False,
+) -> None:
     title = (metadata.get("doc_title_full") or "").strip()
     if not title:
-        raise MetadataExtractionError(
-            f"{source}: missing doc_title_full — title must come from document preamble, not filename"
-        )
+        hint = "normative_documents_registry.json" if from_registry else "document preamble"
+        raise MetadataExtractionError(f"{source}: missing doc_title_full — expected from {hint}")
     reg = (metadata.get("doc_reg") or "").strip()
     if not reg or reg == "Не указано":
-        raise MetadataExtractionError(
-            f"{source}: missing registration or approving-act line in opening paragraphs"
-        )
+        hint = "normative_documents_registry.json" if from_registry else "opening paragraphs"
+        raise MetadataExtractionError(f"{source}: missing doc_reg / approving_act — expected from {hint}")
+    if from_registry and not (metadata.get("registry_key") or "").strip():
+        raise MetadataExtractionError(f"{source}: missing registry_key after registry merge")
 
 
 def find_approval_act(lines: list[str]) -> str:
@@ -400,15 +420,78 @@ class ChunkUnit:
 
 
 class ChunkBuilder:
-    def __init__(self, paths: ProjectPaths, max_chars: int = 1600):
+    def __init__(
+        self,
+        paths: ProjectPaths,
+        max_chars: int = 1600,
+        *,
+        use_registry: bool | None = None,
+        registry_path: Path | None = None,
+        registry_missing: RegistryMissingMode = RegistryMissingMode.FAIL,
+    ) -> None:
         self.paths = paths
         self.max_chars = max_chars
+        self.use_registry = use_registry if use_registry is not None else paths is not None
+        self.registry_path = registry_path
+        self.registry_missing = registry_missing
         self.manifest_pue: list[MetadataManifestEntry] = []
         self.manifest_other: list[MetadataManifestEntry] = []
+        self._registry: NormativeRegistry | None = None
+        self.registry_misses: list[str] = []
+
+    def _get_registry(self) -> NormativeRegistry | None:
+        if not self.use_registry:
+            return None
+        if self._registry is None:
+            if self.registry_path is not None:
+                reg_path = self.registry_path
+            elif self.paths is not None:
+                reg_path = self.paths.normative_registry_json
+            else:
+                reg_path = default_registry_path()
+            self._registry = load_registry(reg_path)
+        return self._registry
+
+    def _manifest_from_registry(
+        self, document: StructuredDocument, meta: dict[str, str]
+    ) -> tuple[str, str]:
+        if filename_has_pue_marker(document):
+            return "pue_canonical", f"registry_key={meta.get('registry_key', '')}"
+        return "", ""
+
+    def _resolve_document_metadata(
+        self, document: StructuredDocument
+    ) -> tuple[dict[str, str], str, str]:
+        """Реквизиты: реестр JSON (по умолчанию) или преамбула текста (--no-registry)."""
+        registry = self._get_registry()
+        if registry is not None:
+            try:
+                meta = resolve_metadata_with_registry(
+                    document,
+                    {},
+                    registry,
+                    missing_mode=self.registry_missing,
+                )
+            except RegistryLookupError as exc:
+                self.registry_misses.extend(exc.missing)
+                raise
+            validate_chunk_metadata(
+                meta,
+                document.source_file or document.filename,
+                from_registry=True,
+            )
+            return meta, *self._manifest_from_registry(document, meta)
+        meta, manifest_kind, manifest_detail = extract_metadata(document)
+        validate_chunk_metadata(meta, document.source_file or document.filename)
+        return meta, manifest_kind, manifest_detail
 
     def build_all(self, structured_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         self.manifest_pue = []
         self.manifest_other = []
+        self.registry_misses = []
+        if self.paths is not None:
+            self.paths.ensure_output_dirs()
+            backup_qdrant_chunks_json(self.paths.chunks_json)
         paths = structured_paths if structured_paths is not None else sorted(self.paths.marked_docs_dir.glob("*.structured.json"))
         chunks: list[dict[str, Any]] = []
         for path in paths:
@@ -416,8 +499,7 @@ class ChunkBuilder:
             if document.read_error:
                 continue
             if document.paragraphs:
-                meta, mk, mdetail = extract_metadata(document)
-                validate_chunk_metadata(meta, document.source_file or document.filename)
+                meta, mk, mdetail = self._resolve_document_metadata(document)
                 if mk:
                     entry = MetadataManifestEntry(
                         filename=document.filename,
@@ -454,11 +536,8 @@ class ChunkBuilder:
         if payload_metadata is not None:
             metadata = payload_metadata
         else:
-            metadata, _, _ = extract_metadata(document)
-            validate_chunk_metadata(metadata, document.source_file or document.filename)
-        doc_identity = metadata["doc_name"] or document.source_file or document.filename
-        doc_source_identity = document.source_file or document.filename
-        doc_id = stable_id("doc", doc_identity, metadata["doc_reg"], doc_source_identity)
+            metadata, _, _ = self._resolve_document_metadata(document)
+        doc_id = resolve_document_id(metadata)
         units = self._make_units(document)
         chunks: list[dict[str, Any]] = []
         for chunk_index, unit in enumerate(units):
@@ -645,6 +724,17 @@ def split_long_paragraph(paragraph: str, max_chars: int) -> list[str]:
     if current:
         parts.append(current)
     return parts
+
+
+def backup_qdrant_chunks_json(chunks_json: Path) -> Path | None:
+    """Перед новым чанкованием сохранить существующий output/qdrant_chunks.json как .bak."""
+    if not chunks_json.is_file():
+        return None
+    backup_path = chunks_json.with_name(f"{chunks_json.stem}.bak")
+    if backup_path.exists():
+        backup_path.unlink()
+    chunks_json.replace(backup_path)
+    return backup_path
 
 
 def load_chunks(path: Path) -> list[dict[str, Any]]:

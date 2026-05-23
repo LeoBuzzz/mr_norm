@@ -22,7 +22,6 @@ def test_new_chunks_are_better_than_controlled_baseline_fixture() -> None:
                 "doc_title_full": "",
                 "approving_act": "",
                 "metadata_source": "filename_fallback",
-                "metadata_confidence": "low",
                 "headings": [],
                 "nearest_heading": "",
                 "heading_path_text": "",

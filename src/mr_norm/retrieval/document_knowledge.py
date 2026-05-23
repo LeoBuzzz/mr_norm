@@ -54,6 +54,7 @@ class KnowledgeDocument:
     doc_id: str
     doc_name: str
     annotation: str = ""
+    registry_key: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -125,6 +126,7 @@ def load_document_knowledge(path: Path | None = None) -> DocumentKnowledgeIndex:
             doc_id=str(item.get("doc_id") or ""),
             doc_name=str(item.get("doc_name") or ""),
             annotation=str(item.get("annotation") or ""),
+            registry_key=str(item.get("registry_key") or ""),
         )
         for item in payload.get("documents") or []
         if item.get("doc_id")

@@ -62,7 +62,7 @@ def select_point_filters(filters: dict[str, Any] | None) -> tuple[dict[str, Any]
     if source.get("point_identity_key"):
         return {"point_identity_key": source["point_identity_key"]}, warnings
     selected: dict[str, Any] = {}
-    for key in ("doc_name", "point_number", "heading_path_text", "filename"):
+    for key in ("doc_id", "doc_name", "point_number", "heading_path_text"):
         if source.get(key):
             selected[key] = doc_name_variants(source[key]) if key == "doc_name" else source[key]
     if not selected:

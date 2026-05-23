@@ -1,4 +1,8 @@
-"""Build compact static knowledge bundle for mr_norm query planner from rag_norm sources."""
+"""Legacy: собирает индекс знаний из rag_norm (doc_id не совпадает с корпусом mr_norm).
+
+Предпочтительно:
+  python -m mr_norm.apps.main knowledge-build
+"""
 
 from __future__ import annotations
 
@@ -133,6 +137,11 @@ def build_terms(limit: int = 4000) -> list[dict]:
 
 
 def main() -> int:
+    print(
+        "Внимание: этот скрипт использует doc_id из rag_norm. "
+        "Для корпуса mr_norm запустите: python -m mr_norm.apps.main knowledge-build",
+        file=sys.stderr,
+    )
     if not RAG_NORM.is_dir():
         print(f"rag_norm not found at {RAG_NORM}", file=sys.stderr)
         return 1

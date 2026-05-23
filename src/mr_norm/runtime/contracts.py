@@ -238,6 +238,7 @@ class QueryUnderstandingResult:
     search_query: str = ""
     document_hints: list[str] = field(default_factory=list)
     resolved_doc_names: list[str] = field(default_factory=list)
+    resolved_doc_id: str = ""
     point_number_hints: list[str] = field(default_factory=list)
     tool_hints: list[str] = field(default_factory=list)
     confidence: float = 0.0
@@ -252,6 +253,7 @@ class QueryUnderstandingResult:
             "search_query": self.search_query,
             "document_hints": list(self.document_hints),
             "resolved_doc_names": list(self.resolved_doc_names),
+            "resolved_doc_id": self.resolved_doc_id,
             "point_number_hints": list(self.point_number_hints),
             "tool_hints": list(self.tool_hints),
             "confidence": self.confidence,

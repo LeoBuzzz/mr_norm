@@ -14,7 +14,7 @@
     "manual_judgement": {
       "relevant": true,
       "best_pipeline": "payload",
-      "notes": "Payload finds chapter 1.7 intro; point tool skips document-only filters."
+      "notes": "Payload finds chapter 1.7 intro; point tool skips document-only filters. Recalibrated 2026-05-23 on mr_norm_docs_bge_m3."
     }
   },
   {
@@ -32,7 +32,7 @@
     "manual_judgement": {
       "relevant": true,
       "best_pipeline": "payload",
-      "notes": "Payload matches 1.9.28; point requires point_number and is not used for doc-only filters."
+      "notes": "Payload matches 1.9.28; point requires point_number and is not used for doc-only filters. Recalibrated 2026-05-23 on mr_norm_docs_bge_m3."
     }
   },
   {
@@ -43,12 +43,12 @@
     "expected": {
       "doc_name": "Об утверждении Правил противопожарного режима в Российской Федерации",
       "point_number": "1",
-      "chunk_id": "chunk_7d14e952328e557a"
+      "chunk_id": "chunk_74d501cb09e7e51f"
     },
     "manual_judgement": {
       "relevant": true,
       "best_pipeline": "vector",
-      "notes": "Cross-document query; vector top-2 includes general point 1, payload top is nearby section 392."
+      "notes": "Cross-document query; vector top-5 includes fire rules point 1; payload top is nearby section 392. Recalibrated 2026-05-23."
     }
   },
   {
@@ -67,7 +67,7 @@
     "manual_judgement": {
       "relevant": true,
       "best_pipeline": "point",
-      "notes": "Deterministic point lookup benchmark with doc_name + point_number filters."
+      "notes": "Deterministic point lookup benchmark with doc_name + point_number filters. Recalibrated 2026-05-23 on mr_norm_docs_bge_m3."
     }
   },
   {
@@ -77,13 +77,13 @@
     "limit": 5,
     "expected": {
       "doc_name": "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",
-      "point_number": "",
-      "chunk_id": ""
+      "point_number": "1.7.94",
+      "chunk_id": "chunk_750bb519181e9dd4"
     },
     "manual_judgement": {
-      "relevant": null,
-      "best_pipeline": "",
-      "notes": "Unscoped vector benchmark; fill exact point/chunk after doc_name variant fix is verified."
+      "relevant": true,
+      "best_pipeline": "vector",
+      "notes": "Unscoped vector: top1 PUE via semantic search (registry doc_name). Payload ranks ПУЭ chapters without doc filter. Recalibrated 2026-05-23."
     }
   }
 ]

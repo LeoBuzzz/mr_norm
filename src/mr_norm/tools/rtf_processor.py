@@ -12,6 +12,14 @@ from pathlib import Path
 from typing import Any
 
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.data.normative_registry import normalize_match_stem
+from mr_norm.tools.marked_docs_sync import (
+    MarkedDocsSyncReport,
+    MarkedOutputGroup,
+    collect_marked_output_groups,
+    is_marked_group_complete,
+    sync_marked_docs_with_input,
+)
 from mr_norm.tools.schema import ParagraphRecord, StructuredDocument
 
 
@@ -132,6 +140,7 @@ class RtfProcessResult:
     structured_path: str
     paragraphs: int
     error: str = ""
+    skipped_existing: bool = False
 
 
 class RtfReadError(RuntimeError):
@@ -259,6 +268,7 @@ class RtfProcessor:
     def __init__(self, paths: ProjectPaths):
         self.paths = paths
         self.last_word_cleanup: dict[str, Any] = {}
+        self.last_sync_report: MarkedDocsSyncReport | None = None
 
     def process_all(
         self,
@@ -266,6 +276,13 @@ class RtfProcessor:
         only_paths: list[Path] | None = None,
         per_file_timeout_sec: float = DEFAULT_RTF_PER_FILE_TIMEOUT_SEC,
     ) -> list[RtfProcessResult]:
+        self.paths.ensure_output_dirs()
+        self.last_sync_report = sync_marked_docs_with_input(
+            self.paths.input_dir,
+            self.paths.marked_docs_dir,
+        )
+        marked_groups = collect_marked_output_groups(self.paths.marked_docs_dir)
+
         if only_paths is not None:
             files = [Path(p).resolve() for p in only_paths]
         else:
@@ -277,7 +294,14 @@ class RtfProcessor:
             return []
         results: list[RtfProcessResult] = []
         timed_out = 0
+        skipped = 0
         for path in files:
+            key = normalize_match_stem(path.name)
+            group = marked_groups.get(key) if key else None
+            if group and is_marked_group_complete(group):
+                results.append(self._skipped_rtf_result(path, group))
+                skipped += 1
+                continue
             result = self._process_file_isolated(path, per_file_timeout_sec=per_file_timeout_sec)
             if result.error and "timed out" in result.error:
                 timed_out += 1
@@ -286,10 +310,22 @@ class RtfProcessor:
             "status": "ok" if timed_out == 0 else "timeouts",
             "mode": "isolated_per_file",
             "files_total": len(files),
+            "files_skipped_existing": skipped,
             "files_timed_out": timed_out,
             "per_file_timeout_sec": per_file_timeout_sec,
         }
         return results
+
+    def _skipped_rtf_result(self, path: Path, group: MarkedOutputGroup) -> RtfProcessResult:
+        doc = StructuredDocument.from_json_path(group.structured)  # type: ignore[arg-type]
+        return RtfProcessResult(
+            source_file=str(path),
+            marked_path=str(group.txt),
+            structured_path=str(group.structured),
+            paragraphs=len(doc.paragraphs),
+            error="",
+            skipped_existing=True,
+        )
 
     def _process_file_isolated(self, path: Path, per_file_timeout_sec: float) -> RtfProcessResult:
         ctx = mp.get_context("spawn")

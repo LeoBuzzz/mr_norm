@@ -75,7 +75,6 @@ def test_payload_is_rag_norm_compatible() -> None:
         assert payload["doc_name"] == "ОБ УТВЕРЖДЕНИИ ТРЕБОВАНИЙ К ЭЛЕКТРИЧЕСКИМ СЕТЯМ"
         assert payload["doc_reg"] == "Постановление от 01.01.2024 N 1"
         assert payload["doc_kind"] == "постановление"
-        assert payload["metadata_confidence"] == "high"
         assert payload["point_identity_key"].startswith(f"{payload['point_number']}::")
         assert payload["point_scope"] == "Раздел I. Общие положения"
         assert "//" not in chunk["text"]
@@ -258,7 +257,7 @@ def test_chunk_ids_are_stable_for_same_structured_document() -> None:
     assert [chunk["chunk_id"] for chunk in first] == [chunk["chunk_id"] for chunk in second]
 
 
-def test_same_document_metadata_from_different_sources_has_distinct_ids() -> None:
+def test_same_document_metadata_from_different_filenames_shares_doc_id() -> None:
     first = make_structured_document()
     second = make_structured_document()
     second.source_file = "synthetic_copy.rtf"
@@ -267,5 +266,5 @@ def test_same_document_metadata_from_different_sources_has_distinct_ids() -> Non
     first_chunk = ChunkBuilder(paths=None).build_document_chunks(first)[0]  # type: ignore[arg-type]
     second_chunk = ChunkBuilder(paths=None).build_document_chunks(second)[0]  # type: ignore[arg-type]
 
-    assert first_chunk["payload"]["doc_id"] != second_chunk["payload"]["doc_id"]
-    assert first_chunk["chunk_id"] != second_chunk["chunk_id"]
+    assert first_chunk["payload"]["doc_id"] == second_chunk["payload"]["doc_id"]
+    assert first_chunk["chunk_id"] == second_chunk["chunk_id"]

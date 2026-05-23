@@ -35,8 +35,111 @@ from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.reranker import build_reranker
 from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
 from mr_norm.apps.human_cli import HumanCliOptions, collect_interactive_options, run_human_norm_lookup
+from mr_norm.data.normative_registry import (
+    RegistryCoverageError,
+    RegistryMissingMode,
+    check_registry_coverage,
+)
 from mr_norm.tools.chunker import ChunkBuilder, MetadataExtractionError
+from mr_norm.tools.document_knowledge_build import (
+    DEFAULT_OLLAMA_BASE_URL,
+    DEFAULT_OLLAMA_MODEL,
+    assemble_knowledge_index,
+    build_document_annotations,
+    extract_document_openings,
+    knowledge_paths,
+    run_knowledge_build,
+)
+from mr_norm.tools.marked_docs_sync import sync_marked_docs_with_input
 from mr_norm.tools.rtf_processor import RtfProcessor, RtfReadError, atomic_write_json, pick_size_diverse_rtf_paths
+
+
+def _add_registry_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--registry-path",
+        type=Path,
+        default=None,
+        help="Путь к normative_documents_registry.json (по умолчанию — src/mr_norm/data/…).",
+    )
+    parser.add_argument(
+        "--no-registry",
+        action="store_true",
+        help="Не использовать реестр нормативных документов (только extract_metadata).",
+    )
+    parser.add_argument(
+        "--registry-missing",
+        choices=[m.value for m in RegistryMissingMode],
+        default=RegistryMissingMode.FAIL.value,
+        help="Поведение при отсутствии файла в реестре (не для ПУЭ по имени файла).",
+    )
+
+
+def _registry_missing_from_args(args: argparse.Namespace) -> RegistryMissingMode:
+    return RegistryMissingMode(str(getattr(args, "registry_missing", RegistryMissingMode.FAIL.value)))
+
+
+def _add_knowledge_ollama_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--model", default=DEFAULT_OLLAMA_MODEL, help="Модель Ollama для аннотаций.")
+    parser.add_argument("--base-url", default=DEFAULT_OLLAMA_BASE_URL, help="URL Ollama API.")
+    parser.add_argument("--timeout", type=int, default=300, help="Таймаут запроса к Ollama, сек.")
+    parser.add_argument("--max-input-chars", type=int, default=14000, help="Обрезка opening_text в промпте.")
+    parser.add_argument("--limit", type=int, default=0, help="Обработать только первые N документов (0 = все).")
+    parser.add_argument("--delay", type=float, default=0.0, help="Пауза между запросами к Ollama, сек.")
+
+
+def _add_knowledge_args(sub: argparse._SubParsersAction) -> None:
+    knowledge_openings = sub.add_parser(
+        "knowledge-openings",
+        help="Извлечь начала документов из qdrant_chunks.json (группировка по doc_id).",
+    )
+    knowledge_openings.add_argument(
+        "--chunks",
+        type=Path,
+        default=None,
+        help="Путь к qdrant_chunks.json (по умолчанию output/qdrant_chunks.json).",
+    )
+    knowledge_openings.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Куда записать document_openings.json (по умолчанию output/knowledge/…).",
+    )
+
+    knowledge_annotations = sub.add_parser(
+        "knowledge-annotations",
+        help="Сгенерировать краткие аннотации документов через Ollama.",
+    )
+    knowledge_annotations.add_argument("--openings", type=Path, default=None)
+    knowledge_annotations.add_argument("--output", type=Path, default=None)
+    knowledge_annotations.add_argument(
+        "--resume",
+        action="store_true",
+        help="Пропускать doc_id, для которых аннотация уже есть в output.",
+    )
+    _add_knowledge_ollama_args(knowledge_annotations)
+
+    knowledge_index = sub.add_parser(
+        "knowledge-index",
+        help="Собрать document_knowledge_index.json из openings + annotations.",
+    )
+    knowledge_index.add_argument("--openings", type=Path, default=None)
+    knowledge_index.add_argument("--annotations", type=Path, default=None)
+    knowledge_index.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Путь к document_knowledge_index.json (по умолчанию src/mr_norm/config/knowledge/…).",
+    )
+
+    knowledge_build = sub.add_parser(
+        "knowledge-build",
+        help="Полный цикл: openings → annotations (Ollama) → knowledge index.",
+    )
+    knowledge_build.add_argument("--skip-openings", action="store_true")
+    knowledge_build.add_argument("--skip-annotations", action="store_true")
+    knowledge_build.add_argument("--skip-index", action="store_true")
+    knowledge_build.add_argument("--resume", action="store_true", help="Продолжить аннотации с --resume.")
+    _add_knowledge_ollama_args(knowledge_build)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,10 +160,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     chunk = sub.add_parser("chunk", help="Build qdrant_chunks.json from structured documents.")
     chunk.add_argument("--max-chars", type=int, default=1600)
+    _add_registry_args(chunk)
 
     build = sub.add_parser("build-chunks", help="Run RTF processing, chunking and quality report.")
     build.add_argument("--limit", type=int, default=None)
     build.add_argument("--max-chars", type=int, default=1600)
+    _add_registry_args(build)
     build.add_argument("--per-file-timeout-sec", type=float, default=120.0)
     build.add_argument(
         "--smoke-diverse-n",
@@ -70,11 +175,36 @@ def build_parser() -> argparse.ArgumentParser:
         help="Build chunks for N RTF files spread by file size (smallest…largest). Ignores --limit.",
     )
 
+    reg_check = sub.add_parser(
+        "registry-check",
+        help="Сверка stem RTF в input с match_stems реестра до чанкования.",
+    )
+    reg_check.add_argument("--registry-path", type=Path, default=None)
+    reg_check.add_argument(
+        "--report",
+        type=Path,
+        default=None,
+        help="JSON-отчёт (по умолчанию output/reports/registry_coverage.json).",
+    )
+
+    sync_md = sub.add_parser(
+        "sync-marked-docs",
+        help="Синхронизация input/*.rtf с output/marked_docs (удаление хвостов без Word).",
+    )
+    sync_md.add_argument(
+        "--report",
+        type=Path,
+        default=None,
+        help="JSON-отчёт (по умолчанию output/reports/marked_docs_sync.json).",
+    )
+
     quality = sub.add_parser("quality-report", help="Build quality report for output/qdrant_chunks.json.")
     quality.add_argument("--scope", choices=["existing-output", "smoke", "full"], default="existing-output")
 
     compare = sub.add_parser("compare-baseline", help="Compare output/qdrant_chunks.json with rag_norm baseline.")
     compare.add_argument("--baseline", type=Path, default=None)
+
+    _add_knowledge_args(sub)
 
     index_verify = sub.add_parser("index-verify", help="Validate qdrant_chunks.json readiness for Qdrant indexing.")
     index_verify.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
@@ -305,8 +435,20 @@ def main(argv: list[str] | None = None) -> int:
                 only_paths=only_paths,
                 per_file_timeout_sec=args.per_file_timeout_sec,
             )
+        elif args.command == "sync-marked-docs":
+            result = run_sync_marked_docs(paths, args)
+        elif args.command == "registry-check":
+            result = run_registry_check(paths, args)
+            if not result.get("ok_for_chunking"):
+                exit_code = 1
         elif args.command == "chunk":
-            result = run_chunk(paths, args.max_chars)
+            result = run_chunk(
+                paths,
+                args.max_chars,
+                use_registry=not args.no_registry,
+                registry_path=args.registry_path,
+                registry_missing=_registry_missing_from_args(args),
+            )
         elif args.command == "build-chunks":
             only_paths = None
             scope = "full"
@@ -322,6 +464,9 @@ def main(argv: list[str] | None = None) -> int:
                 only_paths=only_paths,
                 scope=scope,
                 per_file_timeout_sec=args.per_file_timeout_sec,
+                use_registry=not args.no_registry,
+                registry_path=args.registry_path,
+                registry_missing=_registry_missing_from_args(args),
             )
         elif args.command == "quality-report":
             result = ChunkQualityReporter(paths).report(
@@ -450,6 +595,22 @@ def main(argv: list[str] | None = None) -> int:
             result["questions_path"] = str(questions_path)
             if args.save_report:
                 result = save_pipeline_report(result, paths.reports_dir, prefix="rag_pipeline_batch")
+        elif args.command == "knowledge-openings":
+            result = run_knowledge_openings(paths, args)
+            if result.get("documents", 0) == 0:
+                exit_code = 1
+        elif args.command == "knowledge-annotations":
+            result = run_knowledge_annotations(paths, args)
+            if result.get("errors", 0) > 0:
+                exit_code = 1
+        elif args.command == "knowledge-index":
+            result = run_knowledge_index(paths, args)
+            if result.get("index_documents", 0) == 0:
+                exit_code = 1
+        elif args.command == "knowledge-build":
+            result = run_knowledge_build_cmd(paths, args)
+            if result.get("annotations_errors", 0) > 0:
+                exit_code = 1
         elif args.command == "norm-lookup":
             enable_pue_aliases = True if args.enable_pue else None
             base_options = HumanCliOptions(
@@ -475,13 +636,16 @@ def main(argv: list[str] | None = None) -> int:
             return exit_code
         else:
             raise ValueError(f"Unsupported command: {args.command}")
-    except (RtfReadError, MetadataExtractionError) as exc:
+    except (RtfReadError, MetadataExtractionError, RegistryCoverageError) as exc:
         print(json.dumps({"error": type(exc).__name__, "message": str(exc)}, ensure_ascii=False, indent=2))
         return 1
     except ValueError as exc:
         print(str(exc))
         return 1
 
+    if result.get("command") == "ingest-rtf":
+        print(format_ingest_rtf_console_summary(result))
+        print()
     print(json.dumps(to_printable_result(result), ensure_ascii=False, indent=2))
     return exit_code
 
@@ -500,7 +664,7 @@ def add_retrieval_args(parser: argparse.ArgumentParser, *, query_required: bool)
     parser.add_argument("--profile", choices=["fast", "balanced", "deep"], default="fast")
     parser.add_argument("--trace-id", default="")
     parser.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
-    parser.add_argument("--filename", default="")
+    parser.add_argument("--doc-id", default="", help="Фильтр по doc_id (стабильный id документа в корпусе).")
     parser.add_argument("--doc-name", default="")
     parser.add_argument("--text", default="")
     parser.add_argument("--heading-path-text", default="")
@@ -511,7 +675,7 @@ def add_retrieval_args(parser: argparse.ArgumentParser, *, query_required: bool)
 
 def build_tool_request(args: argparse.Namespace) -> ToolRequest:
     filter_values = {
-        "filename": args.filename,
+        "doc_id": args.doc_id,
         "doc_name": args.doc_name,
         "text": args.text,
         "heading_path_text": args.heading_path_text,
@@ -564,11 +728,15 @@ def run_ingest(
         only_paths=only_paths,
         per_file_timeout_sec=per_file_timeout_sec,
     )
+    sync_report = processor.last_sync_report.to_dict() if processor.last_sync_report else {}
     report = {
         "command": "ingest-rtf",
+        "limit": limit,
+        "marked_docs_sync": sync_report,
         "documents_total": len(results),
         "documents_processed_ok": sum(1 for item in results if item.paragraphs > 0),
-        "documents_failed": sum(1 for item in results if item.paragraphs == 0),
+        "documents_skipped_existing": sum(1 for item in results if item.skipped_existing),
+        "documents_failed": sum(1 for item in results if item.paragraphs == 0 and not item.skipped_existing),
         "documents_with_read_warnings": sum(1 for item in results if item.error),
         "word_cleanup": processor.last_word_cleanup,
         "smoke_diverse_paths": [str(p) for p in only_paths] if only_paths else None,
@@ -576,8 +744,162 @@ def run_ingest(
         "elapsed_sec": round(time.perf_counter() - start, 3),
         "documents": [item.__dict__ for item in results],
     }
-    atomic_write_json(paths.reports_dir / "rtf_processing_last.json", report)
+    report_path = paths.reports_dir / "rtf_processing_last.json"
+    report["report_path"] = str(report_path)
+    atomic_write_json(report_path, report)
     return report
+
+
+def _preflight_registry_coverage(
+    paths: ProjectPaths,
+    *,
+    registry_path: Path | None,
+    structured_paths: list[Path] | None,
+) -> None:
+    report = check_registry_coverage(
+        registry_path=registry_path or paths.normative_registry_json,
+        structured_paths=structured_paths,
+        input_dir=paths.input_dir,
+    )
+    if report.ok_for_chunking:
+        return
+    missing = [r.stem for r in report.missing[:20]]
+    extra = f" (+{len(report.missing) - 20})" if len(report.missing) > 20 else ""
+    raise RegistryCoverageError(
+        f"Реестр не покрывает {len(report.missing)} файл(ов). "
+        f"Примеры stem: {missing}{extra}. "
+        f"Запустите: python -m mr_norm.apps.main registry-check"
+    )
+
+
+def run_sync_marked_docs(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    paths.ensure_output_dirs()
+    report = sync_marked_docs_with_input(paths.input_dir, paths.marked_docs_dir)
+    out_path = args.report or (paths.reports_dir / "marked_docs_sync.json")
+    atomic_write_json(out_path, report.to_dict())
+    return {
+        "command": "sync-marked-docs",
+        "report_path": str(out_path),
+        **report.to_dict(),
+    }
+
+
+def _resolve_knowledge_paths(
+    paths: ProjectPaths,
+    args: argparse.Namespace,
+    *,
+    output_is_index: bool = False,
+) -> tuple[Path, Path, Path]:
+    default_openings, default_annotations, default_index = knowledge_paths(paths)
+    openings = getattr(args, "openings", None) or default_openings
+    annotations = getattr(args, "annotations", None) or default_annotations
+    if output_is_index:
+        index_path = getattr(args, "output", None) or default_index
+    else:
+        index_path = default_index
+    if not openings.is_absolute():
+        openings = paths.root / openings
+    if not annotations.is_absolute():
+        annotations = paths.root / annotations
+    if not index_path.is_absolute():
+        index_path = paths.root / index_path
+    return openings, annotations, index_path
+
+
+def run_knowledge_openings(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    chunks_path = args.chunks or paths.chunks_json
+    if not chunks_path.is_absolute():
+        chunks_path = paths.root / chunks_path
+    default_openings, _, _ = knowledge_paths(paths)
+    output_path = args.output or default_openings
+    if not output_path.is_absolute():
+        output_path = paths.root / output_path
+    payload = extract_document_openings(chunks_path, output_path=output_path)
+    return {
+        "command": "knowledge-openings",
+        "chunks_path": str(chunks_path),
+        "output_path": str(output_path),
+        "documents": len(payload.get("documents") or []),
+        "kind_counts": (payload.get("meta") or {}).get("kind_counts", {}),
+    }
+
+
+def run_knowledge_annotations(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    openings_path, default_annotations, _ = _resolve_knowledge_paths(paths, args)
+    annotations_path = args.output or default_annotations
+    if not annotations_path.is_absolute():
+        annotations_path = paths.root / annotations_path
+    result = build_document_annotations(
+        openings_path,
+        output_path=annotations_path,
+        model=args.model,
+        base_url=args.base_url,
+        timeout_sec=args.timeout,
+        max_input_chars=args.max_input_chars,
+        limit=args.limit,
+        resume=bool(args.resume),
+        delay_sec=args.delay,
+    )
+    return {
+        "command": "knowledge-annotations",
+        "openings_path": str(openings_path),
+        "output_path": str(annotations_path),
+        "documents": result.documents_total,
+        "new_calls": result.new_calls,
+        "errors": result.errors,
+    }
+
+
+def run_knowledge_index(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    openings_path, annotations_path, index_path = _resolve_knowledge_paths(
+        paths, args, output_is_index=True
+    )
+    bundle = assemble_knowledge_index(openings_path, annotations_path, output_path=index_path)
+    return {
+        "command": "knowledge-index",
+        "openings_path": str(openings_path),
+        "annotations_path": str(annotations_path),
+        "index_path": str(index_path),
+        "index_documents": len(bundle.get("documents") or []),
+        "schema_version": bundle.get("schema_version"),
+    }
+
+
+def run_knowledge_build_cmd(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    return run_knowledge_build(
+        paths,
+        skip_openings=args.skip_openings,
+        skip_annotations=args.skip_annotations,
+        skip_index=args.skip_index,
+        resume_annotations=bool(args.resume),
+        limit=args.limit,
+        model=args.model,
+        base_url=args.base_url,
+        timeout_sec=args.timeout,
+        max_input_chars=args.max_input_chars,
+        delay_sec=args.delay,
+    )
+
+
+def run_registry_check(paths: ProjectPaths, args: argparse.Namespace) -> dict[str, Any]:
+    report = check_registry_coverage(
+        registry_path=args.registry_path or paths.normative_registry_json,
+        input_dir=paths.input_dir,
+    )
+    out_path = args.report or (paths.reports_dir / "registry_coverage.json")
+    atomic_write_json(out_path, report.to_dict())
+    return {
+        "command": "registry-check",
+        "report_path": str(out_path),
+        "ok_for_chunking": report.ok_for_chunking,
+        "files_checked": report.files_checked,
+        "matched_count": len(report.matched),
+        "pue_canonical_count": len(report.pue_canonical),
+        "missing_count": len(report.missing),
+        "orphan_registry_stems_count": len(report.orphan_registry_stems),
+        "duplicate_stems_count": len(report.duplicate_stems_in_registry),
+        "missing_stems_sample": [r.stem for r in report.missing[:30]],
+    }
 
 
 def run_chunk(
@@ -585,9 +907,25 @@ def run_chunk(
     max_chars: int = 1600,
     structured_paths: list[Path] | None = None,
     scope: str = "existing-structured",
+    *,
+    use_registry: bool = True,
+    registry_path: Path | None = None,
+    registry_missing: RegistryMissingMode = RegistryMissingMode.FAIL,
 ) -> dict[str, Any]:
+    if use_registry and registry_missing == RegistryMissingMode.FAIL:
+        _preflight_registry_coverage(
+            paths,
+            registry_path=registry_path,
+            structured_paths=structured_paths,
+        )
     start = time.perf_counter()
-    builder = ChunkBuilder(paths, max_chars=max_chars)
+    builder = ChunkBuilder(
+        paths,
+        max_chars=max_chars,
+        use_registry=use_registry,
+        registry_path=registry_path,
+        registry_missing=registry_missing,
+    )
     chunks = builder.build_all(structured_paths=structured_paths)
     elapsed = time.perf_counter() - start
     report = ChunkQualityReporter(paths).report(
@@ -612,6 +950,7 @@ def run_chunk(
         "metadata_manifest_md": str(paths.metadata_manifest_md),
         "pue_canonical_applied_count": len(builder.manifest_pue),
         "metadata_fallback_count": len(builder.manifest_other),
+        "registry_misses": list(builder.registry_misses),
         "elapsed_sec": round(elapsed, 3),
     }
 
@@ -623,6 +962,10 @@ def run_build_chunks(
     only_paths: list[Path] | None = None,
     scope: str = "full",
     per_file_timeout_sec: float = 120.0,
+    *,
+    use_registry: bool = True,
+    registry_path: Path | None = None,
+    registry_missing: RegistryMissingMode = RegistryMissingMode.FAIL,
 ) -> dict[str, Any]:
     start = time.perf_counter()
     ingest_start = time.perf_counter()
@@ -630,7 +973,15 @@ def run_build_chunks(
     ingest_elapsed = time.perf_counter() - ingest_start
     chunk_start = time.perf_counter()
     structured_paths = [Path(item["structured_path"]) for item in ingest.get("documents", []) if item.get("structured_path")]
-    chunk = run_chunk(paths, max_chars=max_chars, structured_paths=structured_paths, scope=scope)
+    chunk = run_chunk(
+        paths,
+        max_chars=max_chars,
+        structured_paths=structured_paths,
+        scope=scope,
+        use_registry=use_registry,
+        registry_path=registry_path,
+        registry_missing=registry_missing,
+    )
     chunk_elapsed = time.perf_counter() - chunk_start
     report = {
         "command": "build-chunks",
@@ -649,12 +1000,72 @@ def run_build_chunks(
     return report
 
 
+def format_ingest_rtf_console_summary(report: dict[str, Any]) -> str:
+    sync = report.get("marked_docs_sync") or {}
+    word = report.get("word_cleanup") or {}
+    total = int(report.get("documents_total") or 0)
+    ok = int(report.get("documents_processed_ok") or 0)
+    skipped = int(report.get("documents_skipped_existing") or 0)
+    failed = int(report.get("documents_failed") or 0)
+    new_ok = max(ok - skipped, 0)
+    orphans = int(sync.get("orphans_removed_count") or len(sync.get("orphans_removed") or []))
+
+    lines = [
+        "=== ingest-rtf ===",
+        f"Input (RTF в каталоге): {sync.get('input_rtf_count', '?')}",
+        f"Синхронизация output: удалено файлов без RTF в input — {orphans}",
+        f"Уже готовы в output (пропуск Word): {skipped}",
+        f"Обработано Word (новые/перезапись): {new_ok}",
+        f"Ошибки чтения: {failed}",
+        f"Всего в этом прогоне: {total}",
+    ]
+    if word.get("files_timed_out"):
+        lines.append(f"Таймауты Word: {word['files_timed_out']} (лимит {word.get('per_file_timeout_sec')} с)")
+    if report.get("smoke_diverse_paths"):
+        lines.append(f"Smoke (--smoke-diverse-n): {len(report['smoke_diverse_paths'])} файл(ов)")
+    elif report.get("limit") is not None:
+        lines.append(f"Лимит --limit: {report['limit']}")
+
+    failed_docs = [
+        d
+        for d in report.get("documents", [])
+        if int(d.get("paragraphs") or 0) == 0 and not d.get("skipped_existing")
+    ]
+    if failed_docs:
+        lines.append("Файлы с ошибками:")
+        for doc in failed_docs[:15]:
+            name = Path(str(doc.get("source_file") or "")).name or "?"
+            err = str(doc.get("error") or "неизвестная ошибка").strip()
+            if len(err) > 160:
+                err = err[:157] + "..."
+            lines.append(f"  • {name}: {err}")
+        if len(failed_docs) > 15:
+            lines.append(f"  … ещё {len(failed_docs) - 15} (см. report JSON)")
+
+    lines.append(f"Время: {report.get('elapsed_sec', '?')} с")
+    lines.append(f"Полный отчёт: {report.get('report_path', 'output/reports/rtf_processing_last.json')}")
+    return "\n".join(lines)
+
+
 def to_printable_result(result: dict[str, Any]) -> dict[str, Any]:
+    if result.get("command") == "ingest-rtf":
+        compact = {k: v for k, v in result.items() if k != "documents"}
+        failed_docs = [
+            d
+            for d in result.get("documents", [])
+            if int(d.get("paragraphs") or 0) == 0 and not d.get("skipped_existing")
+        ]
+        compact["documents_failed_preview"] = failed_docs[:20]
+        return compact
     if "ingest" in result and isinstance(result["ingest"], dict):
         compact = dict(result)
         ingest = dict(compact["ingest"])
         docs = ingest.pop("documents", [])
         ingest["documents_preview"] = docs[:5]
+        failed_docs = [
+            d for d in docs if int(d.get("paragraphs") or 0) == 0 and not d.get("skipped_existing")
+        ]
+        ingest["documents_failed_preview"] = failed_docs[:20]
         compact["ingest"] = ingest
         return compact
     return result

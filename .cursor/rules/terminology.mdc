@@ -1,0 +1,49 @@
+---
+description: Терминология артефактов mr_norm (реестр, чанки, векторная база, каталог)
+alwaysApply: true
+---
+
+# Терминология mr_norm
+
+## Источники данных
+
+**Реестр нормативных документов** (`normative_documents_registry.json`)  
+Источник правды для реквизитов документов. Привязка к **stem имени файла** (`match_stems`) — только на этапах **разметки/ингеста** и **чанкования**.  
+Заполняет поля payload документа: `doc_name`, `doc_title_full`, `doc_reg`, `registry_key`, `authority` и др.
+
+**Размеченные документы** (`output/marked_docs/`)  
+Structured JSON после ingest RTF. Структура текста; реквизиты — из реестра (по умолчанию).
+
+**Файл чанков корпуса** (`output/qdrant_chunks.json`)  
+Чанки: текст + payload. `doc_id` = стабильный хеш от `registry_key` (или `doc_name`+`doc_reg` без реестра).  
+Имя файла (`filename`) пишется в payload **только как справочное** поле.
+
+**Векторная база** (Qdrant, коллекция проекта)  
+Проиндексированные чанки. **Поиск** (payload / vector / hybrid / point) выполняется только здесь.  
+Фильтрация по документу — по **`doc_id`**, не по `filename`.
+
+## Справочники для планировщика (не для поиска по тексту)
+
+**Каталог документов корпуса** (`output/document_catalog.json`, schema `mr_document_catalog_v2`)  
+Список уникальных документов из файла чанков, ключ — **`doc_id`** (`catalog_id` = `doc_id`).  
+Поля: `doc_name`, `registry_key`, `aliases`, `order_numbers`. **Без `filename`.**  
+Согласован с реестром по `doc_name` / `registry_key` при сборке с реестром.
+
+**Индекс знаний о документах** (`document_knowledge_index.json`, schema `mr_document_knowledge_v2`)  
+Краткие аннотации (`annotation`), сокращения, термины, тематические алиасы.  
+Сборка: `python -m mr_norm.apps.main knowledge-build` (openings → Ollama → index).  
+`doc_id` = тот же, что в чанках и каталоге; поле `registry_key` дублирует реестр.
+
+## Идентификаторы
+
+| Поле | Где | Назначение |
+|------|-----|------------|
+| `registry_key` | реестр, payload | Канонический ключ акта в реестре |
+| `doc_id` | payload, каталог, фильтры Qdrant | Стабильный id документа в корпусе (`stable_id("doc", registry_key)`) |
+| `filename` | payload векторной базы | Справочно: исходный файл главы/документа; **не** использовать в retrieval/каталоге/планировщике |
+
+## Запрещённые формулировки
+
+- «Payload из каталога» — неверно; каталог только для планировщика.
+- «Каталог парсится из Qdrant» — неверно; строится из `qdrant_chunks.json`.
+- «Фильтр по filename в поиске» — снят; использовать `doc_id`.

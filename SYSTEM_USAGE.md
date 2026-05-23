@@ -28,8 +28,54 @@ python -m pytest tests/test_golden_quality_gates.py tests/test_runtime_tool_runn
 ```powershell
 python -m mr_norm.apps.main ingest-rtf
 python -m mr_norm.apps.main build-chunks
+# ingest: синхронизация input/*.rtf ↔ output/marked_docs (хвосты в output удаляются;
+#   уже готовые пары .txt + .structured.json не перечитываются через Word)
+# перед chunk: output/qdrant_chunks.json → output/qdrant_chunks.bak
+# только синхронизация без Word: python -m mr_norm.apps.main sync-marked-docs
 python -m mr_norm.apps.main index-build
 python -m mr_norm.apps.main index-verify
+```
+
+### GPU-окружение для индексации (как в `rag_norm`)
+
+Системный Python 3.13 с `torch+cpu` CUDA не видит. Один раз создайте **`venv312`** с PyTorch+CUDA:
+
+```powershell
+.\scripts\setup_venv312.bat
+```
+
+Векторизация (embed + Qdrant + verify):
+
+```powershell
+.\src\mr_norm\apps\run_index_build.bat
+```
+
+Батник использует `venv312\Scripts\python.exe`, выставляет `RAG_EMBEDDING_DEVICE=cuda:0` (переопределение: `$env:RAG_EMBEDDING_DEVICE="cpu"`). Коллекция по умолчанию: `mr_norm_docs_bge_m3` (`MR_NORM_QDRANT_COLLECTION`).
+
+### Реестр нормативных документов
+
+Источник правды для реквизитов payload (`doc_title_full`, `doc_name`, `doc_reg`, `approving_act`, `authority`, `doc_date`, `registry_key`, `short_title`) — [`src/mr_norm/data/normative_documents_registry.json`](src/mr_norm/data/normative_documents_registry.json). При чанковании (реестр включён по умолчанию) запись ищется по **stem** имени файла (колонка «Файл» в таблице); из текста документа берутся только **структура** (главы, пункты, `heading_path_text`), не преамбула. Режим `--no-registry` — прежнее извлечение реквизитов из начала текста.
+
+- Файлы, в **имени** которых есть «ПУЭ», получают реквизиты **утверждающего акта** из записи `is_pue_canonical` в реестре (`registry_key` вида `pr_204_08072002`); главы по-прежнему различаются по `filename`, `doc_id`, `chapter_*`, `point_number`.
+- Если записи нет: по умолчанию ошибка (`--registry-missing=fail`). Интерактивное добавление: `--registry-missing=interactive`. Отключить реестр: `--no-registry`.
+- **Сверка stem до чанкования:** ключ в реестре — `match_stems` = stem имени RTF (как в колонке «Файл» без `.txt`). Команда `registry-check` смотрит только `input/All_raw_docks`; при `chunk` / `build-chunks` с реестром и `--registry-missing=fail` preflight по RTF в `input` (для частичного `build-chunks` — по structured JSON текущего прогона).
+
+```powershell
+python -m mr_norm.apps.main registry-check
+# отчёт: output/reports/registry_coverage.json (поле missing — stem без записи в реестре)
+```
+
+Обновление реестра из Excel (разовая миграция / правки):
+
+```powershell
+python scripts/export_normative_registry_from_xlsx.py
+```
+
+Чанкование с реестром:
+
+```powershell
+python -m mr_norm.apps.main chunk --registry-missing fail
+python -m mr_norm.apps.main build-chunks --registry-missing interactive
 ```
 
 Проверка payload indexes:
@@ -37,6 +83,26 @@ python -m mr_norm.apps.main index-verify
 ```powershell
 python -m mr_norm.apps.main index-schema-verify
 ```
+
+### Индекс знаний о документах (краткие аннотации)
+
+Сборка из **того же** `output/qdrant_chunks.json`, что и каталог: `doc_id` совпадает с корпусом и векторной базой.
+
+```powershell
+# полный цикл: начала документов → Ollama → document_knowledge_index.json
+python -m mr_norm.apps.main knowledge-build --resume
+
+# по шагам:
+python -m mr_norm.apps.main knowledge-openings
+python -m mr_norm.apps.main knowledge-annotations --resume
+python -m mr_norm.apps.main knowledge-index
+```
+
+Артефакты: `output/knowledge/document_openings.json`, `output/knowledge/document_annotations.json`,  
+итог — `src/mr_norm/config/knowledge/document_knowledge_index.json` (schema `mr_document_knowledge_v2`).
+
+Нужен **Ollama** (`OLLAMA_ANNOTATION_MODEL`, по умолчанию `qwen3:30b`).  
+Старый скрипт `scripts/build_knowledge_bundle.py` (из rag_norm) — только для legacy, doc_id там другой.
 
 ## 3. Deterministic runtime
 
@@ -147,7 +213,7 @@ python scripts/run_live_llm_smoke.py
 python -m mr_norm.apps.main norm-lookup
 ```
 
-Перед поиском (режимы `auto` / `llm`) система пытается распознать целевой документ по каталогу корпуса (`output/document_catalog.json`), а не по произвольному сокращению вроде «ПУЭ». При низкой уверенности фильтр `doc_name` **не применяется**, чтобы не сузить поиск неверно.
+Перед поиском (режимы `auto` / `llm`) система пытается распознать целевой документ по каталогу корпуса (`output/document_catalog.json`, ключ `doc_id`), а не по произвольному сокращению вроде «ПУЭ». При уверенном разрешении в Qdrant ставится фильтр **`doc_id`** (не `filename`). При низкой уверенности фильтр по документу **не применяется**, чтобы не сузить поиск неверно. Термины — `.cursor/rules/terminology.mdc`.
 
 При запуске без аргументов CLI предложит:
 

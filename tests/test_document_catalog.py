@@ -19,7 +19,9 @@ def load_sample_catalog() -> DocumentCatalog:
 
 def test_find_catalog_candidates_resolves_pue_alias() -> None:
     catalog = load_sample_catalog()
-    candidates = find_catalog_candidates("расскажи про ПУЭ по заземлению", catalog)
+    candidates = find_catalog_candidates(
+        "расскажи про ПУЭ по заземлению", catalog, enable_pue_aliases=True
+    )
 
     assert candidates
     assert candidates[0].doc_name == "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"
@@ -57,7 +59,7 @@ def test_load_catalog_snapshot_roundtrip(tmp_path: Path) -> None:
             DocumentCatalogEntry(
                 catalog_id="doc_1",
                 doc_name="Тестовый документ",
-                filename="test.txt",
+                doc_id="doc_1",
                 aliases=("тестовый документ",),
                 order_numbers=("123",),
             )

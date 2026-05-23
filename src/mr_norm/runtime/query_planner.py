@@ -83,11 +83,13 @@ def _merge_candidates(
 
     for candidate in knowledge_candidates:
         link = links.get(candidate.doc_id)
-        entry = catalog.by_doc_name().get(candidate.doc_name)
-        if link and link.verified:
-            catalog_id = link.catalog_id
-        elif entry:
+        entry = catalog.by_doc_id().get(candidate.doc_id)
+        if not entry:
+            entry = catalog.by_doc_name().get(candidate.doc_name)
+        if entry:
             catalog_id = entry.catalog_id
+        elif link and link.verified:
+            catalog_id = link.catalog_id
         else:
             catalog_id = f"knowledge:{candidate.doc_id}"
         current = merged.get(candidate.doc_name)
@@ -219,7 +221,7 @@ def _catalog_entry_for_energy_federal_law(
             return link.catalog_id, entry.doc_name if entry else target_name
 
     for entry in catalog.entries:
-        blob = normalize_catalog_text(" ".join((entry.doc_name, entry.filename)))
+        blob = normalize_catalog_text(entry.doc_name)
         if "35-фз" in blob and "электроэнергетик" in blob:
             return entry.catalog_id, entry.doc_name
     return "", ""
@@ -946,11 +948,17 @@ def prepared_plan_to_understanding(plan: PreparedQueryPlan) -> QueryUnderstandin
                 search_query = entry.queries[0]
                 break
 
+    catalog_id = str(plan.document_resolution.catalog_id or "").strip()
+    resolved_doc_id = ""
+    if catalog_id and not catalog_id.startswith("knowledge:"):
+        resolved_doc_id = catalog_id
+
     return QueryUnderstandingResult(
         original_query=plan.original_query,
         search_query=search_query,
         document_hints=list(plan.significant_words),
         resolved_doc_names=list(plan.resolved_doc_names),
+        resolved_doc_id=resolved_doc_id,
         point_number_hints=list(plan.point_number_hints),
         tool_hints=list(plan.selected_tools),
         confidence=plan.confidence,

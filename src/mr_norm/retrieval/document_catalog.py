@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.config.pue_aliases import active_known_query_aliases
 from mr_norm.tools.chunker import load_chunks
 
 ORDER_NUMBER_PATTERNS = (
@@ -74,14 +75,17 @@ def _acronym_from_doc_name(doc_name: str) -> str:
     return "".join(word[0] for word in words[:6]).lower()
 
 
+CATALOG_SCHEMA_VERSION = "mr_document_catalog_v2"
+
+
 @dataclass(frozen=True)
 class DocumentCatalogEntry:
     catalog_id: str
     doc_name: str
-    filename: str = ""
     doc_id: str = ""
     aliases: tuple[str, ...] = ()
     order_numbers: tuple[str, ...] = ()
+    registry_key: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -97,6 +101,9 @@ class DocumentCatalog:
 
     def by_doc_name(self) -> dict[str, DocumentCatalogEntry]:
         return {entry.doc_name: entry for entry in self.entries}
+
+    def by_doc_id(self) -> dict[str, DocumentCatalogEntry]:
+        return {entry.doc_id: entry for entry in self.entries if entry.doc_id}
 
 
 @dataclass(frozen=True)
@@ -115,16 +122,15 @@ class DocumentCandidate:
         }
 
 
-def _build_entry_aliases(doc_name: str, filename: str) -> tuple[str, ...]:
+def _build_entry_aliases(doc_name: str) -> tuple[str, ...]:
     aliases: list[str] = []
-    for value in (doc_name, filename):
-        normalized = normalize_catalog_text(value)
-        if normalized and normalized not in aliases:
-            aliases.append(normalized)
+    normalized = normalize_catalog_text(doc_name)
+    if normalized:
+        aliases.append(normalized)
     acronym = _acronym_from_doc_name(doc_name)
     if acronym and acronym not in aliases:
         aliases.append(acronym)
-    for number in extract_order_numbers(doc_name, filename):
+    for number in extract_order_numbers(doc_name):
         token = f"приказ {number}"
         if token not in aliases:
             aliases.append(token)
@@ -146,34 +152,33 @@ def build_catalog_from_chunks(chunks_path: Path) -> DocumentCatalog:
     if not chunks_path.is_file():
         return DocumentCatalog(entries=[], source_path=str(chunks_path))
 
-    by_doc_name: dict[str, DocumentCatalogEntry] = {}
+    by_doc_id: dict[str, DocumentCatalogEntry] = {}
     for chunk in load_chunks(chunks_path):
         payload = chunk.get("payload") or chunk
-        doc_name = str(payload.get("doc_name") or "").strip()
-        if not doc_name:
-            continue
-        filename = str(payload.get("filename") or "").strip()
         doc_id = str(payload.get("doc_id") or "").strip()
-        if doc_name in by_doc_name:
+        doc_name = str(payload.get("doc_name") or "").strip()
+        if not doc_id or not doc_name:
             continue
-        catalog_id = doc_id or f"doc_{len(by_doc_name) + 1}"
-        order_numbers = tuple(extract_order_numbers(doc_name, filename))
-        by_doc_name[doc_name] = DocumentCatalogEntry(
-            catalog_id=catalog_id,
+        if doc_id in by_doc_id:
+            continue
+        registry_key = str(payload.get("registry_key") or "").strip()
+        order_numbers = tuple(extract_order_numbers(doc_name))
+        by_doc_id[doc_id] = DocumentCatalogEntry(
+            catalog_id=doc_id,
             doc_name=doc_name,
-            filename=filename,
             doc_id=doc_id,
-            aliases=_build_entry_aliases(doc_name, filename),
+            aliases=_build_entry_aliases(doc_name),
             order_numbers=order_numbers,
+            registry_key=registry_key,
         )
-    entries = sorted(by_doc_name.values(), key=lambda item: item.doc_name)
+    entries = sorted(by_doc_id.values(), key=lambda item: item.doc_name)
     return DocumentCatalog(entries=entries, source_path=str(chunks_path))
 
 
 def save_catalog_snapshot(catalog: DocumentCatalog, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "schema_version": "mr_document_catalog_v1",
+        "schema_version": CATALOG_SCHEMA_VERSION,
         "source_path": catalog.source_path,
         "entries": [entry.to_dict() for entry in catalog.entries],
     }
@@ -187,17 +192,27 @@ def load_catalog_snapshot(path: Path) -> DocumentCatalog:
     payload = json.loads(path.read_text(encoding="utf-8"))
     entries = [
         DocumentCatalogEntry(
-            catalog_id=str(item.get("catalog_id") or ""),
+            catalog_id=str(item.get("catalog_id") or item.get("doc_id") or ""),
             doc_name=str(item.get("doc_name") or ""),
-            filename=str(item.get("filename") or ""),
-            doc_id=str(item.get("doc_id") or ""),
+            doc_id=str(item.get("doc_id") or item.get("catalog_id") or ""),
             aliases=tuple(item.get("aliases") or ()),
             order_numbers=tuple(str(number) for number in item.get("order_numbers") or ()),
+            registry_key=str(item.get("registry_key") or ""),
         )
         for item in payload.get("entries") or []
         if item.get("doc_name")
     ]
     return DocumentCatalog(entries=entries, source_path=str(payload.get("source_path") or path))
+
+
+def _catalog_snapshot_is_current(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return payload.get("schema_version") == CATALOG_SCHEMA_VERSION
 
 
 def load_document_catalog(
@@ -207,7 +222,7 @@ def load_document_catalog(
     refresh: bool = False,
 ) -> DocumentCatalog:
     snapshot = snapshot_path or chunks_path.parent / "document_catalog.json"
-    if snapshot.is_file() and not refresh:
+    if snapshot.is_file() and not refresh and _catalog_snapshot_is_current(snapshot):
         catalog = load_catalog_snapshot(snapshot)
         if catalog.entries:
             return catalog
@@ -217,7 +232,12 @@ def load_document_catalog(
     return catalog
 
 
-def _score_entry(query_norm: str, entry: DocumentCatalogEntry) -> tuple[float, list[str]]:
+def _score_entry(
+    query_norm: str,
+    entry: DocumentCatalogEntry,
+    *,
+    enable_pue_aliases: bool = False,
+) -> tuple[float, list[str]]:
     score = 0.0
     reasons: list[str] = []
     doc_norm = normalize_catalog_text(entry.doc_name)
@@ -258,7 +278,7 @@ def _score_entry(query_norm: str, entry: DocumentCatalogEntry) -> tuple[float, l
             score += 0.5
             reasons.append(f"order_number:{number}")
 
-    for alias_key, phrases in KNOWN_QUERY_ALIASES.items():
+    for alias_key, phrases in active_known_query_aliases(enable_pue_aliases=enable_pue_aliases).items():
         if alias_key in query_norm and any(phrase in doc_norm for phrase in phrases):
             score += 0.55
             reasons.append(f"known_alias:{alias_key}")
@@ -272,6 +292,7 @@ def find_catalog_candidates(
     *,
     explicit_doc_name: str = "",
     limit: int = 8,
+    enable_pue_aliases: bool = False,
 ) -> list[DocumentCandidate]:
     if explicit_doc_name.strip():
         explicit = explicit_doc_name.strip()
@@ -297,7 +318,7 @@ def find_catalog_candidates(
     query_norm = normalize_catalog_text(query)
     ranked: list[DocumentCandidate] = []
     for entry in catalog.entries:
-        score, reasons = _score_entry(query_norm, entry)
+        score, reasons = _score_entry(query_norm, entry, enable_pue_aliases=enable_pue_aliases)
         if score <= 0:
             continue
         ranked.append(

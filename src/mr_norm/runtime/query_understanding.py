@@ -48,7 +48,10 @@ def apply_query_understanding(
     understanding: QueryUnderstandingResult,
 ) -> tuple[str, dict[str, Any]]:
     merged_filters = dict(filters or {})
-    if understanding.resolved_doc_names and not understanding.ambiguous:
+    if understanding.resolved_doc_id and not understanding.ambiguous:
+        merged_filters["doc_id"] = understanding.resolved_doc_id
+        merged_filters.pop("doc_name", None)
+    elif understanding.resolved_doc_names and not understanding.ambiguous:
         if len(understanding.resolved_doc_names) == 1:
             merged_filters["doc_name"] = understanding.resolved_doc_names[0]
     if understanding.point_number_hints and "point_number" not in merged_filters:

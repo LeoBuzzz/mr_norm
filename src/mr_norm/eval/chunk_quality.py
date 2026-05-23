@@ -150,7 +150,6 @@ def build_quality_report(
             "documents_total": len(docs),
             "documents_processed_ok": len(docs),
             "documents_failed": 0,
-            "metadata_confidence_distribution": dict(Counter(payload.get("metadata_confidence") or "(empty)" for payload in payloads)),
             "chunks_without_doc_name": sum(1 for payload in payloads if not payload.get("doc_name")),
             "duplicate_doc_ids": duplicates(list(doc_ids_by_filename.values())),
             "metadata_quality": doc_metadata,
