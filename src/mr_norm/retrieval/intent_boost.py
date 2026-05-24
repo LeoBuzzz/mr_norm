@@ -64,7 +64,7 @@ def _query_focus_tokens(query_norm: str) -> list[str]:
 def _intent_rank_key(item: RetrievedItem, intent: str, query_norm: str) -> tuple[int, int, float]:
     blob = _item_blob(item)
     priority = 1
-    if intent in {"document_lookup", "regulation_scope"}:
+    if intent in {"document_lookup", "regulation_scope", "requirement", "procedure"}:
         if any(marker in blob for marker in LEGAL_ACT_MARKERS):
             priority = 0
         elif any(marker in blob for marker in LOW_PRIORITY_FOR_DOC_LOOKUP) and "гост" not in query_norm:
@@ -97,8 +97,9 @@ def rerank_items_for_intent(
     query: str,
     *,
     limit: int,
+    question_type: str = "",
 ) -> list[RetrievedItem]:
-    intent = detect_query_intent(query)
+    intent = (question_type or "").strip() or detect_query_intent(query)
     if intent == "factual" or not items:
         return items[:limit]
     query_norm = normalize_catalog_text(query)

@@ -95,6 +95,14 @@ def test_apply_mode_preset_ollama_defaults_model() -> None:
     assert preset["final_answer_model"] == "qwen3:30b"
 
 
+def test_build_norm_lookup_request_defaults_to_polza() -> None:
+    request = build_norm_lookup_request(HumanCliOptions(query="заземление"))
+
+    assert request.llm_provider == "polza"
+    assert request.final_answer_backend == "prompt"
+    assert request.understand_query_mode == "llm"
+
+
 def test_build_norm_lookup_request_applies_doc_filter() -> None:
     request = build_norm_lookup_request(
         HumanCliOptions(
@@ -123,16 +131,31 @@ def test_render_human_norm_lookup_result_shows_answer_and_sources() -> None:
 
 
 def test_collect_interactive_options_uses_injected_input() -> None:
-    answers = iter(["2", "оперативный персонал", "", "5", "balanced"])
+    answers = iter(["оперативный персонал", "", "5", "balanced"])
 
     options = collect_interactive_options(
         input_fn=lambda _prompt: next(answers),
         print_fn=lambda _text: None,
     )
 
-    assert options.mode_preset == "ollama"
+    assert options.mode_preset == "polza"
     assert options.query == "оперативный персонал"
     assert options.limit == 5
+
+
+def test_collect_interactive_options_no_doc_filter_skips_doc_prompt() -> None:
+    answers = iter(["заземление", "3", "fast"])
+    prompts: list[str] = []
+
+    options = collect_interactive_options(
+        HumanCliOptions(no_doc_filter=True),
+        input_fn=lambda prompt: (prompts.append(prompt), next(answers))[1],
+        print_fn=lambda _text: None,
+    )
+
+    assert options.doc_name == ""
+    assert options.no_doc_filter is True
+    assert not any("doc_name" in prompt for prompt in prompts)
 
 
 def test_norm_lookup_cli_one_shot_prints_human_output(monkeypatch, tmp_path, capsys) -> None:

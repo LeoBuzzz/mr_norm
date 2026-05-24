@@ -38,6 +38,9 @@ class QueryPlannerTrace:
     knowledge_source: str = ""
     catalog_source: str = ""
     candidates_total: int = 0
+    early_doc_resolver_applied: bool = False
+    early_doc_resolver_reason: str = ""
+    intent_routing_mode: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -61,6 +64,7 @@ class PreparedQueryPlan:
     warnings: tuple[str, ...] = ()
     trace: QueryPlannerTrace = field(default_factory=QueryPlannerTrace)
     candidates: tuple[dict[str, Any], ...] = ()
+    gost_snippets: tuple[dict[str, Any], ...] = ()
 
     def primary_query_for(self, tool_name: str) -> str:
         for entry in self.tool_queries:
@@ -86,6 +90,7 @@ class PreparedQueryPlan:
             "warnings": list(self.warnings),
             "trace": self.trace.to_dict(),
             "candidates": list(self.candidates),
+            "gost_snippets": list(self.gost_snippets),
         }
 
 
@@ -94,6 +99,8 @@ class RuntimeRequest:
     query: str = ""
     filters: dict[str, Any] = field(default_factory=dict)
     limit: int = 10
+    retrieval_limit: int | None = None
+    final_answer_limit: int | None = None
     profile: str = "balanced"
     trace_id: str = ""
     mode: str = "evidence"
@@ -118,6 +125,10 @@ class RuntimeTrace:
     routing_reasons: list[str] = field(default_factory=list)
     fusion: str = ""
     empty_reason: str = ""
+    retrieval_limit: int = 0
+    final_answer_limit: int = 0
+    retry_triggered: bool = False
+    retry_reason: str = ""
 
 
 @dataclass(frozen=True)
@@ -269,6 +280,7 @@ class PipelineTrace:
     planner_backend: str = ""
     reranker_backend: str = ""
     final_answer_backend: str = ""
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -282,6 +294,7 @@ class PipelineResult:
     final_answer: FinalAnswerResult
     trace: PipelineTrace = field(default_factory=PipelineTrace)
     warnings: list[str] = field(default_factory=list)
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -290,5 +303,6 @@ class PipelineResult:
             "rerank": self.rerank.to_dict(),
             "final_answer": self.final_answer.to_dict(),
             "trace": self.trace.to_dict(),
+            "diagnostics": dict(self.diagnostics),
             "warnings": list(self.warnings),
         }

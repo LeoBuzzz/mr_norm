@@ -10,13 +10,13 @@ OLLAMA_RERANKER_FALLBACK_MODEL = "qwen3:8b"
 OLLAMA_FINAL_ANSWER_MODEL = "llama-3.3-70b-Instruct:latest"
 OLLAMA_FINAL_ANSWER_FALLBACK_MODEL = "qwen3:30b"
 
-# Polza: cloud defaults
-POLZA_PLANNER_MODEL = "qwen/qwen3.5-flash-02-23"
-POLZA_PLANNER_FALLBACK_MODEL = "qwen/qwen3.6-flash"
+# Polza: cloud defaults (aligned with rag_norm: strong JSON planner + reliable final prose)
+POLZA_PLANNER_MODEL = "deepseek/deepseek-v3.2"
+POLZA_PLANNER_FALLBACK_MODEL = "openai/gpt-4o"
 POLZA_RERANKER_MODEL = "qwen/qwen3.5-flash-02-23"
 POLZA_RERANKER_FALLBACK_MODEL = "google/gemini-3.1-flash-lite"
-POLZA_FINAL_ANSWER_MODEL = "deepseek/deepseek-v4-flash"
-POLZA_FINAL_ANSWER_FALLBACK_MODEL = "qwen/qwen3.5-flash-02-23"
+POLZA_FINAL_ANSWER_MODEL = "deepseek/deepseek-v3.2"
+POLZA_FINAL_ANSWER_FALLBACK_MODEL = "anthropic/claude-sonnet-4.6"
 POLZA_PREMIUM_FINAL_ANSWER_MODEL = "anthropic/claude-sonnet-4.6"
 
 
@@ -79,6 +79,7 @@ POLZA_PROFILES = LLMProviderProfiles(
     final_answer=LLMRoleProfile(
         model=POLZA_FINAL_ANSWER_MODEL,
         fallback_model=POLZA_FINAL_ANSWER_FALLBACK_MODEL,
+        temperature=0.2,
         max_tokens=4096,
     ),
     query_understanding=LLMRoleProfile(
@@ -89,7 +90,8 @@ POLZA_PROFILES = LLMProviderProfiles(
     query_planning=LLMRoleProfile(
         model=POLZA_PLANNER_MODEL,
         fallback_model=POLZA_PLANNER_FALLBACK_MODEL,
-        max_tokens=1536,
+        temperature=0.2,
+        max_tokens=2048,
     ),
 )
 

@@ -81,13 +81,22 @@ def test_apply_prepared_plan_keeps_original_query() -> None:
 
 
 def test_plan_query_llm_mode_uses_provider(monkeypatch) -> None:
-    def fake_llm_plan(query, candidates, matched_terms, *, llm_provider, keys_path=None):
+    def fake_llm_plan(
+        query,
+        candidates,
+        matched_terms,
+        *,
+        llm_provider,
+        keys_path=None,
+        gost_definitions=None,
+    ):
         return {
             "question_type": "factual",
             "answer_shape": "narrow",
             "concepts": ["заземление"],
             "significant_words": ["пуэ"],
             "resolved_doc_names": ["ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"],
+            "selected_catalog_ids": ["doc_pue"],
             "point_number_hints": [],
             "confidence": 0.91,
             "tool_queries": {
@@ -104,6 +113,7 @@ def test_plan_query_llm_mode_uses_provider(monkeypatch) -> None:
         knowledge=load_sample_knowledge(),
         mode="llm",
         llm_provider="ollama",
+        enable_pue_aliases=True,
     )
 
     assert plan.resolved_doc_names == ("ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК",)

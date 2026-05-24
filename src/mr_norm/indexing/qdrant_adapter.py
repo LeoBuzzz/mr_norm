@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import time
+import warnings
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -258,8 +259,18 @@ def render_index_verify_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _suppress_incompatible_cuda_capability_warning() -> None:
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*is not compatible with the current PyTorch installation.*",
+        category=UserWarning,
+        module=r"torch\.cuda",
+    )
+
+
 class SentenceTransformerEmbedder:
     def __init__(self, config: IndexingConfig):
+        _suppress_incompatible_cuda_capability_warning()
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:

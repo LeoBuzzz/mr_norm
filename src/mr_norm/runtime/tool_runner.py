@@ -136,8 +136,9 @@ def run_runtime(
 
     items = []
     fusion = ""
+    retrieval_limit = request.retrieval_limit if request.retrieval_limit is not None else request.limit
     if profile.use_hybrid and len(tool_results) > 1:
-        fused = reciprocal_rank_fusion(tool_results, limit=request.limit)
+        fused = reciprocal_rank_fusion(tool_results, limit=retrieval_limit)
         items = fused
         fusion = "hybrid_rrf"
         tool_results["hybrid"] = ToolResult(
@@ -149,7 +150,7 @@ def run_runtime(
                 vector_name=config.vector_name,
                 query=request.query,
                 normalized_filters=dict(request.filters),
-                limit=request.limit,
+                limit=retrieval_limit,
                 profile=profile.name,
             ),
             metrics=ToolMetrics(elapsed_sec=0.0, candidates_returned=len(fused), qdrant_calls=0),
@@ -159,7 +160,7 @@ def run_runtime(
         for tool_name in ("point", "payload", "vector"):
             result = tool_results.get(tool_name)
             if result and result.items:
-                items = result.items[: request.limit]
+                items = result.items[:retrieval_limit]
                 break
 
     empty_reason = ""
@@ -181,6 +182,8 @@ def run_runtime(
             routing_reasons=routing_reasons,
             fusion=fusion,
             empty_reason=empty_reason,
+            retrieval_limit=retrieval_limit,
+            final_answer_limit=request.final_answer_limit or request.limit,
         ),
         metrics=RuntimeMetrics(
             elapsed_sec=elapsed,

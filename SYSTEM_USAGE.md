@@ -210,6 +210,14 @@ python scripts/run_live_llm_smoke.py
 Для работы «глазами человека», без полного JSON в консоли:
 
 ```powershell
+.\norm_lookup.bat
+```
+
+Батник из корня запускает интерактивный `norm-lookup` с `--no-doc-filter` (без запроса и без фильтра `doc_name`). Использует `venv312\Scripts\python.exe`, если есть. Опционально: `.\norm_lookup.bat "ваш вопрос"`.
+
+Эквивалент:
+
+```powershell
 python -m mr_norm.apps.main norm-lookup
 ```
 

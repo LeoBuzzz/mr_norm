@@ -5,6 +5,7 @@ from mr_norm.runtime.llm_profiles import (
     OLLAMA_FINAL_ANSWER_MODEL,
     OLLAMA_PLANNER_FALLBACK_MODEL,
     OLLAMA_PLANNER_MODEL,
+    POLZA_FINAL_ANSWER_FALLBACK_MODEL,
     POLZA_FINAL_ANSWER_MODEL,
     POLZA_PLANNER_FALLBACK_MODEL,
     POLZA_PLANNER_MODEL,
@@ -19,7 +20,7 @@ def test_resolve_role_models_uses_primary_and_fallback() -> None:
     assert resolve_role_models("ollama", "planner") == [OLLAMA_PLANNER_MODEL, OLLAMA_PLANNER_FALLBACK_MODEL]
     assert resolve_role_models("polza", "final_answer") == [
         POLZA_FINAL_ANSWER_MODEL,
-        "qwen/qwen3.5-flash-02-23",
+        POLZA_FINAL_ANSWER_FALLBACK_MODEL,
     ]
 
 

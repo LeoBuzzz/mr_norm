@@ -10,8 +10,11 @@ from mr_norm.retrieval.document_catalog import (
     DocumentCandidate,
     extract_point_number_hint,
     find_catalog_candidates,
+    is_generic_tech_reg_doc_name,
     load_default_document_catalog,
     normalize_catalog_text,
+    query_suggests_energy_sector,
+    resolve_by_partial_order_hint,
 )
 from mr_norm.config.pue_aliases import PUE_ALIAS_KEY
 from mr_norm.retrieval.query_intent import detect_query_intent, intent_search_terms
@@ -40,6 +43,7 @@ from mr_norm.runtime.contracts import (
 )
 from mr_norm.runtime.llm_providers import chat_json_with_model_fallback
 from mr_norm.runtime.llm_profiles import resolve_role_models, resolve_role_profile
+from mr_norm.runtime.pipeline_diagnostics import apply_intent_tool_routing, try_early_deterministic_doc_resolution
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
 MIN_DOC_CONFIDENCE = 0.55
@@ -167,6 +171,73 @@ def _should_skip_topic_alias_doc_filter(
     if any(reason.startswith("order_number:") for reason in reasons):
         return False
     return any(reason.startswith("topic_alias:") for reason in reasons)
+
+
+def _demote_generic_fz_candidates(
+    candidates: list[dict[str, Any]],
+    query: str,
+) -> list[dict[str, Any]]:
+    if not query_suggests_energy_sector(query):
+        return candidates
+    adjusted: list[dict[str, Any]] = []
+    for item in candidates:
+        copy = dict(item)
+        if is_generic_tech_reg_doc_name(str(copy.get("doc_name") or "")):
+            copy["score"] = min(float(copy.get("score") or 0.0), 0.2)
+            reasons = list(copy.get("reasons") or [])
+            if "demoted:generic_tech_reg_fz" not in reasons:
+                reasons.append("demoted:generic_tech_reg_fz")
+            copy["reasons"] = reasons
+        adjusted.append(copy)
+    adjusted.sort(key=lambda item: float(item["score"]), reverse=True)
+    return adjusted
+
+
+def _conditional_deterministic_fallback(
+    candidates: list[dict[str, Any]],
+) -> tuple[list[str], str, float, bool, list[str]]:
+    warnings: list[str] = []
+    if not candidates:
+        return [], "", 0.0, False, warnings
+
+    top = candidates[0]
+    top_name = str(top.get("doc_name") or "")
+    if is_generic_tech_reg_doc_name(top_name):
+        warnings.append("conditional fallback skipped: top candidate is generic tech-reg FZ")
+        return [], "", float(top.get("score") or 0.0), False, warnings
+
+    reasons = [str(reason) for reason in top.get("reasons") or []]
+    has_order = any(reason.startswith("order_number:") for reason in reasons)
+    top_score = float(top.get("score") or 0.0)
+    second_score = float(candidates[1]["score"]) if len(candidates) > 1 else 0.0
+    gap_ok = top_score - second_score >= AMBIGUITY_SCORE_GAP
+
+    if has_order and top_score >= 0.45:
+        warnings.append(
+            f"conditional fallback: order_number match (score={top_score:.2f})"
+        )
+        return (
+            [top_name],
+            str(top.get("catalog_id") or ""),
+            min(1.0, top_score + 0.15),
+            False,
+            warnings,
+        )
+
+    if top_score >= MIN_DOC_CONFIDENCE and gap_ok:
+        warnings.append(
+            f"conditional fallback: high-confidence top candidate (score={top_score:.2f})"
+        )
+        return (
+            [top_name],
+            str(top.get("catalog_id") or ""),
+            top_score,
+            False,
+            warnings,
+        )
+
+    warnings.append("conditional fallback skipped: no strong deterministic signal")
+    return [], "", top_score, False, warnings
 
 
 def _deterministic_resolve(
@@ -506,7 +577,7 @@ def _build_tool_query_objects(
     prepared: list[PreparedToolQuery] = []
     required_tokens = _payload_required_tokens(term_matches)
 
-    if point_number_hints and resolved_doc_names:
+    if point_number_hints:
         selected.append("point")
         prepared.append(PreparedToolQuery(tool_name="point", queries=tuple(point_number_hints)))
 
@@ -626,20 +697,24 @@ def _llm_plan(
     *,
     llm_provider: str,
     keys_path: Path | None = None,
+    gost_definitions: list[dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     pack = load_prompt_pack_by_role("query_planning")
     profile = resolve_role_profile(llm_provider, "query_planning")
+    user_payload: dict[str, Any] = {
+        "query": query,
+        "candidates": candidates,
+        "matched_terms": matched_terms,
+        "output_contract": pack.get("output_contract"),
+    }
+    if gost_definitions:
+        user_payload["gost_definitions"] = gost_definitions
     payload = chat_json_with_model_fallback(
         llm_provider,
         resolve_role_models(llm_provider, "query_planning"),
         keys_path=keys_path,
         system_prompt=str(pack.get("prompt") or ""),
-        user_payload={
-            "query": query,
-            "candidates": candidates,
-            "matched_terms": matched_terms,
-            "output_contract": pack.get("output_contract"),
-        },
+        user_payload=user_payload,
         temperature=profile.temperature,
         max_tokens=profile.max_tokens,
     )
@@ -656,6 +731,7 @@ def prepare_query(
     llm_provider: str = "none",
     keys_path: Path | None = None,
     enable_pue_aliases: bool = False,
+    gost_snippets: list[dict[str, Any]] | None = None,
 ) -> PreparedQueryPlan:
     original_query = (query or "").strip()
     if mode == "off" or not original_query:
@@ -694,6 +770,7 @@ def prepare_query(
         knowledge_candidates,
         knowledge_links=knowledge_links,
     )
+    candidates = _demote_generic_fz_candidates(candidates, original_query)
 
     resolver = "deterministic"
     warnings: list[str] = []
@@ -701,6 +778,39 @@ def prepare_query(
     resolved_catalog_id = ""
     confidence = 0.0
     ambiguous = False
+    pre_resolved_doc = False
+    early_doc_resolver_applied = False
+    early_doc_resolver_reason = ""
+
+    partial_hit = resolve_by_partial_order_hint(original_query, catalog)
+    if partial_hit:
+        resolved_doc_names, resolved_catalog_id, confidence, ambiguous, partial_warnings = partial_hit
+        warnings.extend(partial_warnings)
+        pre_resolved_doc = True
+        resolver = "partial_order"
+    elif not explicit_doc_name:
+        (
+            early_names,
+            early_id,
+            early_conf,
+            early_amb,
+            early_applied,
+            early_reason,
+        ) = try_early_deterministic_doc_resolution(
+            candidates,
+            original_query=original_query,
+            explicit_doc_name=explicit_doc_name,
+        )
+        if early_applied:
+            resolved_doc_names = early_names
+            resolved_catalog_id = early_id
+            confidence = early_conf
+            ambiguous = early_amb
+            pre_resolved_doc = True
+            early_doc_resolver_applied = True
+            early_doc_resolver_reason = early_reason
+            resolver = "early_deterministic"
+            warnings.append(early_reason)
     question_type = "point_lookup" if point_number_hints else detect_query_intent(original_query)
     answer_shape = "narrow"
     concepts: list[str] = list(
@@ -718,9 +828,11 @@ def prepare_query(
         )
     )[:12]
     tool_queries: dict[str, list[str]] = {tool: [] for tool in ALLOWED_TOOLS}
+    gost_payload = list(gost_snippets or [])
 
     if mode == "llm" and llm_provider != "none" and candidates:
-        resolver = "llm"
+        if not pre_resolved_doc:
+            resolver = "llm"
         try:
             llm_data, llm_warnings = _llm_plan(
                 original_query,
@@ -728,6 +840,7 @@ def prepare_query(
                 matched_terms,
                 llm_provider=llm_provider,
                 keys_path=keys_path,
+                gost_definitions=gost_payload or None,
             )
             llm_data, sanitize_warnings = _sanitize_llm_plan_fields(
                 llm_data,
@@ -749,7 +862,9 @@ def prepare_query(
             confidence = float(llm_data.get("confidence", 0.0))
             candidate_names = llm_data.get("resolved_doc_names", [])
             selected_ids = llm_data.get("selected_catalog_ids", [])
-            if confidence >= MIN_DOC_CONFIDENCE and len(candidate_names) == 1:
+            if pre_resolved_doc:
+                pass
+            elif confidence >= MIN_DOC_CONFIDENCE and len(candidate_names) == 1:
                 resolved_doc_names = candidate_names
                 if isinstance(selected_ids, list) and len(selected_ids) == 1:
                     resolved_catalog_id = str(selected_ids[0])
@@ -760,6 +875,20 @@ def prepare_query(
                 )
             else:
                 warnings.append("llm returned no verified document; doc_name filter not applied")
+                (
+                    fallback_names,
+                    fallback_catalog_id,
+                    fallback_confidence,
+                    fallback_ambiguous,
+                    fallback_warnings,
+                ) = _conditional_deterministic_fallback(candidates)
+                warnings.extend(fallback_warnings)
+                if fallback_names:
+                    resolved_doc_names = fallback_names
+                    resolved_catalog_id = fallback_catalog_id
+                    confidence = fallback_confidence
+                    ambiguous = fallback_ambiguous
+                    resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
                 llm_data.get("tool_queries"),
                 original_query,
@@ -769,28 +898,29 @@ def prepare_query(
             )
         except Exception as exc:
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
-            resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-                _deterministic_resolve(candidates)
-            )
-            warnings.extend(det_warnings)
-            (
-                resolved_doc_names,
-                resolved_catalog_id,
-                confidence,
-                ambiguous,
-                warnings,
-            ) = _apply_intent_document_resolution(
-                catalog=catalog,
-                original_query=original_query,
-                question_type=question_type,
-                resolved_doc_names=resolved_doc_names,
-                resolved_catalog_id=resolved_catalog_id,
-                confidence=confidence,
-                ambiguous=ambiguous,
-                warnings=warnings,
-                knowledge_links=knowledge_links,
-            )
-            resolver = "deterministic_fallback"
+            if not pre_resolved_doc:
+                resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
+                    _deterministic_resolve(candidates)
+                )
+                warnings.extend(det_warnings)
+                (
+                    resolved_doc_names,
+                    resolved_catalog_id,
+                    confidence,
+                    ambiguous,
+                    warnings,
+                ) = _apply_intent_document_resolution(
+                    catalog=catalog,
+                    original_query=original_query,
+                    question_type=question_type,
+                    resolved_doc_names=resolved_doc_names,
+                    resolved_catalog_id=resolved_catalog_id,
+                    confidence=confidence,
+                    ambiguous=ambiguous,
+                    warnings=warnings,
+                    knowledge_links=knowledge_links,
+                )
+                resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
                 {},
                 original_query,
@@ -799,10 +929,11 @@ def prepare_query(
                 question_type=question_type,
             )
     else:
-        resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-            _deterministic_resolve(candidates)
-        )
-        warnings.extend(det_warnings)
+        if not pre_resolved_doc:
+            resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
+                _deterministic_resolve(candidates)
+            )
+            warnings.extend(det_warnings)
         (
             resolved_doc_names,
             resolved_catalog_id,
@@ -864,6 +995,17 @@ def prepare_query(
             question_type=question_type,
         )
 
+    if gost_payload:
+        from mr_norm.retrieval.gost_definitions import GostSnippet, enrich_tool_queries_with_gost
+
+        snippets = [GostSnippet.from_dict(item) for item in gost_payload]
+        tool_queries = enrich_tool_queries_with_gost(
+            tool_queries,
+            snippets,
+            original_query=original_query,
+        )
+
+    intent_routing_mode = ""
     selected_tools, prepared_tool_queries = _build_tool_query_objects(
         tool_queries,
         point_number_hints=point_number_hints,
@@ -871,13 +1013,16 @@ def prepare_query(
         term_matches=term_matches,
         question_type=question_type,
     )
-    if question_type in {"document_lookup", "regulation_scope"} and intent_search_terms(
-        original_query, question_type
-    ):
-        prepared_tool_queries = tuple(
-            entry for entry in prepared_tool_queries if entry.tool_name in {"payload", "point"}
-        )
-        selected_tools = tuple(entry.tool_name for entry in prepared_tool_queries)
+    doc_scoped = bool(resolved_doc_names) and not ambiguous and len(resolved_doc_names) == 1
+    selected_tools, prepared_tool_queries, intent_routing_mode = apply_intent_tool_routing(
+        prepared_tool_queries,
+        question_type=question_type,
+        doc_scoped=doc_scoped,
+        point_number_hints=point_number_hints,
+        original_query=original_query,
+    )
+    if intent_routing_mode:
+        warnings.append(f"intent_routing:{intent_routing_mode}:tools={','.join(selected_tools)}")
 
     top_candidate = candidates[0] if candidates else {}
     document_resolution = DocumentResolution(
@@ -909,8 +1054,12 @@ def prepare_query(
             knowledge_source=knowledge.source_path,
             catalog_source=catalog.source_path,
             candidates_total=len(candidates),
+            early_doc_resolver_applied=early_doc_resolver_applied,
+            early_doc_resolver_reason=early_doc_resolver_reason,
+            intent_routing_mode=intent_routing_mode,
         ),
         candidates=tuple(candidates),
+        gost_snippets=tuple(gost_payload),
     )
 
 
@@ -931,7 +1080,12 @@ def apply_prepared_plan(
             merged_filters.pop("doc_name", None)
         else:
             merged_filters["doc_name"] = plan.resolved_doc_names[0]
-    if plan.point_number_hints and "point_number" not in merged_filters:
+    doc_scoped = (
+        plan.resolved_doc_names
+        and not plan.ambiguous
+        and len(plan.resolved_doc_names) == 1
+    )
+    if doc_scoped and plan.point_number_hints and "point_number" not in merged_filters:
         merged_filters["point_number"] = plan.point_number_hints[0]
     effective_query = plan.original_query or query
     return effective_query, merged_filters
@@ -989,6 +1143,7 @@ def plan_query(
     keys_path: Path | None = None,
     project_paths: ProjectPaths | None = None,
     enable_pue_aliases: bool | None = None,
+    gost_snippets: list[dict[str, Any]] | None = None,
 ) -> PreparedQueryPlan:
     from mr_norm.config.pue_aliases import resolve_enable_pue_aliases
 
@@ -1002,4 +1157,5 @@ def plan_query(
         llm_provider=llm_provider,
         keys_path=keys_path,
         enable_pue_aliases=resolve_enable_pue_aliases(enable_pue_aliases),
+        gost_snippets=gost_snippets,
     )

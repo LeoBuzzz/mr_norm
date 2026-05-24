@@ -13,17 +13,22 @@ from mr_norm.retrieval.tools.vector import run_vector_tool
 
 
 class FakePayloadClient:
-    def __init__(self) -> None:
+    def __init__(self, *, first_empty: bool = False) -> None:
         self.calls = 0
         self.filter_spec = {}
+        self.filter_specs: list[dict] = []
         self.limit = 0
         self.source_tool = ""
+        self.first_empty = first_empty
 
     def payload_search(self, filter_spec: dict, *, limit: int, source_tool: str) -> list[RetrievedItem]:
         self.calls += 1
         self.filter_spec = filter_spec
+        self.filter_specs.append(filter_spec)
         self.limit = limit
         self.source_tool = source_tool
+        if self.first_empty and self.calls == 1:
+            return []
         return [
             RetrievedItem(
                 chunk_id="chunk_1",
@@ -154,6 +159,25 @@ def test_point_tool_contract_uses_doc_name_and_point_number() -> None:
         "any": ["Правила устройства электроустановок", "ПРАВИЛА УСТРОЙСТВА ЭЛЕКТРОУСТАНОВОК"],
     } in payload["trace"]["qdrant_filter"]["must"]
     assert payload["items"][0]["source_tool"] == "point"
+
+
+def test_point_tool_text_fallback_when_exact_point_metadata_misses() -> None:
+    client = FakePayloadClient(first_empty=True)
+    request = ToolRequest(
+        filters={
+            "doc_name": "О Министерстве энергетики Российской Федерации",
+            "point_number": "4.14_1",
+        },
+        limit=3,
+    )
+
+    result = run_point_tool(request, IndexingConfig(collection_name="test_collection"), client=client)
+    payload = result.to_dict()
+
+    assert client.calls == 2
+    assert payload["items"]
+    assert any("text fallback" in warning for warning in payload["warnings"])
+    assert {"field": "text", "kind": "text", "value": "4.14_1"} in client.filter_specs[1]["should"]
 
 
 def test_doc_name_variants_are_deterministic_and_deduplicated() -> None:

@@ -385,10 +385,15 @@ def build_parser() -> argparse.ArgumentParser:
     norm_lookup.add_argument(
         "--mode-preset",
         choices=["deterministic", "ollama", "polza"],
-        default="",
-        help="Work mode preset. Omit for interactive menu.",
+        default="polza",
+        help="Work mode preset (default: polza).",
     )
     norm_lookup.add_argument("--doc-name", default="", help="Optional doc_name filter.")
+    norm_lookup.add_argument(
+        "--no-doc-filter",
+        action="store_true",
+        help="Do not prompt for doc_name; search without document name filter.",
+    )
     norm_lookup.add_argument("--limit", type=int, default=10)
     norm_lookup.add_argument("--profile", choices=["fast", "balanced", "deep"], default="balanced")
     norm_lookup.add_argument(
@@ -617,13 +622,14 @@ def main(argv: list[str] | None = None) -> int:
                 query=args.query,
                 mode_preset=args.mode_preset,
                 doc_name=args.doc_name,
+                no_doc_filter=bool(args.no_doc_filter),
                 limit=args.limit,
                 profile=args.profile,
                 final_answer_model=args.final_answer_model or None,
                 understand_query=args.understand_query,
                 enable_pue_aliases=enable_pue_aliases,
             )
-            if not base_options.query or not base_options.mode_preset:
+            if not base_options.query:
                 options = collect_interactive_options(base_options)
             else:
                 options = base_options

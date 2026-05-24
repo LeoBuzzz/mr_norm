@@ -8,7 +8,10 @@ from mr_norm.retrieval.document_catalog import (
     DocumentCatalogEntry,
     extract_point_number_hint,
     find_catalog_candidates,
+    is_generic_tech_reg_doc_name,
     load_catalog_snapshot,
+    query_suggests_energy_sector,
+    resolve_by_partial_order_hint,
 )
 
 
@@ -51,6 +54,34 @@ def test_find_catalog_candidates_explicit_unverified_doc_name() -> None:
 
 def test_extract_point_number_hint() -> None:
     assert extract_point_number_hint("требования пункта 1.7.1 по заземлению") == "1.7.1"
+    assert extract_point_number_hint("абзаце пункта 34 Основных положений") == "34"
+    assert (
+        extract_point_number_hint(
+            "подпунктом 4.14_1 Положения о Минэнерго (Постановление от 28.05.2008 № 400)"
+        )
+        == "4.14_1"
+    )
+    assert extract_point_number_hint("от 28.05.2008 № 400") == ""
+
+
+def test_resolve_by_partial_order_hint_minenergo_number() -> None:
+    catalog = load_sample_catalog()
+    hit = resolve_by_partial_order_hint("что в приказе минэнерго 796 про персонал", catalog)
+    assert hit is not None
+    names, catalog_id, confidence, ambiguous, reasons = hit
+    assert names == [
+        "Об утверждении Правил работы с персоналом в организациях электроэнергетики Российской Федерации"
+    ]
+    assert catalog_id == "doc_796"
+    assert confidence >= 0.85
+    assert ambiguous is False
+    assert reasons == ["partial_order:796"]
+
+
+def test_query_suggests_energy_sector_and_generic_fz() -> None:
+    assert query_suggests_energy_sector("требования к лэп 330 кв")
+    assert is_generic_tech_reg_doc_name("О техническом регулировании")
+    assert not is_generic_tech_reg_doc_name("Об электроэнергетике")
 
 
 def test_load_catalog_snapshot_roundtrip(tmp_path: Path) -> None:

@@ -7,6 +7,7 @@ from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.intent_boost import rerank_items_for_intent
 from mr_norm.retrieval.phrase_boost import rerank_items_for_exact_phrase
 from mr_norm.runtime.contracts import RerankResult, RuntimeRequest, RuntimeResult
+from mr_norm.runtime.pipeline_diagnostics import rerank_items_for_doc_point, should_apply_doc_point_boost
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
 TOOL_PRIORITY = {"point": 0, "payload": 1, "vector": 2, "hybrid_rrf": 3}
@@ -35,6 +36,56 @@ def _item_score(item: RetrievedItem) -> float:
     return float(item.score)
 
 
+def _apply_doc_point_boost(
+    items: list[RetrievedItem],
+    request: RuntimeRequest,
+    *,
+    limit: int,
+) -> tuple[list[RetrievedItem], int]:
+    if not should_apply_doc_point_boost(request):
+        return items, 0
+
+    filters = dict(request.filters or {})
+    doc_id = str(filters.get("doc_id") or "")
+    doc_name = str(filters.get("doc_name") or "")
+    point_number = str(filters.get("point_number") or "")
+    if request.prepared_plan:
+        if request.prepared_plan.point_number_hints and not point_number:
+            point_number = request.prepared_plan.point_number_hints[0]
+    return rerank_items_for_doc_point(
+        items,
+        doc_id=doc_id,
+        doc_name=doc_name,
+        point_number=point_number,
+        limit=limit,
+    )
+
+
+def _postprocess_ranked_items(
+    items: list[RetrievedItem],
+    request: RuntimeRequest,
+    *,
+    effective_limit: int,
+) -> tuple[list[RetrievedItem], int, list[str]]:
+    warnings: list[str] = []
+    if request.prepared_plan and request.prepared_plan.exact_phrase_terms:
+        items = rerank_items_for_exact_phrase(
+            items,
+            request.prepared_plan.exact_phrase_terms,
+            limit=max(effective_limit, len(items)),
+        )
+    items, boost_moves = _apply_doc_point_boost(items, request, limit=max(effective_limit, len(items)))
+    if boost_moves:
+        warnings.append(f"doc_point_boost:reordered={boost_moves}")
+    items = rerank_items_for_intent(
+        items,
+        request.query,
+        limit=max(effective_limit, len(items)),
+        question_type=str(request.prepared_plan.question_type or "") if request.prepared_plan else "",
+    )
+    return items[:effective_limit], boost_moves, warnings
+
+
 class PassthroughReranker:
     backend_name = "passthrough"
 
@@ -46,21 +97,13 @@ class PassthroughReranker:
         limit: int | None = None,
     ) -> RerankResult:
         effective_limit = limit if limit is not None else request.limit
-        items = list(runtime.items)
-        if request.prepared_plan and request.prepared_plan.exact_phrase_terms:
-            items = rerank_items_for_exact_phrase(
-                items,
-                request.prepared_plan.exact_phrase_terms,
-                limit=max(effective_limit, len(items)),
-            )
-        items = rerank_items_for_intent(
-            items,
-            request.query,
-            limit=max(effective_limit, len(items)),
+        items, _, warnings = _postprocess_ranked_items(
+            list(runtime.items),
+            request,
+            effective_limit=effective_limit,
         )
-        items = items[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
-        return RerankResult(items=items, scores=scores)
+        return RerankResult(items=items, scores=scores, warnings=warnings)
 
 
 class ScoreReranker:
@@ -78,20 +121,13 @@ class ScoreReranker:
             runtime.items,
             key=lambda item: (-_item_score(item), _tool_priority(item), item.chunk_id),
         )
-        if request.prepared_plan and request.prepared_plan.exact_phrase_terms:
-            ranked = rerank_items_for_exact_phrase(
-                ranked,
-                request.prepared_plan.exact_phrase_terms,
-                limit=max(effective_limit, len(ranked)),
-            )
-        ranked = rerank_items_for_intent(
+        items, _, warnings = _postprocess_ranked_items(
             ranked,
-            request.query,
-            limit=max(effective_limit, len(ranked)),
+            request,
+            effective_limit=effective_limit,
         )
-        items = ranked[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
-        return RerankResult(items=items, scores=scores)
+        return RerankResult(items=items, scores=scores, warnings=warnings)
 
 
 def _parse_ranked_chunk_ids(payload: Mapping[str, Any], evidence: Sequence[RetrievedItem]) -> tuple[list[RetrievedItem], list[str]]:

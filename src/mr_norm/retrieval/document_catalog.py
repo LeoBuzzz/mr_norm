@@ -16,15 +16,40 @@ ORDER_NUMBER_PATTERNS = (
     re.compile(r"(?:№|n\.?)\s*(\d+)", re.IGNORECASE),
     re.compile(r"\bn[_\s]*(\d+)\b", re.IGNORECASE),
 )
-POINT_NUMBER_PATTERN = re.compile(
-    r"(?:п\.?|пункт|п\.?\s*)\s*(\d+(?:\.\d+)*)|(?:^|\s)(\d+\.\d+(?:\.\d+)*)\s",
-    re.IGNORECASE,
+POINT_HINT_PATTERNS = (
+    re.compile(
+        r"(?:подпункт\w*|пункт\w*|п\.?\s*)\s*(\d+(?:[._]\d+)*)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:п\.?\s*|пункт\s+)(\d+)\b",
+        re.IGNORECASE,
+    ),
 )
 KNOWN_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
     "пуэ": ("правила устройства электроустановок", "электроустановок"),
     "птэ": ("правила технической эксплуатации", "технической эксплуатации"),
     "озп": ("отопительный сезон", "готовности"),
 }
+PARTIAL_ORDER_HINT_PATTERNS = (
+    re.compile(r"минэнерг\w*\s*(?:№|n\s*)?(\d+)", re.IGNORECASE),
+    re.compile(r"приказ\w*(?:\s+\w+){0,6}(\d+)", re.IGNORECASE),
+)
+ENERGY_SECTOR_QUERY_MARKERS = (
+    "минэнерго",
+    "минэнерг",
+    "электроэнергет",
+    "электроустанов",
+    "птэ",
+    "пуэ",
+    "диспетчер",
+    "лэп",
+    "подстанц",
+    "генерирующ",
+    "сетев",
+    "потребител",
+    "энергосистем",
+)
 
 
 def _token_roots(text: str) -> list[str]:
@@ -50,6 +75,79 @@ def normalize_catalog_text(value: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def is_generic_tech_reg_doc_name(doc_name: str) -> bool:
+    norm = normalize_catalog_text(doc_name)
+    if norm == "о техническом регулировании":
+        return True
+    return "техническ" in norm and "регулирован" in norm and len(norm.split()) <= 5
+
+
+def query_suggests_energy_sector(query: str) -> bool:
+    norm = normalize_catalog_text(query)
+    return any(marker in norm for marker in ENERGY_SECTOR_QUERY_MARKERS)
+
+
+def extract_partial_order_hints(query: str) -> list[str]:
+    norm = normalize_catalog_text(query)
+    if not re.search(r"минэнерг", norm):
+        return []
+    numbers: list[str] = []
+    for pattern in PARTIAL_ORDER_HINT_PATTERNS:
+        for match in pattern.finditer(query or ""):
+            value = (match.group(1) or "").strip()
+            if value and value not in numbers:
+                numbers.append(value)
+    return numbers
+
+
+def resolve_by_partial_order_hint(
+    query: str,
+    catalog: DocumentCatalog,
+) -> tuple[list[str], str, float, bool, list[str]] | None:
+    hints = extract_partial_order_hints(query)
+    if not hints:
+        return None
+
+    matched: dict[str, DocumentCatalogEntry] = {}
+    for number in hints:
+        for entry in catalog.entries:
+            if number in entry.order_numbers:
+                matched[entry.catalog_id] = entry
+
+    if not matched:
+        return None
+
+    unique = list(matched.values())
+    if len(unique) == 1:
+        entry = unique[0]
+        return (
+            [entry.doc_name],
+            entry.catalog_id,
+            0.88,
+            False,
+            [f"partial_order:{hints[0]}"],
+        )
+
+    norm = normalize_catalog_text(query)
+    if re.search(r"минэнерг", norm):
+        ministry = [
+            entry
+            for entry in unique
+            if "минэнерг" in normalize_catalog_text(entry.doc_name)
+            or "утвержден" in normalize_catalog_text(entry.doc_name)
+        ]
+        if len(ministry) == 1:
+            entry = ministry[0]
+            return (
+                [entry.doc_name],
+                entry.catalog_id,
+                0.85,
+                False,
+                [f"partial_order:{hints[0]}"],
+            )
+    return None
+
+
 def extract_order_numbers(*texts: str) -> list[str]:
     numbers: list[str] = []
     for text in texts:
@@ -61,11 +159,25 @@ def extract_order_numbers(*texts: str) -> list[str]:
     return numbers
 
 
+def _looks_like_calendar_date(value: str) -> bool:
+    parts = value.split(".")
+    if len(parts) != 3:
+        return False
+    try:
+        day, month, year = (int(part) for part in parts)
+    except ValueError:
+        return False
+    return 1 <= day <= 31 and 1 <= month <= 12 and 1900 <= year <= 2099
+
+
 def extract_point_number_hint(query: str) -> str:
-    match = POINT_NUMBER_PATTERN.search(query or "")
-    if not match:
-        return ""
-    return (match.group(1) or match.group(2) or "").strip()
+    text = query or ""
+    for pattern in POINT_HINT_PATTERNS:
+        for match in pattern.finditer(text):
+            value = (match.group(1) or "").strip()
+            if value and not _looks_like_calendar_date(value):
+                return value
+    return ""
 
 
 def _acronym_from_doc_name(doc_name: str) -> str:

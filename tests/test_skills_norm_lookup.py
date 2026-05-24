@@ -61,7 +61,10 @@ def test_run_norm_lookup_maps_pipeline_to_skill_contract() -> None:
         understand_query_mode="off",
     )
 
-    with patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()):
+    with (
+        patch("mr_norm.skills.norm_lookup.prefetch_gost_snippets", return_value=[]),
+        patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()),
+    ):
         result = run_norm_lookup(request, IndexingConfig(collection_name="test_collection"))
 
     assert result.answer == "Ответ по норме"
@@ -84,7 +87,10 @@ def test_norm_lookup_golden_fixture_shape() -> None:
         understand_query_mode="off",
     )
 
-    with patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()):
+    with (
+        patch("mr_norm.skills.norm_lookup.prefetch_gost_snippets", return_value=[]),
+        patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()),
+    ):
         result = run_norm_lookup(request, IndexingConfig(collection_name="test_collection"))
 
     assert request.planner_backend == "deterministic"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -10,7 +10,14 @@ from mr_norm.config.indexing import IndexingConfig
 from mr_norm.runtime.contracts import PipelineResult, PipelineTrace, RuntimeRequest
 from mr_norm.runtime.final_answer import EvidenceOnlyFinalAnswer, FinalAnswer, build_final_answer
 from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
+from mr_norm.runtime.pipeline_diagnostics import (
+    PipelineDiagnostics,
+    build_pipeline_diagnostics,
+    resolve_retrieval_limits,
+    select_items_for_final_answer,
+)
 from mr_norm.runtime.pipeline_eval import evaluate_pipeline_result, summarize_pipeline_batch
+from mr_norm.runtime.pipeline_timing import PipelineStageTimings, tool_timings_from_runtime
 from mr_norm.runtime.planner import DeterministicPlanner, Planner, build_planner
 from mr_norm.runtime.reranker import PassthroughReranker, Reranker, build_reranker
 from mr_norm.runtime.tool_runner import ToolRunner, run_runtime, runtime_request_from_question
@@ -31,6 +38,17 @@ class PipelineBatchDefaults:
     keys_path: Path | None = None
 
 
+def _ensure_runtime_limits(request: RuntimeRequest) -> RuntimeRequest:
+    if request.retrieval_limit is not None and request.final_answer_limit is not None:
+        return request
+    retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
+    return replace(
+        request,
+        retrieval_limit=request.retrieval_limit or retrieval_limit,
+        final_answer_limit=request.final_answer_limit or final_answer_limit,
+    )
+
+
 def run_pipeline(
     request: RuntimeRequest,
     config: IndexingConfig | None = None,
@@ -43,16 +61,70 @@ def run_pipeline(
     planner_impl = planner or DeterministicPlanner()
     reranker_impl = reranker or PassthroughReranker()
     final_answer_impl = final_answer or EvidenceOnlyFinalAnswer()
+    request = _ensure_runtime_limits(request)
+    retrieval_limit = request.retrieval_limit or request.limit
+    final_answer_limit = request.final_answer_limit or request.limit
+    stage_timings = PipelineStageTimings()
 
+    t0 = time.perf_counter()
     runtime = run_runtime(request, config, tool_runners=tool_runners)
+    stage_timings.retrieval_sec = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
     planner_result = planner_impl.plan(request, runtime)
-    rerank_result = reranker_impl.rerank(request, runtime, limit=request.limit)
-    final_result = final_answer_impl.answer(request, rerank_result.items, limit=request.limit)
+    stage_timings.planner_sec = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    rerank_result = reranker_impl.rerank(request, runtime, limit=retrieval_limit)
+    stage_timings.rerank_sec = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    final_evidence = select_items_for_final_answer(
+        list(rerank_result.items),
+        request=request,
+        limit=final_answer_limit,
+    )
+    stage_timings.final_evidence_select_sec = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    final_result = final_answer_impl.answer(
+        request,
+        final_evidence,
+        limit=final_answer_limit,
+    )
+    stage_timings.final_answer_sec = time.perf_counter() - t0
 
     warnings = list(runtime.warnings)
     warnings.extend(planner_result.warnings)
     warnings.extend(rerank_result.warnings)
     warnings.extend(final_result.warnings)
+
+    diagnostics_state = PipelineDiagnostics(
+        retrieval_limit=retrieval_limit,
+        final_answer_limit=final_answer_limit,
+        wide_pool_enabled=retrieval_limit > request.limit,
+        doc_point_boost_applied=any("doc_point_boost" in warning for warning in rerank_result.warnings),
+        doc_point_boost_moves=sum(
+            int(part)
+            for warning in rerank_result.warnings
+            if warning.startswith("doc_point_boost:reordered=")
+            for part in [warning.split("=", 1)[-1]]
+            if part.isdigit()
+        ),
+    )
+    if request.prepared_plan is not None:
+        diagnostics_state.early_doc_resolver_applied = request.prepared_plan.trace.early_doc_resolver_applied
+        diagnostics_state.early_doc_resolver_reason = request.prepared_plan.trace.early_doc_resolver_reason
+        diagnostics_state.intent_routing_applied = bool(request.prepared_plan.trace.intent_routing_mode)
+        diagnostics_state.intent_routing_mode = request.prepared_plan.trace.intent_routing_mode
+        diagnostics_state.intent_routing_tools = list(request.prepared_plan.selected_tools)
+    diagnostics_payload = build_pipeline_diagnostics(
+        request=request,
+        ranked_items=list(rerank_result.items),
+        diagnostics=diagnostics_state,
+    )
+    diagnostics_payload["stage_timings"] = stage_timings.to_dict()
+    diagnostics_payload["tool_timings"] = tool_timings_from_runtime(runtime.tool_results)
 
     return PipelineResult(
         runtime=runtime,
@@ -63,8 +135,10 @@ def run_pipeline(
             planner_backend=planner_impl.backend_name,
             reranker_backend=reranker_impl.backend_name,
             final_answer_backend=final_answer_impl.backend_name,
+            diagnostics=diagnostics_payload,
         ),
         warnings=warnings,
+        diagnostics=diagnostics_payload,
     )
 
 

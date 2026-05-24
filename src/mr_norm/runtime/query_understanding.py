@@ -54,7 +54,15 @@ def apply_query_understanding(
     elif understanding.resolved_doc_names and not understanding.ambiguous:
         if len(understanding.resolved_doc_names) == 1:
             merged_filters["doc_name"] = understanding.resolved_doc_names[0]
-    if understanding.point_number_hints and "point_number" not in merged_filters:
+    doc_scoped = bool(
+        (understanding.resolved_doc_id and not understanding.ambiguous)
+        or (
+            understanding.resolved_doc_names
+            and not understanding.ambiguous
+            and len(understanding.resolved_doc_names) == 1
+        )
+    )
+    if doc_scoped and understanding.point_number_hints and "point_number" not in merged_filters:
         merged_filters["point_number"] = understanding.point_number_hints[0]
     return understanding.original_query or query, merged_filters
 

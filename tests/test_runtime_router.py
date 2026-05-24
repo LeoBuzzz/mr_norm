@@ -117,3 +117,26 @@ def test_route_runtime_clamps_non_positive_limit_to_profile_default() -> None:
 
     assert plan
     assert all(step.request.limit == get_profile_config("fast").default_limit for step in plan)
+
+
+def test_route_runtime_strips_point_filter_from_hybrid_without_doc_scope() -> None:
+    plan, _warnings = route_runtime(
+        RuntimeRequest(
+            query="требования пункта 34",
+            profile="balanced",
+            prepared_plan=PreparedQueryPlan(
+                original_query="требования пункта 34",
+                point_number_hints=("34",),
+                selected_tools=("point", "payload", "vector"),
+                tool_queries=(
+                    PreparedToolQuery(tool_name="point", queries=("34",)),
+                    PreparedToolQuery(tool_name="payload", queries=("требования пункта 34",)),
+                    PreparedToolQuery(tool_name="vector", queries=("требования пункта 34",)),
+                ),
+            ),
+        )
+    )
+
+    assert plan[0].request.filters.get("point_number") == "34"
+    assert "point_number" not in plan[1].request.filters
+    assert "point_number" not in plan[2].request.filters

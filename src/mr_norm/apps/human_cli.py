@@ -11,6 +11,7 @@ from mr_norm.runtime.contracts import QueryUnderstandingResult
 from mr_norm.skills.norm_lookup import NormLookupRequest, NormLookupResult, run_norm_lookup
 
 DEFAULT_OLLAMA_FINAL_ANSWER_MODEL = "qwen3:30b"
+DEFAULT_MODE_PRESET = "polza"
 
 MODE_PRESET_LABELS: dict[str, str] = {
     "deterministic": "Deterministic / no-cost (evidence summary)",
@@ -28,8 +29,9 @@ MODE_PRESET_CHOICES: dict[str, str] = {
 @dataclass(frozen=True)
 class HumanCliOptions:
     query: str = ""
-    mode_preset: str = ""
+    mode_preset: str = DEFAULT_MODE_PRESET
     doc_name: str = ""
+    no_doc_filter: bool = False
     limit: int = 10
     profile: str = "balanced"
     final_answer_model: str | None = None
@@ -85,7 +87,7 @@ def resolve_understand_query_mode(options: HumanCliOptions, preset_config: dict[
 
 
 def build_norm_lookup_request(options: HumanCliOptions) -> NormLookupRequest:
-    preset = options.mode_preset or "deterministic"
+    preset = options.mode_preset or DEFAULT_MODE_PRESET
     preset_config = apply_mode_preset(preset, final_answer_model=options.final_answer_model)
     filters: dict[str, Any] = {}
     if options.doc_name.strip():
@@ -136,7 +138,7 @@ def collect_interactive_options(
     print_fn: Callable[[str], None] = print,
 ) -> HumanCliOptions:
     current = base or HumanCliOptions()
-    mode_preset = current.mode_preset or prompt_for_mode_choice(input_fn=input_fn, print_fn=print_fn)
+    mode_preset = current.mode_preset or DEFAULT_MODE_PRESET
 
     query = current.query.strip()
     if not query:
@@ -146,7 +148,7 @@ def collect_interactive_options(
                 print_fn("Вопрос не может быть пустым.")
 
     doc_name = current.doc_name
-    if not doc_name.strip():
+    if not current.no_doc_filter and not doc_name.strip():
         doc_name = input_fn("Фильтр doc_name (Enter — без фильтра): ").strip()
 
     limit = current.limit
@@ -163,9 +165,12 @@ def collect_interactive_options(
         query=query,
         mode_preset=mode_preset,
         doc_name=doc_name,
+        no_doc_filter=current.no_doc_filter,
         limit=limit,
         profile=profile,
         final_answer_model=current.final_answer_model,
+        understand_query=current.understand_query,
+        enable_pue_aliases=current.enable_pue_aliases,
     )
 
 
@@ -186,7 +191,11 @@ def render_run_summary(request: NormLookupRequest) -> str:
     )
 
 
-def render_query_understanding(understanding: QueryUnderstandingResult) -> str:
+def render_query_understanding(
+    understanding: QueryUnderstandingResult,
+    *,
+    gost_snippets: list[dict[str, Any]] | None = None,
+) -> str:
     lines = [
         "",
         "ПОНИМАНИЕ ЗАПРОСА",
@@ -209,9 +218,17 @@ def render_query_understanding(understanding: QueryUnderstandingResult) -> str:
         lines.append(f"  пункт: {', '.join(understanding.point_number_hints)}")
     if understanding.tool_hints:
         lines.append(f"  инструменты: {', '.join(understanding.tool_hints)}")
+    if gost_snippets:
+        lines.append(f"  ГОСТ 57114 (prefetch): {len(gost_snippets)} фрагмент(ов)")
+        for snippet in gost_snippets[:2]:
+            point = str(snippet.get("point_number") or "").strip()
+            keyword = str(snippet.get("keyword") or "")
+            preview = str(snippet.get("text") or "").replace("\n", " ")[:100]
+            point_label = f"п. {point}" if point else "п. —"
+            lines.append(f"    - {keyword} ({point_label}): {preview}...")
     top_candidates = understanding.candidates[:3]
     if top_candidates:
-        lines.append("  кандидаты каталога:")
+        lines.append("  кандидаты документов (catalog+knowledge):")
         for candidate in top_candidates:
             lines.append(
                 f"    - {candidate.get('doc_name', '')} "
@@ -284,6 +301,9 @@ def run_human_norm_lookup(
         project_paths=project_paths,
     )
     if result.understanding is not None:
-        print_fn(render_query_understanding(result.understanding))
+        gost_payload = list(result.gost_snippets) or (
+            list(result.prepared_plan.gost_snippets) if result.prepared_plan else []
+        )
+        print_fn(render_query_understanding(result.understanding, gost_snippets=gost_payload))
     print_fn(render_human_norm_lookup_result(result))
     return result

@@ -16,13 +16,38 @@ def _profile_allows_tool(profile: ProfileConfig, tool_name: str) -> bool:
     return False
 
 
+def _doc_scoped_filters(filters: dict[str, object]) -> bool:
+    return bool(filters.get("doc_id") or filters.get("doc_name"))
+
+
+def _tool_filters_for_prepared_entry(
+    filters: dict[str, object],
+    *,
+    tool_name: str,
+    prepared_plan: PreparedQueryPlan,
+) -> dict[str, object]:
+    tool_filters = dict(filters)
+    if tool_name == "point":
+        if prepared_plan.point_number_hints and "point_number" not in tool_filters:
+            tool_filters["point_number"] = prepared_plan.point_number_hints[0]
+    elif tool_name in {"payload", "vector"} and not _doc_scoped_filters(tool_filters):
+        tool_filters.pop("point_number", None)
+    return tool_filters
+
+
+def _effective_retrieval_limit(request: RuntimeRequest, profile: ProfileConfig) -> int:
+    if request.retrieval_limit is not None:
+        return clamp_limit(request.retrieval_limit, default=profile.default_limit)
+    return clamp_limit(request.limit, default=profile.default_limit)
+
+
 def _plan_from_prepared(request: RuntimeRequest, profile: ProfileConfig) -> tuple[list[ToolCallPlan], list[str]]:
     plan = request.prepared_plan
     if plan is None or not plan.selected_tools:
         return [], []
 
     warnings: list[str] = []
-    limit = clamp_limit(request.limit, default=profile.default_limit)
+    limit = _effective_retrieval_limit(request, profile)
     filters = dict(request.filters or {})
     plans: list[ToolCallPlan] = []
     priority = 0
@@ -36,9 +61,14 @@ def _plan_from_prepared(request: RuntimeRequest, profile: ProfileConfig) -> tupl
         queries = tuple(query.strip() for query in entry.queries if query.strip())
         if not queries:
             queries = (request.query.strip(),) if request.query.strip() else ()
+        tool_filters = _tool_filters_for_prepared_entry(
+            filters,
+            tool_name=entry.tool_name,
+            prepared_plan=plan,
+        )
         if not queries and entry.tool_name != "point":
             continue
-        if entry.tool_name == "point" and not is_point_lookup_filters(filters) and not queries:
+        if entry.tool_name == "point" and not is_point_lookup_filters(tool_filters) and not queries:
             continue
 
         plans.append(
@@ -46,7 +76,7 @@ def _plan_from_prepared(request: RuntimeRequest, profile: ProfileConfig) -> tupl
                 tool_name=entry.tool_name,
                 request=ToolRequest(
                     query=queries[0] if queries else request.query,
-                    filters=filters,
+                    filters=tool_filters,
                     limit=limit,
                     profile=profile.name,
                     trace_id=request.trace_id,
@@ -64,7 +94,7 @@ def _plan_from_prepared(request: RuntimeRequest, profile: ProfileConfig) -> tupl
 
 def route_runtime(request: RuntimeRequest) -> tuple[list[ToolCallPlan], list[str]]:
     profile = get_profile_config(request.profile)
-    limit = clamp_limit(request.limit, default=profile.default_limit)
+    limit = _effective_retrieval_limit(request, profile)
     warnings: list[str] = []
     plans: list[ToolCallPlan] = []
     query = request.query.strip()

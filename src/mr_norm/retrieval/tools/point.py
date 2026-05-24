@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest, ToolResult, clamp_limit
-from mr_norm.retrieval.filters import build_filter_spec, doc_name_variants
+from mr_norm.retrieval.filters import build_filter_spec, build_payload_filter_spec, doc_name_variants
 from mr_norm.retrieval.qdrant_adapter import QdrantRetrievalClient
 from mr_norm.retrieval.tools.common import build_result, start_timer
 
@@ -28,6 +28,28 @@ def run_point_tool(
     filter_spec = build_filter_spec(point_filters)
     if point_filters and is_point_lookup_filters(point_filters):
         items = client.payload_search(filter_spec, limit=clamp_limit(request.limit), source_tool="point")
+        point_label = str(point_filters.get("point_number") or request.query or "").strip()
+        if not items and point_label:
+            scope_filters = {
+                key: value
+                for key, value in point_filters.items()
+                if key in {"doc_id", "doc_name", "heading_path_text"} and value
+            }
+            if scope_filters:
+                fallback_spec = build_payload_filter_spec(
+                    point_label,
+                    scope_filters,
+                    search_fields=["text"],
+                )
+                items = client.payload_search(
+                    fallback_spec,
+                    limit=clamp_limit(request.limit),
+                    source_tool="point",
+                )
+                if items:
+                    warnings.append(
+                        "point tool used text fallback because exact point_number metadata did not match"
+                    )
     else:
         items: list[RetrievedItem] = []
     return build_result(
