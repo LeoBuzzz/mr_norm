@@ -1121,9 +1121,14 @@ def run_eval(
 
     preset = apply_mode_preset("polza")
     config = IndexingConfig.from_env()
-    entries: list[dict] = []
-    score_sum = 0
-    chunk_hit = 0
+    run_case_ids = {str(item.get("id") or "") for item in items}
+    entry_by_id: dict[str, dict] = {
+        case_id: dict(cached)
+        for case_id, cached in reuse.items()
+        if case_id and case_id not in run_case_ids
+    }
+    score_sum = sum(int(entry.get("judge_score") or 0) for entry in entry_by_id.values())
+    chunk_hit = sum(1 for entry in entry_by_id.values() if entry.get("chunk_in_evidence"))
     started = time.perf_counter()
 
     for index, item in enumerate(items, start=1):
@@ -1238,7 +1243,8 @@ def run_eval(
         score_sum += entry.judge_score
         if entry.chunk_in_evidence:
             chunk_hit += 1
-        entries.append(asdict(entry))
+        entry_by_id[case_id] = asdict(entry)
+        entries = sorted(entry_by_id.values(), key=lambda row: str(row.get("id") or ""))
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         partial = {

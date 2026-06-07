@@ -54,11 +54,37 @@ def test_conditional_fallback_skips_generic_fz_top() -> None:
                 "score": 0.35,
                 "reasons": [],
             }
-        ]
+        ],
+        original_query="какие требования к персоналу",
     )
     assert names == []
     assert catalog_id == ""
     assert any("generic tech-reg FZ" in item for item in warnings)
+
+
+def test_conditional_fallback_uses_soft_threshold_for_natural_query() -> None:
+    names, catalog_id, confidence, ambiguous, warnings = _conditional_deterministic_fallback(
+        [
+            {
+                "catalog_id": "doc_tek",
+                "doc_name": "О показателях технико-экономического состояния",
+                "score": 0.52,
+                "reasons": ["topic_alias:tek"],
+            },
+            {
+                "catalog_id": "doc_other",
+                "doc_name": "Другой документ",
+                "score": 0.20,
+                "reasons": [],
+            },
+        ],
+        original_query="Когда нужно рассчитать показатели технико-экономического состояния?",
+    )
+    assert names == ["О показателях технико-экономического состояния"]
+    assert catalog_id == "doc_tek"
+    assert confidence == 0.52
+    assert ambiguous is False
+    assert any("high-confidence top candidate" in item for item in warnings)
 
 
 def test_conditional_fallback_uses_order_number_match() -> None:
@@ -70,7 +96,8 @@ def test_conditional_fallback_uses_order_number_match() -> None:
                 "score": 0.48,
                 "reasons": ["order_number:796"],
             }
-        ]
+        ],
+        original_query="что в приказе минэнерго 796 про оперативный персонал",
     )
     assert names == ["Правила работы с персоналом"]
     assert catalog_id == "doc_796"

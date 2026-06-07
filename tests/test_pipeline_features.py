@@ -12,8 +12,10 @@ from mr_norm.runtime.pipeline_diagnostics import (
     should_apply_doc_point_boost,
 )
 from mr_norm.runtime.pipeline_features import (
+    effective_doc_confidence_threshold,
     looks_like_requirement_query,
     normalize_routing_question_type,
+    query_has_explicit_doc_reference,
 )
 
 
@@ -49,7 +51,7 @@ def test_regulation_scope_requirement_alias_routes_broad():
         point_number_hints=[],
         original_query=query,
     )
-    assert tools[0] == "payload"
+    assert tools[0] == "vector"
     assert mode == "requirement_broad"
 
 
@@ -90,3 +92,17 @@ def test_disable_doc_point_boost_env(monkeypatch):
     monkeypatch.setenv("MR_NORM_DISABLE_DOC_POINT_BOOST", "1")
     request = RuntimeRequest(query="test", filters={"doc_id": "doc_123"}, limit=40)
     assert should_apply_doc_point_boost(request) is False
+
+
+def test_natural_query_uses_soft_doc_confidence_threshold():
+    natural = "Когда нужно рассчитать показатели технико-экономического состояния?"
+    explicit = "Что установлено в пункте 4 приказа Минэнерго №1401?"
+    assert effective_doc_confidence_threshold(natural) == 0.50
+    assert effective_doc_confidence_threshold(explicit) == 0.55
+    assert not query_has_explicit_doc_reference(natural)
+    assert query_has_explicit_doc_reference(explicit)
+
+
+def test_document_lookup_natural_when_maps_to_requirement():
+    query = "Когда нужно рассчитать показатели?"
+    assert normalize_routing_question_type("document_lookup", query) == "requirement"

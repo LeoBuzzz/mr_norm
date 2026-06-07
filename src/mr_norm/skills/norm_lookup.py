@@ -34,6 +34,7 @@ from mr_norm.runtime.pipeline_diagnostics import (
     select_items_for_final_answer,
     should_retry_doc_point_lookup,
     should_retry_doc_scoped_lookup,
+    should_retry_soft_catalog_lookup,
 )
 from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.query_planner import (
@@ -194,22 +195,23 @@ def _run_doc_scoped_payload_retry(
     config: IndexingConfig,
     filters: dict[str, Any],
     prepared_plan: PreparedQueryPlan | None,
+    retry_filters: dict[str, Any] | None = None,
 ) -> tuple[list[RetrievedItem], str]:
-    retry_filters = dict(filters)
-    if not retry_filters.get("doc_id") and not retry_filters.get("doc_name"):
+    scoped_filters = dict(retry_filters or filters)
+    if not scoped_filters.get("doc_id") and not scoped_filters.get("doc_name"):
         if prepared_plan and prepared_plan.resolved_doc_names:
             catalog_id = str(prepared_plan.document_resolution.catalog_id or "").strip()
             if catalog_id and not catalog_id.startswith("knowledge:"):
-                retry_filters["doc_id"] = catalog_id
+                scoped_filters["doc_id"] = catalog_id
             else:
-                retry_filters["doc_name"] = prepared_plan.resolved_doc_names[0]
+                scoped_filters["doc_name"] = prepared_plan.resolved_doc_names[0]
         else:
             return [], "retry_skip:missing_doc_filter"
 
     result = run_payload_tool(
         ToolRequest(
             query=_payload_search_query(request=request, prepared_plan=prepared_plan),
-            filters=retry_filters,
+            filters=scoped_filters,
             limit=min(25, request.limit),
             profile=request.profile,
             trace_id=request.trace_id or "norm_lookup_payload_retry",
@@ -303,6 +305,7 @@ def run_norm_lookup(
     retry_items_added = 0
     ranked_items = list(pipeline.rerank.items)
     retry_mode = "point"
+    soft_retry_filters: dict[str, Any] | None = None
     do_retry, retry_reason = should_retry_doc_point_lookup(
         filters=effective_filters,
         prepared_plan=prepared_plan,
@@ -322,6 +325,15 @@ def run_norm_lookup(
         )
         if do_retry:
             retry_mode = "payload"
+    if not do_retry:
+        do_retry, retry_reason, soft_retry_filters = should_retry_soft_catalog_lookup(
+            filters=effective_filters,
+            prepared_plan=prepared_plan,
+            ranked_items=ranked_items,
+            top_n=final_answer_limit,
+        )
+        if do_retry:
+            retry_mode = "payload"
     if do_retry:
         t0 = time.perf_counter()
         if retry_mode == "payload":
@@ -330,6 +342,7 @@ def run_norm_lookup(
                 config=config,
                 filters=effective_filters,
                 prepared_plan=prepared_plan,
+                retry_filters=soft_retry_filters,
             )
         else:
             retry_items, retry_status = _run_doc_point_retry(

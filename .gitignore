@@ -24,6 +24,7 @@ venv312/
 .env
 .env.*
 keys
+VK_token.txt
 
 # OS / IDE
 Thumbs.db

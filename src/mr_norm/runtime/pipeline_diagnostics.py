@@ -241,7 +241,12 @@ def apply_intent_tool_routing(
             order = ["point", "payload", "vector"]
             mode_label = "point_lookup_path" if mode == "point_lookup" else "doc_scoped_point_path"
         elif mode == "requirement" and not doc_scoped:
-            order = ["point", "payload", "vector"]
+            from mr_norm.runtime.pipeline_features import query_has_explicit_doc_reference
+
+            if query_has_explicit_doc_reference(original_query):
+                order = ["point", "payload", "vector"]
+            else:
+                order = ["vector", "payload", "point"]
             mode_label = "requirement_broad"
         elif mode in {"requirement", "procedure", "factual"} and doc_scoped:
             order = ["point", "payload", "vector"] if hints else ["payload", "vector"]
@@ -489,6 +494,111 @@ def should_retry_doc_scoped_lookup(
     if not payload_items:
         return True, "retry:payload_empty_with_resolved_doc"
     return True, "retry:resolved_doc_missing_from_final_top_n"
+
+
+def _match_vector_top_to_candidate(
+    ranked_items: list[RetrievedItem],
+    candidates: tuple[dict[str, Any], ...] | list[dict[str, Any]],
+    *,
+    min_score: float,
+    top_k: int = 15,
+) -> dict[str, Any] | None:
+    if not ranked_items or not candidates:
+        return None
+    top_doc_ids = {
+        str(item.doc_id or "")
+        for item in ranked_items[:top_k]
+        if str(item.doc_id or "").strip()
+    }
+    for candidate in candidates:
+        score = float(candidate.get("score") or 0.0)
+        catalog_id = str(candidate.get("catalog_id") or "")
+        if score < min_score or not catalog_id or catalog_id.startswith("knowledge:"):
+            continue
+        if catalog_id in top_doc_ids:
+            return candidate
+    return None
+
+
+def should_retry_soft_catalog_lookup(
+    *,
+    filters: dict[str, Any],
+    prepared_plan: PreparedQueryPlan | None,
+    ranked_items: list[RetrievedItem],
+    top_n: int = 25,
+) -> tuple[bool, str, dict[str, Any]]:
+    from mr_norm.runtime.pipeline_features import effective_doc_confidence_threshold
+
+    doc_id = str(filters.get("doc_id") or "").strip()
+    doc_name = str(filters.get("doc_name") or "").strip()
+    if doc_id or doc_name:
+        return False, "retry_skip:doc_filter_active", {}
+
+    if prepared_plan is None:
+        return False, "retry_skip:no_plan", {}
+
+    original_query = prepared_plan.original_query or ""
+    min_conf = effective_doc_confidence_threshold(original_query)
+    candidates = list(prepared_plan.candidates or ())
+    candidate: dict[str, Any] | None = candidates[0] if candidates else None
+
+    vector_match = _match_vector_top_to_candidate(
+        ranked_items,
+        candidates,
+        min_score=min_conf,
+    )
+    if vector_match is not None:
+        candidate = vector_match
+    elif candidate is None:
+        resolution = prepared_plan.document_resolution
+        if resolution.catalog_id and not str(resolution.catalog_id).startswith("knowledge:"):
+            candidate = {
+                "catalog_id": resolution.catalog_id,
+                "doc_name": resolution.doc_name,
+                "score": resolution.confidence or prepared_plan.confidence,
+            }
+
+    if candidate is None:
+        return False, "retry_skip:no_catalog_candidate", {}
+
+    score = float(candidate.get("score") or prepared_plan.confidence or 0.0)
+    if score < min_conf:
+        return False, "retry_skip:catalog_below_threshold", {}
+
+    if prepared_plan.ambiguous and len(candidates) > 1:
+        top_score = float(candidates[0].get("score") or 0.0)
+        second_score = float(candidates[1].get("score") or 0.0)
+        if top_score - second_score < AMBIGUITY_SCORE_GAP:
+            return False, "retry_skip:ambiguous_catalog", {}
+
+    catalog_id = str(candidate.get("catalog_id") or "").strip()
+    catalog_name = str(candidate.get("doc_name") or "").strip()
+    if catalog_id.startswith("knowledge:"):
+        return False, "retry_skip:knowledge_only", {}
+
+    top_slice = ranked_items[:top_n]
+    has_doc_in_top = any(
+        _doc_point_boost_tier(
+            item,
+            doc_id=catalog_id,
+            doc_name=catalog_name,
+            point_number="",
+        )
+        <= DOC_POINT_BOOST_DOC
+        for item in top_slice
+    )
+    if has_doc_in_top:
+        return False, "retry_skip:catalog_doc_already_in_top_n", {}
+
+    retry_filters: dict[str, Any] = {}
+    if catalog_id:
+        retry_filters["doc_id"] = catalog_id
+    elif catalog_name:
+        retry_filters["doc_name"] = catalog_name
+    else:
+        return False, "retry_skip:no_retry_filters", {}
+
+    return True, f"retry:soft_catalog_candidate:score={score:.2f}", retry_filters
 
 
 def merge_retry_items(

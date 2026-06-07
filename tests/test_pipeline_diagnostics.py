@@ -111,9 +111,19 @@ def test_intent_tool_routing_requirement_broad():
         question_type="requirement",
         doc_scoped=False,
         point_number_hints=[],
+        original_query="Какие требования к хранению документации?",
     )
-    assert tools[0] == "point"
+    assert tools[0] == "vector"
     assert mode == "requirement_broad"
+
+    tools_explicit, _, _ = apply_intent_tool_routing(
+        prepared,
+        question_type="requirement",
+        doc_scoped=False,
+        point_number_hints=[],
+        original_query="Что в приказе Минэнерго №548?",
+    )
+    assert tools_explicit[0] == "point"
 
 
 def test_early_deterministic_doc_resolution_order_number():

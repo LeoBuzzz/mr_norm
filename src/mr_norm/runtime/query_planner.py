@@ -43,6 +43,7 @@ from mr_norm.runtime.contracts import (
 )
 from mr_norm.runtime.llm_providers import chat_json_with_model_fallback
 from mr_norm.runtime.llm_profiles import resolve_role_models, resolve_role_profile
+from mr_norm.runtime.pipeline_features import effective_doc_confidence_threshold
 from mr_norm.runtime.pipeline_diagnostics import apply_intent_tool_routing, try_early_deterministic_doc_resolution
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
@@ -193,13 +194,50 @@ def _demote_generic_fz_candidates(
     return adjusted
 
 
+SEMANTIC_CATALOG_ANCHORS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (("интернет", "дистанцион"), ("критическ", "информацион", "1215", "безопасност", "ки")),
+    (("цифров", "информацион", "модел"), ("цифров", "информацион", "модел", "1429", "раскрыт")),
+    (("интернет", "технолог"), ("критическ", "информацион", "1215", "безопасност")),
+)
+
+
+def _boost_semantic_catalog_candidates(
+    candidates: list[dict[str, Any]],
+    query: str,
+) -> list[dict[str, Any]]:
+    norm = normalize_catalog_text(query)
+    if not candidates or not norm:
+        return candidates
+
+    adjusted: list[dict[str, Any]] = []
+    for item in candidates:
+        copy = dict(item)
+        blob = normalize_catalog_text(str(copy.get("doc_name") or ""))
+        for required_terms, doc_hints in SEMANTIC_CATALOG_ANCHORS:
+            if not all(term in norm for term in required_terms):
+                continue
+            if any(hint in blob for hint in doc_hints):
+                copy["score"] = min(1.0, float(copy.get("score") or 0.0) + 0.18)
+                reasons = list(copy.get("reasons") or [])
+                if "semantic_anchor_boost" not in reasons:
+                    reasons.append("semantic_anchor_boost")
+                copy["reasons"] = reasons
+                break
+        adjusted.append(copy)
+    adjusted.sort(key=lambda item: float(item["score"]), reverse=True)
+    return adjusted
+
+
 def _conditional_deterministic_fallback(
     candidates: list[dict[str, Any]],
+    *,
+    original_query: str = "",
 ) -> tuple[list[str], str, float, bool, list[str]]:
     warnings: list[str] = []
     if not candidates:
         return [], "", 0.0, False, warnings
 
+    min_confidence = effective_doc_confidence_threshold(original_query)
     top = candidates[0]
     top_name = str(top.get("doc_name") or "")
     if is_generic_tech_reg_doc_name(top_name):
@@ -224,9 +262,10 @@ def _conditional_deterministic_fallback(
             warnings,
         )
 
-    if top_score >= MIN_DOC_CONFIDENCE and gap_ok:
+    if top_score >= min_confidence and gap_ok:
         warnings.append(
-            f"conditional fallback: high-confidence top candidate (score={top_score:.2f})"
+            f"conditional fallback: high-confidence top candidate (score={top_score:.2f}, "
+            f"min={min_confidence:.2f})"
         )
         return (
             [top_name],
@@ -242,11 +281,14 @@ def _conditional_deterministic_fallback(
 
 def _deterministic_resolve(
     candidates: list[dict[str, Any]],
+    *,
+    original_query: str = "",
 ) -> tuple[list[str], str, float, bool, list[str]]:
     warnings: list[str] = []
     if not candidates:
         return [], "", 0.0, False, ["no document candidates matched the query"]
 
+    min_confidence = effective_doc_confidence_threshold(original_query)
     top = candidates[0]
     second_score = float(candidates[1]["score"]) if len(candidates) > 1 else 0.0
     top_score = float(top["score"])
@@ -258,9 +300,9 @@ def _deterministic_resolve(
         warnings.append("document resolution ambiguous; search will run without doc filter")
         return [], "", confidence, True, warnings
 
-    if confidence < MIN_DOC_CONFIDENCE:
+    if confidence < min_confidence:
         warnings.append(
-            f"document resolution confidence {confidence:.2f} below threshold; "
+            f"document resolution confidence {confidence:.2f} below threshold {min_confidence:.2f}; "
             "search will run without doc filter"
         )
         return [], "", confidence, False, warnings
@@ -771,6 +813,7 @@ def prepare_query(
         knowledge_links=knowledge_links,
     )
     candidates = _demote_generic_fz_candidates(candidates, original_query)
+    candidates = _boost_semantic_catalog_candidates(candidates, original_query)
 
     resolver = "deterministic"
     warnings: list[str] = []
@@ -862,12 +905,28 @@ def prepare_query(
             confidence = float(llm_data.get("confidence", 0.0))
             candidate_names = llm_data.get("resolved_doc_names", [])
             selected_ids = llm_data.get("selected_catalog_ids", [])
+            min_doc_confidence = effective_doc_confidence_threshold(original_query)
             if pre_resolved_doc:
                 pass
-            elif confidence >= MIN_DOC_CONFIDENCE and len(candidate_names) == 1:
+            elif confidence >= min_doc_confidence and len(candidate_names) == 1:
                 resolved_doc_names = candidate_names
                 if isinstance(selected_ids, list) and len(selected_ids) == 1:
                     resolved_catalog_id = str(selected_ids[0])
+            elif (
+                not candidate_names
+                and isinstance(selected_ids, list)
+                and len(selected_ids) == 1
+                and candidates
+                and str(candidates[0].get("catalog_id") or "") == str(selected_ids[0])
+                and float(candidates[0].get("score") or 0.0) >= min_doc_confidence
+            ):
+                resolved_doc_names = [str(candidates[0].get("doc_name") or "")]
+                resolved_catalog_id = str(selected_ids[0])
+                confidence = float(candidates[0].get("score") or confidence)
+                warnings.append(
+                    f"applied catalog top candidate from selected_catalog_id "
+                    f"(score={confidence:.2f}, min={min_doc_confidence:.2f})"
+                )
             elif candidate_names:
                 ambiguous = len(candidate_names) > 1
                 warnings.append(
@@ -881,7 +940,7 @@ def prepare_query(
                     fallback_confidence,
                     fallback_ambiguous,
                     fallback_warnings,
-                ) = _conditional_deterministic_fallback(candidates)
+                ) = _conditional_deterministic_fallback(candidates, original_query=original_query)
                 warnings.extend(fallback_warnings)
                 if fallback_names:
                     resolved_doc_names = fallback_names
@@ -900,7 +959,7 @@ def prepare_query(
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
             if not pre_resolved_doc:
                 resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-                    _deterministic_resolve(candidates)
+                    _deterministic_resolve(candidates, original_query=original_query)
                 )
                 warnings.extend(det_warnings)
                 (
@@ -931,7 +990,7 @@ def prepare_query(
     else:
         if not pre_resolved_doc:
             resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-                _deterministic_resolve(candidates)
+                _deterministic_resolve(candidates, original_query=original_query)
             )
             warnings.extend(det_warnings)
         (

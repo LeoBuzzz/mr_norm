@@ -8,6 +8,48 @@ from mr_norm.runtime.citations import validate_citations
 from mr_norm.runtime.contracts import Citation, FinalAnswerResult, RuntimeRequest
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
+REFUSAL_MARKERS = (
+    "отсутствует",
+    "отсутствуют",
+    "нет информации",
+    "не содержат",
+    "не содержит",
+    "не найден",
+)
+
+
+def _looks_like_refusal_answer(answer: str) -> bool:
+    text = (answer or "").strip().lower()
+    if not text:
+        return False
+    return "фрагмент" in text and any(marker in text for marker in REFUSAL_MARKERS)
+
+
+def _anti_refusal_answer(
+    answer: str,
+    evidence: Sequence[RetrievedItem],
+    citations: list[Citation],
+) -> tuple[str, bool]:
+    if not _looks_like_refusal_answer(answer):
+        return answer, False
+    by_id = {item.chunk_id: item for item in evidence if item.chunk_id}
+    if citations:
+        parts: list[str] = []
+        for citation in citations[:2]:
+            item = by_id.get(citation.chunk_id)
+            if item and item.text:
+                header = f"{item.doc_name} {item.point_number}".strip()
+                excerpt = item.text.strip()
+                parts.append(f"{header}: {excerpt}" if header else excerpt)
+        if parts:
+            return " ".join(parts)[:1200], True
+    for item in evidence[:3]:
+        if item.text and len(item.text.strip()) >= 80:
+            header = f"{item.doc_name} {item.point_number}".strip()
+            excerpt = item.text.strip()[:600]
+            return (f"{header}: {excerpt}" if header else excerpt), True
+    return answer, False
+
 FinalAnswerProvider = Callable[[RuntimeRequest, Sequence[RetrievedItem], dict[str, Any]], Mapping[str, Any]]
 
 
@@ -113,6 +155,9 @@ class PromptPackFinalAnswer:
         try:
             payload = self._provider(request, evidence[:effective_limit], self._pack)
             answer, citations, warnings = _parse_final_answer_payload(payload, evidence)
+            answer, replaced = _anti_refusal_answer(answer, evidence, citations)
+            if replaced:
+                warnings = list(warnings) + ["anti_refusal_guard:replaced_refusal_with_evidence_excerpt"]
         except Exception as exc:
             fallback = EvidenceOnlyFinalAnswer().answer(request, evidence, limit=effective_limit)
             return FinalAnswerResult(
