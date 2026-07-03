@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -185,3 +186,23 @@ def test_compute_metrics_includes_retrieval_fields(research):
     assert metrics["mean_noise_chunks"] == 2.5
     assert metrics["mean_gost_chunks_top5"] == 1.5
     assert metrics["judge_mismatch_rate"] == 0.5
+
+
+def test_natural_rerun12_baseline_keeps_known_remaining_failures() -> None:
+    path = ROOT / "reports" / "pipeline_research" / "eval_results_natural42_rerun12.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    remaining = {
+        entry["id"]
+        for entry in data.get("entries") or []
+        if int(entry.get("judge_score") or 0) == 1
+    }
+    assert remaining == {
+        "case_002",
+        "case_018",
+        "case_019",
+        "case_020",
+        "case_028",
+        "case_040",
+        "case_041",
+        "case_042",
+    }

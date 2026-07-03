@@ -15,6 +15,9 @@ RETRIEVAL_POOL_MULTIPLIER = 2
 MAX_RETRIEVAL_LIMIT = 100
 DEFAULT_FINAL_ANSWER_LIMIT = 25
 MIN_RESOLVED_DOC_FINAL_SLOTS = 8
+AMBIGUITY_SCORE_GAP = 0.08
+SOFT_CATALOG_VECTOR_CONFIRMED_MIN_SCORE = 0.35
+SOFT_CATALOG_VECTOR_CONFIRM_TOP_K = 60
 
 DOC_POINT_BOOST_EXACT = 0
 DOC_POINT_BOOST_DOC = 1
@@ -92,6 +95,20 @@ def select_items_for_final_answer(
         catalog_id = str(request.prepared_plan.document_resolution.catalog_id or "")
         if catalog_id and not catalog_id.startswith("knowledge:"):
             doc_id = catalog_id
+
+    if not (doc_id or doc_name) and request.prepared_plan:
+        candidate, _reason = _select_soft_catalog_candidate(
+            filters=dict(request.filters or {}),
+            prepared_plan=request.prepared_plan,
+            ranked_items=ranked_items,
+        )
+        if candidate is not None:
+            catalog_id = str(candidate.get("catalog_id") or "").strip()
+            catalog_name = str(candidate.get("doc_name") or "").strip()
+            if catalog_id and not catalog_id.startswith("knowledge:"):
+                doc_id = catalog_id
+            elif catalog_name:
+                doc_name = catalog_name
 
     if not (doc_id or doc_name):
         return ranked_items[:limit]
@@ -501,7 +518,7 @@ def _match_vector_top_to_candidate(
     candidates: tuple[dict[str, Any], ...] | list[dict[str, Any]],
     *,
     min_score: float,
-    top_k: int = 15,
+    top_k: int = SOFT_CATALOG_VECTOR_CONFIRM_TOP_K,
 ) -> dict[str, Any] | None:
     if not ranked_items or not candidates:
         return None
@@ -520,36 +537,36 @@ def _match_vector_top_to_candidate(
     return None
 
 
-def should_retry_soft_catalog_lookup(
+def _candidate_gap_ok(candidates: list[dict[str, Any]], *, min_gap: float = AMBIGUITY_SCORE_GAP) -> bool:
+    if len(candidates) <= 1:
+        return True
+    top_score = float(candidates[0].get("score") or 0.0)
+    second_score = float(candidates[1].get("score") or 0.0)
+    return top_score - second_score >= min_gap
+
+
+def _select_soft_catalog_candidate(
     *,
     filters: dict[str, Any],
     prepared_plan: PreparedQueryPlan | None,
     ranked_items: list[RetrievedItem],
-    top_n: int = 25,
-) -> tuple[bool, str, dict[str, Any]]:
-    from mr_norm.runtime.pipeline_features import effective_doc_confidence_threshold
+) -> tuple[dict[str, Any] | None, str]:
+    from mr_norm.runtime.pipeline_features import (
+        effective_doc_confidence_threshold,
+        query_has_explicit_doc_reference,
+    )
 
     doc_id = str(filters.get("doc_id") or "").strip()
     doc_name = str(filters.get("doc_name") or "").strip()
     if doc_id or doc_name:
-        return False, "retry_skip:doc_filter_active", {}
+        return None, "soft_catalog_rejected:doc_filter_active"
 
     if prepared_plan is None:
-        return False, "retry_skip:no_plan", {}
+        return None, "soft_catalog_rejected:no_plan"
 
-    original_query = prepared_plan.original_query or ""
-    min_conf = effective_doc_confidence_threshold(original_query)
     candidates = list(prepared_plan.candidates or ())
     candidate: dict[str, Any] | None = candidates[0] if candidates else None
-
-    vector_match = _match_vector_top_to_candidate(
-        ranked_items,
-        candidates,
-        min_score=min_conf,
-    )
-    if vector_match is not None:
-        candidate = vector_match
-    elif candidate is None:
+    if candidate is None:
         resolution = prepared_plan.document_resolution
         if resolution.catalog_id and not str(resolution.catalog_id).startswith("knowledge:"):
             candidate = {
@@ -557,19 +574,64 @@ def should_retry_soft_catalog_lookup(
                 "doc_name": resolution.doc_name,
                 "score": resolution.confidence or prepared_plan.confidence,
             }
+            candidates = [candidate]
 
     if candidate is None:
-        return False, "retry_skip:no_catalog_candidate", {}
+        return None, "soft_catalog_rejected:no_catalog_candidate"
 
+    catalog_id = str(candidate.get("catalog_id") or "").strip()
+    if not catalog_id or catalog_id.startswith("knowledge:"):
+        return None, "soft_catalog_rejected:knowledge_only"
+
+    if prepared_plan.ambiguous or not _candidate_gap_ok(candidates):
+        return None, "soft_catalog_rejected:ambiguous"
+
+    original_query = prepared_plan.original_query or ""
+    min_conf = effective_doc_confidence_threshold(original_query)
     score = float(candidate.get("score") or prepared_plan.confidence or 0.0)
-    if score < min_conf:
-        return False, "retry_skip:catalog_below_threshold", {}
+    if score >= min_conf:
+        return candidate, f"soft_catalog_high_confidence:score={score:.2f}"
 
-    if prepared_plan.ambiguous and len(candidates) > 1:
-        top_score = float(candidates[0].get("score") or 0.0)
-        second_score = float(candidates[1].get("score") or 0.0)
-        if top_score - second_score < AMBIGUITY_SCORE_GAP:
-            return False, "retry_skip:ambiguous_catalog", {}
+    explicit_doc_ref = query_has_explicit_doc_reference(original_query)
+    vector_match = _match_vector_top_to_candidate(
+        ranked_items,
+        [candidate],
+        min_score=SOFT_CATALOG_VECTOR_CONFIRMED_MIN_SCORE,
+    )
+    if (
+        not explicit_doc_ref
+        and vector_match is not None
+        and score >= SOFT_CATALOG_VECTOR_CONFIRMED_MIN_SCORE
+    ):
+        return candidate, f"soft_catalog_vector_confirmed:score={score:.2f}"
+
+    return None, f"soft_catalog_rejected:low_confidence:score={score:.2f},min={min_conf:.2f}"
+
+
+def should_retry_soft_catalog_lookup(
+    *,
+    filters: dict[str, Any],
+    prepared_plan: PreparedQueryPlan | None,
+    ranked_items: list[RetrievedItem],
+    top_n: int = 25,
+) -> tuple[bool, str, dict[str, Any]]:
+    candidate, accept_reason = _select_soft_catalog_candidate(
+        filters=filters,
+        prepared_plan=prepared_plan,
+        ranked_items=ranked_items,
+    )
+    if candidate is None:
+        if "doc_filter_active" in accept_reason:
+            return False, "retry_skip:doc_filter_active", {}
+        if "no_plan" in accept_reason:
+            return False, "retry_skip:no_plan", {}
+        if "no_catalog_candidate" in accept_reason:
+            return False, "retry_skip:no_catalog_candidate", {}
+        if "ambiguous" in accept_reason:
+            return False, "retry_skip:soft_catalog_ambiguous_rejected", {}
+        if "knowledge_only" in accept_reason:
+            return False, "retry_skip:knowledge_only", {}
+        return False, f"retry_skip:soft_catalog_low_confidence_rejected:{accept_reason}", {}
 
     catalog_id = str(candidate.get("catalog_id") or "").strip()
     catalog_name = str(candidate.get("doc_name") or "").strip()
@@ -598,7 +660,7 @@ def should_retry_soft_catalog_lookup(
     else:
         return False, "retry_skip:no_retry_filters", {}
 
-    return True, f"retry:soft_catalog_candidate:score={score:.2f}", retry_filters
+    return True, f"retry:{accept_reason}", retry_filters
 
 
 def merge_retry_items(

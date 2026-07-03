@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from functools import lru_cache
 import re
 from pathlib import Path
 from typing import Any
@@ -194,10 +196,51 @@ def _demote_generic_fz_candidates(
     return adjusted
 
 
-SEMANTIC_CATALOG_ANCHORS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
-    (("интернет", "дистанцион"), ("критическ", "информацион", "1215", "безопасност", "ки")),
-    (("цифров", "информацион", "модел"), ("цифров", "информацион", "модел", "1429", "раскрыт")),
-    (("интернет", "технолог"), ("критическ", "информацион", "1215", "безопасност")),
+@dataclass(frozen=True)
+class SemanticCatalogAnchor:
+    query_terms: tuple[str, ...]
+    doc_terms: tuple[str, ...]
+    boost: float
+    reason: str
+    doc_min_matches: int = 2
+
+
+SEMANTIC_CATALOG_ANCHORS: tuple[SemanticCatalogAnchor, ...] = (
+    SemanticCatalogAnchor(
+        query_terms=("интернет", "дистанцион"),
+        doc_terms=("критическ", "информацион", "1215", "безопасност", "ки"),
+        boost=0.18,
+        reason="semantic_anchor:internet_remote_control_kii",
+        doc_min_matches=2,
+    ),
+    SemanticCatalogAnchor(
+        query_terms=("цифров", "информацион", "модел"),
+        doc_terms=("цифров", "информацион", "модел", "1429", "раскрыт"),
+        boost=0.18,
+        reason="semantic_anchor:digital_information_model",
+        doc_min_matches=3,
+    ),
+    SemanticCatalogAnchor(
+        query_terms=("интернет", "технолог"),
+        doc_terms=("критическ", "информацион", "1215", "безопасност"),
+        boost=0.16,
+        reason="semantic_anchor:internet_technology_security",
+        doc_min_matches=2,
+    ),
+    SemanticCatalogAnchor(
+        query_terms=("комплексн", "показател", "технико", "экономическ"),
+        doc_terms=("комплексн", "показател", "технико", "экономическ", "состоян"),
+        boost=0.16,
+        reason="semantic_anchor:tech_economic_indicators",
+        doc_min_matches=4,
+    ),
+    SemanticCatalogAnchor(
+        query_terms=("отклонен", "напряжен", "точк", "присоедин"),
+        doc_terms=("качеств", "электрическ", "энерг", "обязанност", "потребител"),
+        boost=0.20,
+        reason="semantic_anchor:voltage_quality_responsibility",
+        doc_min_matches=3,
+    ),
 )
 
 
@@ -208,19 +251,24 @@ def _boost_semantic_catalog_candidates(
     norm = normalize_catalog_text(query)
     if not candidates or not norm:
         return candidates
+    from mr_norm.runtime.pipeline_features import query_has_explicit_doc_reference
+
+    if query_has_explicit_doc_reference(query) or re.search(r"(?:№|n[oº\.]\s*)\s*\d+", query, flags=re.IGNORECASE):
+        return candidates
 
     adjusted: list[dict[str, Any]] = []
     for item in candidates:
         copy = dict(item)
         blob = normalize_catalog_text(str(copy.get("doc_name") or ""))
-        for required_terms, doc_hints in SEMANTIC_CATALOG_ANCHORS:
-            if not all(term in norm for term in required_terms):
+        for anchor in SEMANTIC_CATALOG_ANCHORS:
+            if not all(term in norm for term in anchor.query_terms):
                 continue
-            if any(hint in blob for hint in doc_hints):
-                copy["score"] = min(1.0, float(copy.get("score") or 0.0) + 0.18)
+            doc_matches = sum(1 for hint in anchor.doc_terms if hint in blob)
+            if doc_matches >= anchor.doc_min_matches:
+                copy["score"] = min(1.0, float(copy.get("score") or 0.0) + anchor.boost)
                 reasons = list(copy.get("reasons") or [])
-                if "semantic_anchor_boost" not in reasons:
-                    reasons.append("semantic_anchor_boost")
+                if anchor.reason not in reasons:
+                    reasons.append(anchor.reason)
                 copy["reasons"] = reasons
                 break
         adjusted.append(copy)
@@ -805,7 +853,7 @@ def prepare_query(
         limit=12,
         enable_pue_aliases=enable_pue_aliases,
     )
-    knowledge_links = load_knowledge_catalog_mapping()
+    knowledge_links = load_default_knowledge_catalog_mapping()
     candidates = _merge_candidates(
         catalog,
         catalog_candidates,
@@ -874,16 +922,19 @@ def prepare_query(
     gost_payload = list(gost_snippets or [])
 
     if mode == "llm" and llm_provider != "none" and candidates:
-        if not pre_resolved_doc:
-            resolver = "llm"
+        resolver = "llm"
         try:
+            llm_kwargs: dict[str, Any] = {
+                "llm_provider": llm_provider,
+                "keys_path": keys_path,
+            }
+            if gost_payload:
+                llm_kwargs["gost_definitions"] = gost_payload
             llm_data, llm_warnings = _llm_plan(
                 original_query,
                 candidates,
                 matched_terms,
-                llm_provider=llm_provider,
-                keys_path=keys_path,
-                gost_definitions=gost_payload or None,
+                **llm_kwargs,
             )
             llm_data, sanitize_warnings = _sanitize_llm_plan_fields(
                 llm_data,
@@ -907,7 +958,17 @@ def prepare_query(
             selected_ids = llm_data.get("selected_catalog_ids", [])
             min_doc_confidence = effective_doc_confidence_threshold(original_query)
             if pre_resolved_doc:
-                pass
+                if confidence >= min_doc_confidence and len(candidate_names) == 1:
+                    resolved_doc_names = candidate_names
+                    if isinstance(selected_ids, list) and len(selected_ids) == 1:
+                        resolved_catalog_id = str(selected_ids[0])
+                    ambiguous = False
+                elif not candidate_names and any(
+                    "removed llm resolved_doc_name" in warning for warning in sanitize_warnings
+                ):
+                    resolved_doc_names = []
+                    resolved_catalog_id = ""
+                    ambiguous = True
             elif confidence >= min_doc_confidence and len(candidate_names) == 1:
                 resolved_doc_names = candidate_names
                 if isinstance(selected_ids, list) and len(selected_ids) == 1:
@@ -1187,8 +1248,14 @@ def prepared_plan_to_understanding(plan: PreparedQueryPlan) -> QueryUnderstandin
     )
 
 
+@lru_cache(maxsize=1)
 def load_default_knowledge() -> DocumentKnowledgeIndex:
     return load_document_knowledge()
+
+
+@lru_cache(maxsize=1)
+def load_default_knowledge_catalog_mapping() -> dict[str, KnowledgeCatalogLink]:
+    return load_knowledge_catalog_mapping()
 
 
 def plan_query(

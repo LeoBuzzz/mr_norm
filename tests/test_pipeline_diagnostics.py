@@ -12,10 +12,11 @@ from mr_norm.runtime.pipeline_diagnostics import (
     select_items_for_final_answer,
     should_retry_doc_point_lookup,
     should_retry_doc_scoped_lookup,
+    should_retry_soft_catalog_lookup,
     summarize_source_ranks,
     try_early_deterministic_doc_resolution,
 )
-from mr_norm.runtime.contracts import RuntimeRequest
+from mr_norm.runtime.contracts import DocumentResolution, PreparedQueryPlan, RuntimeRequest
 
 
 def _item(**kwargs):
@@ -124,6 +125,85 @@ def test_intent_tool_routing_requirement_broad():
         original_query="Что в приказе Минэнерго №548?",
     )
     assert tools_explicit[0] == "point"
+
+
+def test_soft_catalog_retry_allows_vector_confirmed_low_score_candidate():
+    plan = PreparedQueryPlan(
+        original_query="какие требования к интернет доступу для дистанционного управления",
+        question_type="requirement",
+        candidates=(
+            {
+                "catalog_id": "doc_kii",
+                "doc_name": "Требования безопасности значимых объектов критической информационной инфраструктуры",
+                "score": 0.40,
+                "reasons": ["semantic_anchor:internet_remote_control_kii"],
+            },
+            {"catalog_id": "doc_other", "doc_name": "Другой документ", "score": 0.20, "reasons": []},
+        ),
+        document_resolution=DocumentResolution(confidence=0.40),
+    )
+    ranked = [_item(chunk_id=f"noise_{idx}", doc_id="doc_noise") for idx in range(30)]
+    ranked.append(_item(chunk_id="candidate_doc", doc_id="doc_kii", doc_name="Target", score=0.2))
+
+    do_retry, reason, retry_filters = should_retry_soft_catalog_lookup(
+        filters={},
+        prepared_plan=plan,
+        ranked_items=ranked,
+        top_n=25,
+    )
+
+    assert do_retry is True
+    assert "soft_catalog_vector_confirmed" in reason
+    assert retry_filters == {"doc_id": "doc_kii"}
+
+
+def test_soft_catalog_retry_rejects_ambiguous_low_score_candidate():
+    plan = PreparedQueryPlan(
+        original_query="какие требования предъявляются",
+        question_type="requirement",
+        ambiguous=True,
+        candidates=(
+            {"catalog_id": "doc_a", "doc_name": "Документ А", "score": 0.40, "reasons": []},
+            {"catalog_id": "doc_b", "doc_name": "Документ Б", "score": 0.38, "reasons": []},
+        ),
+    )
+    ranked = [_item(chunk_id="candidate_doc", doc_id="doc_a", score=0.9)]
+
+    do_retry, reason, retry_filters = should_retry_soft_catalog_lookup(
+        filters={},
+        prepared_plan=plan,
+        ranked_items=ranked,
+        top_n=0,
+    )
+
+    assert do_retry is False
+    assert reason == "retry_skip:soft_catalog_ambiguous_rejected"
+    assert retry_filters == {}
+
+
+def test_select_items_for_final_answer_uses_soft_catalog_candidate_slots():
+    plan = PreparedQueryPlan(
+        original_query="какие требования к интернет доступу для дистанционного управления",
+        question_type="requirement",
+        candidates=(
+            {"catalog_id": "doc_kii", "doc_name": "Target Doc", "score": 0.40, "reasons": []},
+            {"catalog_id": "doc_other", "doc_name": "Other Doc", "score": 0.20, "reasons": []},
+        ),
+    )
+    ranked = [_item(chunk_id=f"noise_{idx}", doc_id="doc_noise", score=0.99 - idx * 0.01) for idx in range(12)]
+    ranked.extend(
+        [
+            _item(chunk_id="target_1", doc_id="doc_kii", doc_name="Target Doc", score=0.2),
+            _item(chunk_id="target_2", doc_id="doc_kii", doc_name="Target Doc", score=0.1),
+        ]
+    )
+    request = RuntimeRequest(query=plan.original_query, prepared_plan=plan, limit=40, final_answer_limit=8)
+
+    selected = select_items_for_final_answer(ranked, request=request, limit=8)
+
+    selected_ids = [item.chunk_id for item in selected]
+    assert "target_1" in selected_ids
+    assert selected_ids[0] == "target_1"
 
 
 def test_early_deterministic_doc_resolution_order_number():

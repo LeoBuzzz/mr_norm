@@ -12,6 +12,7 @@ from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem, ToolMetrics, ToolRequest, ToolResult, ToolTrace
 from mr_norm.runtime.contracts import RuntimeRequest, ToolCallPlan
 from mr_norm.runtime.tool_runner import (
+    CachedQueryEmbedder,
     render_runtime_markdown,
     run_runtime,
     run_runtime_batch,
@@ -306,6 +307,70 @@ def test_run_runtime_continues_when_one_tool_raises() -> None:
 
     assert "payload failed: RuntimeError: qdrant unavailable" in result.warnings
     assert result.items[0].chunk_id == "chunk_ok"
+
+
+def test_run_runtime_parallel_tools_preserve_result_order() -> None:
+    import time
+
+    config = IndexingConfig(collection_name="test_collection")
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        time.sleep(0.03)
+        return make_tool_result("payload", ["chunk_payload"], req, cfg)
+
+    def vector_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        return make_tool_result("vector", ["chunk_vector"], req, cfg)
+
+    result = run_runtime(
+        RuntimeRequest(query="заземление", profile="balanced", limit=3),
+        config,
+        tool_runners={"payload": payload_runner, "vector": vector_runner},
+    )
+
+    assert list(result.tool_results.keys())[:2] == ["payload", "vector"]
+    assert result.trace.fusion == "hybrid_rrf"
+
+
+def test_run_runtime_sequential_fallback_env(monkeypatch) -> None:
+    config = IndexingConfig(collection_name="test_collection")
+    calls: list[str] = []
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        calls.append("payload")
+        return make_tool_result("payload", ["chunk_payload"], req, cfg)
+
+    def vector_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        calls.append("vector")
+        return make_tool_result("vector", ["chunk_vector"], req, cfg)
+
+    monkeypatch.setenv("MR_NORM_DISABLE_PARALLEL_TOOLS", "1")
+
+    run_runtime(
+        RuntimeRequest(query="заземление", profile="balanced", limit=3),
+        config,
+        tool_runners={"payload": payload_runner, "vector": vector_runner},
+    )
+
+    assert calls == ["payload", "vector"]
+
+
+def test_cached_query_embedder_reuses_normalized_query() -> None:
+    class FakeEmbedder:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def encode(self, texts: list[str]) -> list[list[float]]:
+            self.calls += 1
+            return [[float(len(text))] for text in texts]
+
+    base = FakeEmbedder()
+    cached = CachedQueryEmbedder(base)
+
+    first = cached.encode(["  Заземление  "])
+    second = cached.encode(["заземление"])
+    assert second == first
+    assert base.calls == 1
+    assert cached.hits == 1
 
 
 def test_run_runtime_empty_tool_results_set_no_runtime_matches() -> None:

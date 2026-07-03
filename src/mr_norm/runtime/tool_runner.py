@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import os
 import time
+from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+from threading import Lock
 from typing import Any, Callable
 
 from mr_norm.config.indexing import IndexingConfig
@@ -18,6 +22,50 @@ from mr_norm.runtime.router import route_runtime
 from mr_norm.tools.rtf_processor import atomic_write_json, atomic_write_text
 
 ToolRunner = Callable[[ToolRequest, IndexingConfig], ToolResult]
+
+
+class CachedQueryEmbedder:
+    """Small in-process LRU cache for repeated query embeddings."""
+
+    def __init__(self, base_embedder: Any, *, max_size: int = 512) -> None:
+        self._base = base_embedder
+        self._max_size = max_size
+        self._cache: OrderedDict[str, list[float]] = OrderedDict()
+        self._lock = Lock()
+        self.hits = 0
+        self.misses = 0
+
+    @staticmethod
+    def _key(text: str) -> str:
+        return " ".join((text or "").strip().lower().split())
+
+    def encode(self, texts: list[str]) -> list[list[float]]:
+        keys = [self._key(text) for text in texts]
+        results: list[list[float] | None] = []
+        missing: list[tuple[int, str, str]] = []
+        with self._lock:
+            for index, (text, key) in enumerate(zip(texts, keys, strict=True)):
+                cached = self._cache.get(key)
+                if cached is not None:
+                    self.hits += 1
+                    self._cache.move_to_end(key)
+                    results.append(cached)
+                else:
+                    self.misses += 1
+                    results.append(None)
+                    missing.append((index, text, key))
+
+        if missing:
+            encoded = self._base.encode([text for _index, text, _key in missing])
+            with self._lock:
+                for vector, (index, _text, key) in zip(encoded, missing, strict=True):
+                    self._cache[key] = vector
+                    self._cache.move_to_end(key)
+                    while len(self._cache) > self._max_size:
+                        self._cache.popitem(last=False)
+                    results[index] = vector
+
+        return [vector for vector in results if vector is not None]
 
 
 def _merge_tool_results(results: list[ToolResult], *, tool_name: str, trace_id: str) -> ToolResult:
@@ -68,7 +116,7 @@ def default_runtime_tool_runners() -> dict[str, ToolRunner]:
         if vector_embedder is None:
             from mr_norm.indexing.qdrant_adapter import SentenceTransformerEmbedder
 
-            vector_embedder = SentenceTransformerEmbedder(config)
+            vector_embedder = CachedQueryEmbedder(SentenceTransformerEmbedder(config))
         return run_vector_tool(request, config, embedder=vector_embedder)
 
     return {
@@ -76,6 +124,47 @@ def default_runtime_tool_runners() -> dict[str, ToolRunner]:
         "payload": run_payload_tool,
         "vector": vector_runner,
     }
+
+
+def _parallel_tools_enabled() -> bool:
+    flag = os.environ.get("MR_NORM_DISABLE_PARALLEL_TOOLS", "").strip().lower()
+    return flag not in {"1", "true", "yes", "on"}
+
+
+def _queries_for_step(step: ToolCallPlan) -> tuple[tuple[str, ...], list[str]]:
+    warnings: list[str] = []
+    queries = tuple(query.strip() for query in step.queries if query.strip())
+    if not queries:
+        queries = (step.request.query.strip(),) if step.request.query.strip() else ()
+    if not queries and step.tool_name == "point" and is_point_lookup_filters(dict(step.request.filters)):
+        queries = ("",)
+    if not queries and step.tool_name != "point":
+        warnings.append(f"{step.tool_name} skipped: empty query list")
+    return queries, warnings
+
+
+def _run_tool_step(
+    step: ToolCallPlan,
+    runner: ToolRunner,
+    config: IndexingConfig,
+    queries: tuple[str, ...],
+) -> ToolResult:
+    per_query_results: list[ToolResult] = []
+    for query_text in queries:
+        tool_request = ToolRequest(
+            query=query_text,
+            filters=dict(step.request.filters),
+            limit=step.request.limit,
+            profile=step.request.profile,
+            trace_id=step.request.trace_id,
+            required_tokens=step.request.required_tokens,
+        )
+        per_query_results.append(runner(tool_request, config))
+    return _merge_tool_results(
+        per_query_results,
+        tool_name=step.tool_name,
+        trace_id=step.request.trace_id,
+    )
 
 
 def run_runtime(
@@ -94,39 +183,46 @@ def run_runtime(
     qdrant_calls = 0
     tools_succeeded = 0
 
+    runnable_steps: list[tuple[ToolCallPlan, ToolRunner, tuple[str, ...]]] = []
     for step in sorted(plan, key=lambda item: item.priority):
         runner = runners.get(step.tool_name)
         if runner is None:
             warnings.append(f"unknown runtime tool: {step.tool_name}")
             continue
-        queries = tuple(query.strip() for query in step.queries if query.strip())
+        queries, query_warnings = _queries_for_step(step)
+        warnings.extend(query_warnings)
         if not queries:
-            queries = (step.request.query.strip(),) if step.request.query.strip() else ()
-        if not queries and step.tool_name == "point" and is_point_lookup_filters(dict(step.request.filters)):
-            queries = ("",)
-        if not queries and step.tool_name != "point":
-            warnings.append(f"{step.tool_name} skipped: empty query list")
             continue
+        runnable_steps.append((step, runner, queries))
 
-        try:
-            per_query_results: list[ToolResult] = []
-            for query_text in queries:
-                tool_request = ToolRequest(
-                    query=query_text,
-                    filters=dict(step.request.filters),
-                    limit=step.request.limit,
-                    profile=step.request.profile,
-                    trace_id=step.request.trace_id,
-                    required_tokens=step.request.required_tokens,
-                )
-                per_query_results.append(runner(tool_request, config))
-            result = _merge_tool_results(
-                per_query_results,
-                tool_name=step.tool_name,
-                trace_id=step.request.trace_id,
-            )
-        except Exception as exc:
-            warnings.append(f"{step.tool_name} failed: {type(exc).__name__}: {exc}")
+    step_results: dict[str, ToolResult] = {}
+    step_errors: dict[str, str] = {}
+    if _parallel_tools_enabled() and len(runnable_steps) > 1:
+        with ThreadPoolExecutor(max_workers=len(runnable_steps)) as executor:
+            future_to_step = {
+                executor.submit(_run_tool_step, step, runner, config, queries): step
+                for step, runner, queries in runnable_steps
+            }
+            for future in as_completed(future_to_step):
+                step = future_to_step[future]
+                try:
+                    step_results[step.tool_name] = future.result()
+                except Exception as exc:
+                    step_errors[step.tool_name] = f"{step.tool_name} failed: {type(exc).__name__}: {exc}"
+    else:
+        for step, runner, queries in runnable_steps:
+            try:
+                step_results[step.tool_name] = _run_tool_step(step, runner, config, queries)
+            except Exception as exc:
+                step_errors[step.tool_name] = f"{step.tool_name} failed: {type(exc).__name__}: {exc}"
+
+    for step, _runner, _queries in runnable_steps:
+        error = step_errors.get(step.tool_name)
+        if error:
+            warnings.append(error)
+            continue
+        result = step_results.get(step.tool_name)
+        if result is None:
             continue
         tool_results[step.tool_name] = result
         qdrant_calls += result.metrics.qdrant_calls

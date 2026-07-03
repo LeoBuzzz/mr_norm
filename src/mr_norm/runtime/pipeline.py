@@ -123,6 +123,7 @@ def run_pipeline(
         ranked_items=list(rerank_result.items),
         diagnostics=diagnostics_state,
     )
+    diagnostics_payload["final_evidence_count"] = len(final_evidence)
     diagnostics_payload["stage_timings"] = stage_timings.to_dict()
     diagnostics_payload["tool_timings"] = tool_timings_from_runtime(runtime.tool_results)
 

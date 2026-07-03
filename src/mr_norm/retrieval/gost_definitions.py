@@ -80,6 +80,24 @@ GOST_TERM_STOP_WORDS: frozenset[str] = frozenset(
 )
 
 DEFINITION_INDICATORS = ("это", "определение", "определяется", "означает", "называется")
+GOST_PREFETCH_MARKERS = (
+    "гост",
+    "термин",
+    "определ",
+    "что такое",
+    "кто такой",
+    "кто такая",
+    "кто такие",
+    "что называется",
+    "означает",
+    "расшифруй",
+)
+GOST_KNOWN_TERM_HINTS = (
+    "оперативный персонал",
+    "диспетчерский персонал",
+    "объект диспетчеризации",
+    "энергосистема",
+)
 
 
 class QueryEmbedder(Protocol):
@@ -129,7 +147,12 @@ def should_prefetch_gost(query: str, filters: dict[str, Any] | None = None) -> b
         return False
     if str((filters or {}).get("point_number") or "").strip():
         return False
-    return True
+    norm = normalize_catalog_text(query)
+    if not norm:
+        return False
+    if any(marker in norm for marker in GOST_PREFETCH_MARKERS):
+        return True
+    return any(normalize_catalog_text(term) in norm for term in GOST_KNOWN_TERM_HINTS)
 
 
 def _refine_gost_search_terms(terms: list[str]) -> list[str]:
@@ -264,8 +287,9 @@ def fetch_gost_definitions(
 
     for term in terms:
         term_candidates: list[GostSnippet] = []
-        for query_text in (f"определение {term}", term, f"{term} это"):
-            vector = embedder.encode([query_text])[0]
+        query_variants = (f"определение {term}", term, f"{term} это")
+        vectors = embedder.encode(list(query_variants))
+        for query_text, vector in zip(query_variants, vectors, strict=True):
             items = client.vector_search(
                 vector,
                 filter_spec,

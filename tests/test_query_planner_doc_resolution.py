@@ -5,6 +5,7 @@ from pathlib import Path
 from mr_norm.retrieval.document_catalog import load_catalog_snapshot
 from mr_norm.retrieval.document_knowledge import load_document_knowledge
 from mr_norm.runtime.query_planner import (
+    _boost_semantic_catalog_candidates,
     _conditional_deterministic_fallback,
     _demote_generic_fz_candidates,
     plan_query,
@@ -85,6 +86,60 @@ def test_conditional_fallback_uses_soft_threshold_for_natural_query() -> None:
     assert confidence == 0.52
     assert ambiguous is False
     assert any("high-confidence top candidate" in item for item in warnings)
+
+
+def test_semantic_anchor_boosts_matching_catalog_candidate() -> None:
+    adjusted = _boost_semantic_catalog_candidates(
+        [
+            {
+                "catalog_id": "doc_kii",
+                "doc_name": "Об утверждении требований безопасности значимых объектов критической информационной инфраструктуры",
+                "score": 0.32,
+                "reasons": [],
+            },
+            {"catalog_id": "doc_other", "doc_name": "О розничных рынках электрической энергии", "score": 0.35, "reasons": []},
+        ],
+        "Разрешен ли доступ из интернета в технологические сети связи для дистанционного управления?",
+    )
+
+    assert adjusted[0]["catalog_id"] == "doc_kii"
+    assert any(str(reason).startswith("semantic_anchor:") for reason in adjusted[0]["reasons"])
+
+
+def test_semantic_anchor_skips_explicit_document_reference() -> None:
+    candidates = [
+        {
+            "catalog_id": "doc_kii",
+            "doc_name": "Об утверждении требований безопасности значимых объектов критической информационной инфраструктуры",
+            "score": 0.32,
+            "reasons": [],
+        }
+    ]
+
+    adjusted = _boost_semantic_catalog_candidates(
+        candidates,
+        "Что сказано в приказе Минэнерго №548 про интернет технологии?",
+    )
+
+    assert adjusted == candidates
+
+
+def test_semantic_anchor_boosts_voltage_quality_responsibility_doc() -> None:
+    adjusted = _boost_semantic_catalog_candidates(
+        [
+            {
+                "catalog_id": "doc_quality",
+                "doc_name": "Об утверждении требований к качеству электрической энергии и распределению обязанностей между потребителями",
+                "score": 0.31,
+                "reasons": [],
+            },
+            {"catalog_id": "doc_market", "doc_name": "О функционировании розничных рынков", "score": 0.36, "reasons": []},
+        ],
+        "Кто отвечает за соблюдение норм по отклонению напряжения в точке присоединения к сети?",
+    )
+
+    assert adjusted[0]["catalog_id"] == "doc_quality"
+    assert "semantic_anchor:voltage_quality_responsibility" in adjusted[0]["reasons"]
 
 
 def test_conditional_fallback_uses_order_number_match() -> None:

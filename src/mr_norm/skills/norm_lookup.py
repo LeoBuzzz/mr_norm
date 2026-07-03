@@ -8,6 +8,14 @@ from typing import Any
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest
+from mr_norm.retrieval.doc_point_topic_index import (
+    load_default_doc_point_topic_index,
+    merge_topic_retry_items,
+    search_doc_point_topics,
+    select_topic_retry_policy,
+    should_attempt_topic_retry,
+    topic_hit_to_retrieved_item,
+)
 from mr_norm.retrieval.gost_definitions import (
     GostSnippet,
     gost_snippet_in_top_evidence,
@@ -386,6 +394,80 @@ def run_norm_lookup(
                 )
             stage_timings.retry_sec += time.perf_counter() - t0
 
+    topic_retry_triggered = False
+    topic_retry_reason = ""
+    topic_retry_items_added = 0
+    topic_retry_policy = ""
+    if request.final_answer_backend == "prompt" and llm_providers.final_answer is not None:
+        should_topic_retry, topic_retry_reason = should_attempt_topic_retry(
+            query=request.query,
+            final_warnings=list(pipeline.final_answer.warnings),
+            has_citations=bool(pipeline.final_answer.citations),
+            resolved_doc_names=prepared_plan.resolved_doc_names if prepared_plan else (),
+        )
+        if should_topic_retry:
+            t0 = time.perf_counter()
+            try:
+                topic_policy = select_topic_retry_policy(request.query)
+                topic_retry_policy = (
+                    f"{topic_policy.search_profile}:{topic_policy.evidence_policy}"
+                )
+                topic_index = load_default_doc_point_topic_index(
+                    str((project_paths or ProjectPaths.from_root(None)).root)
+                )
+                topic_hits = search_doc_point_topics(
+                    request.query,
+                    topic_index,
+                    top_k=8,
+                    profile=topic_policy.search_profile,
+                )
+                topic_items = [topic_hit_to_retrieved_item(hit) for hit in topic_hits]
+                if topic_items:
+                    ranked_items, topic_retry_items_added = merge_topic_retry_items(
+                        topic_items=topic_items,
+                        ranked_items=ranked_items,
+                        policy=topic_policy.evidence_policy,
+                        limit=retrieval_limit,
+                    )
+                    final_evidence = select_items_for_final_answer(
+                        ranked_items,
+                        request=runtime_request,
+                        limit=final_answer_limit,
+                    )
+                    topic_final = final_answer_impl.answer(
+                        runtime_request,
+                        final_evidence,
+                        limit=final_answer_limit,
+                    )
+                    pipeline = replace(
+                        pipeline,
+                        rerank=replace(pipeline.rerank, items=ranked_items),
+                        final_answer=topic_final,
+                        diagnostics={
+                            **dict(pipeline.diagnostics),
+                            "topic_retry_triggered": True,
+                            "topic_retry_reason": topic_retry_reason,
+                            "topic_retry_policy": topic_retry_policy,
+                            "topic_retry_items_added": topic_retry_items_added,
+                            "topic_retry_top_hits": [
+                                {
+                                    "doc_id": hit.entry.doc_id,
+                                    "doc_name": hit.entry.doc_name,
+                                    "point_number": hit.entry.point_number,
+                                    "score": hit.score,
+                                    "hits": list(hit.hits),
+                                }
+                                for hit in topic_hits[:5]
+                            ],
+                        },
+                    )
+                    topic_retry_triggered = True
+                else:
+                    topic_retry_reason = "topic_retry:no_hits"
+            except Exception as exc:
+                topic_retry_reason = f"topic_retry:error:{type(exc).__name__}: {exc}"
+            stage_timings.retry_sec += time.perf_counter() - t0
+
     evidence = ranked_items[: request.limit]
     answer = pipeline.final_answer.answer
     citations = list(pipeline.final_answer.citations)
@@ -430,6 +512,10 @@ def run_norm_lookup(
     diagnostics["retry_triggered"] = retry_triggered
     diagnostics["retry_reason"] = retry_reason
     diagnostics["retry_items_added"] = retry_items_added
+    diagnostics["topic_retry_triggered"] = topic_retry_triggered
+    diagnostics["topic_retry_reason"] = topic_retry_reason
+    diagnostics["topic_retry_policy"] = topic_retry_policy
+    diagnostics["topic_retry_items_added"] = topic_retry_items_added
     pipeline_stage_timings = PipelineStageTimings(**(diagnostics.get("stage_timings") or {}))
     stage_timings = stage_timings.merge(pipeline_stage_timings)
     stage_timings.norm_lookup_sec = time.perf_counter() - lookup_started

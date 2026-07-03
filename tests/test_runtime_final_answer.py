@@ -67,6 +67,36 @@ def test_prompt_pack_final_answer_rejects_invalid_citations() -> None:
     assert any("no valid citations" in warning for warning in result.warnings)
 
 
+def test_prompt_pack_final_answer_repairs_refusal_with_cited_evidence() -> None:
+    request = RuntimeRequest(query="заземление", limit=1)
+    evidence = make_evidence()
+
+    def provider(_request, _evidence, _pack):
+        return {
+            "answer": "В предоставленных фрагментах нет информации о заземлении.",
+            "citations": [{"chunk_id": "chunk_1", "doc_name": "ПУЭ", "point_number": "1.7.1"}],
+        }
+
+    result = PromptPackFinalAnswer(provider=provider).answer(request, evidence)
+
+    assert "Evidence summary" in result.answer
+    assert result.citations[0].chunk_id == "chunk_1"
+    assert "anti_refusal_guard:refusal_repaired_with_citation" in result.warnings
+
+
+def test_prompt_pack_final_answer_does_not_repair_refusal_without_evidence() -> None:
+    request = RuntimeRequest(query="заземление", limit=1)
+
+    def provider(_request, _evidence, _pack):
+        return {"answer": "В предоставленных фрагментах нет информации.", "citations": []}
+
+    result = PromptPackFinalAnswer(provider=provider).answer(request, [])
+
+    assert result.answer == "В предоставленных фрагментах нет информации."
+    assert result.citations == []
+    assert "anti_refusal_guard:refusal_not_repaired_without_evidence" in result.warnings
+
+
 def test_build_final_answer_rejects_unknown_backend() -> None:
     import pytest
 
