@@ -13,6 +13,7 @@ class PipelineStageTimings:
     final_evidence_select_sec: float = 0.0
     final_answer_sec: float = 0.0
     retry_sec: float = 0.0
+    topic_rerank_sec: float = 0.0
     gost_merge_answer_sec: float = 0.0
     norm_lookup_sec: float = 0.0
     answer_judge_sec: float = 0.0

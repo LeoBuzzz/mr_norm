@@ -14,6 +14,7 @@ from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.document_catalog import normalize_catalog_text
 from mr_norm.retrieval.document_knowledge import load_document_knowledge
+from mr_norm.runtime.pipeline_diagnostics import doc_names_match, normalize_doc_key
 
 TopicEvidencePolicy = Literal["topic_plus_baseline", "topic_only"]
 TopicSearchProfile = Literal["base", "tuned"]
@@ -86,6 +87,28 @@ TUNED_QUERY_EXPANSIONS: dict[str, tuple[str, ...]] = {
 class TopicRetryPolicy:
     search_profile: TopicSearchProfile = "base"
     evidence_policy: TopicEvidencePolicy = "topic_plus_baseline"
+
+
+@dataclass(frozen=True)
+class TopicRerankPolicy:
+    search_profile: TopicSearchProfile = "base"
+    doc_ids: tuple[str, ...] = ()
+    doc_names: tuple[str, ...] = ()
+    top_k: int = 8
+    min_promote_score: float = 2.5
+    table_like: bool = False
+    explicit_doc_scope: bool = False
+    max_promotions: int = 5
+
+
+@dataclass(frozen=True)
+class TopicRerankResult:
+    ranked_items: tuple[RetrievedItem, ...]
+    applied: bool = False
+    reason: str = ""
+    policy_label: str = ""
+    items_promoted: int = 0
+    top_hits: tuple[TopicHit, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -256,6 +279,252 @@ def load_default_doc_point_topic_index(root: str = "") -> DocPointTopicIndex:
     return build_doc_point_topic_index(paths.chunks_json)
 
 
+TOPIC_RERANK_QUESTION_TYPES = frozenset(
+    {"point_lookup", "definition", "document_scope", "requirement", "procedure", "factual"}
+)
+
+TOPIC_RERANK_QUERY_MARKERS = (
+    "обязан",
+    "должен",
+    "срок",
+    "не позднее",
+    "запрещ",
+    "допускается",
+    "на какие объекты",
+    "по каким параметрам",
+    "индикатор",
+    "показатель",
+    "таблица",
+    "автоном",
+    "специальн",
+    "форм договор",
+    "обязанност",
+)
+
+TABLE_LIKE_MARKERS = (
+    "параметр",
+    "показател",
+    "температур",
+    "нагруз",
+    "эксцентриситет",
+    "шкал",
+    "сегмент",
+)
+
+
+def _baseline_matches_resolved_docs(
+    resolved_doc_names: tuple[str, ...] | list[str],
+    ranked_items: list[RetrievedItem],
+    *,
+    top_n: int = 3,
+) -> bool:
+    names = tuple(str(value).strip() for value in resolved_doc_names if str(value).strip())
+    if not names or not ranked_items:
+        return False
+    for item in ranked_items[:top_n]:
+        actual = str(item.doc_name or "")
+        if actual and any(doc_names_match(name, actual) for name in names):
+            return True
+    return False
+
+
+def select_topic_rerank_policy(
+    query: str,
+    *,
+    question_type: str = "",
+    resolved_doc_ids: tuple[str, ...] | list[str] = (),
+    resolved_doc_names: tuple[str, ...] | list[str] = (),
+    ranked_items: list[RetrievedItem] | None = None,
+) -> TopicRerankPolicy:
+    norm = normalize_catalog_text(query)
+    table_like = any(marker in norm for marker in TABLE_LIKE_MARKERS)
+    profile: TopicSearchProfile = "tuned" if table_like or any(
+        marker in norm for marker in ("наименован", "городах миллионниках", "интернет", "запрещ")
+    ) else "base"
+    doc_ids = tuple(str(value).strip() for value in resolved_doc_ids if str(value).strip())
+    doc_names = tuple(str(value).strip() for value in resolved_doc_names if str(value).strip())
+    explicit_doc_scope = bool(doc_ids or doc_names)
+    if not doc_ids and not doc_names and ranked_items:
+        top = ranked_items[0]
+        top_doc_id = str(top.doc_id or "").strip()
+        top_doc_name = str(top.doc_name or "").strip()
+        if top_doc_id:
+            doc_ids = (top_doc_id,)
+        if top_doc_name:
+            doc_names = (top_doc_name,)
+    return TopicRerankPolicy(
+        search_profile=profile,
+        doc_ids=doc_ids,
+        doc_names=doc_names,
+        top_k=8,
+        min_promote_score=2.0 if table_like else 2.5,
+        table_like=table_like,
+        explicit_doc_scope=explicit_doc_scope,
+        max_promotions=5,
+    )
+
+
+def should_apply_topic_rerank(
+    *,
+    query: str,
+    question_type: str = "",
+    ranked_items: list[RetrievedItem] | None = None,
+    resolved_doc_names: tuple[str, ...] | list[str] = (),
+    point_number_hints: tuple[str, ...] | list[str] = (),
+) -> tuple[bool, str]:
+    if os.environ.get("MR_NORM_DISABLE_TOPIC_RERANK", "").strip() == "1":
+        return False, "topic_rerank_disabled"
+    if not ranked_items:
+        return False, "topic_rerank:no_ranked_items"
+    qtype = (question_type or "").strip().lower()
+    hints = tuple(str(value).strip() for value in point_number_hints if str(value).strip())
+    if _baseline_matches_resolved_docs(resolved_doc_names, ranked_items) and not hints:
+        if qtype in {"factual", "procedure", "document_scope", "requirement"}:
+            return False, "topic_rerank:baseline_doc_satisfied"
+    norm = normalize_catalog_text(query)
+    if qtype in TOPIC_RERANK_QUESTION_TYPES:
+        return True, f"topic_rerank:question_type:{qtype or 'unknown'}"
+    if any(marker in norm for marker in TOPIC_RERANK_QUERY_MARKERS):
+        return True, "topic_rerank:query_markers"
+    return False, "topic_rerank:not_needed"
+
+
+def _score_table_like_bonus(query: str, entry: TopicEntry) -> float:
+    norm = normalize_catalog_text(query)
+    text = entry.text or ""
+    bonus = 0.0
+    if any(marker in norm for marker in TABLE_LIKE_MARKERS):
+        if re.search(r"\b\d+(?:[,.]\d+)?\b", text):
+            bonus += 0.35
+        if any(unit in text for unit in ("°C", "кг", "%", "МВт", "мвт")):
+            bonus += 0.55
+        if text.count(";") >= 2 or text.count("|") >= 2:
+            bonus += 0.25
+    return bonus
+
+
+def _filter_hits_by_doc_scope(
+    hits: list[TopicHit],
+    *,
+    doc_ids: tuple[str, ...],
+    doc_names: tuple[str, ...],
+    allow_global_fallback: bool = False,
+) -> list[TopicHit]:
+    if not doc_ids and not doc_names:
+        return hits
+    scoped: list[TopicHit] = []
+    for hit in hits:
+        entry = hit.entry
+        if doc_ids and entry.doc_id in doc_ids:
+            scoped.append(hit)
+            continue
+        if doc_names and any(doc_names_match(name, entry.doc_name) for name in doc_names):
+            scoped.append(hit)
+    if scoped or not allow_global_fallback:
+        return scoped
+    return hits
+
+
+def _item_dedupe_key(item: RetrievedItem) -> str:
+    chunk_id = str(item.chunk_id or "").strip()
+    if chunk_id:
+        return chunk_id
+    return f"{item.doc_id}:{item.point_number}:{compact_text(item.text, limit=80)}"
+
+
+def promote_topic_items(
+    *,
+    topic_items: list[RetrievedItem],
+    ranked_items: list[RetrievedItem],
+    limit: int,
+) -> tuple[list[RetrievedItem], int]:
+    selected: list[RetrievedItem] = []
+    seen: set[str] = set()
+    promoted = 0
+    topic_keys = {_item_dedupe_key(item) for item in topic_items}
+    for item in [*topic_items, *ranked_items]:
+        key = _item_dedupe_key(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        selected.append(item)
+        if key in topic_keys:
+            promoted += 1
+        if len(selected) >= limit:
+            break
+    return selected, promoted
+
+
+def rerank_with_doc_point_topics(
+    query: str,
+    ranked_items: list[RetrievedItem],
+    index: DocPointTopicIndex,
+    *,
+    policy: TopicRerankPolicy,
+) -> TopicRerankResult:
+    if not ranked_items or not index.entries:
+        return TopicRerankResult(ranked_items=tuple(ranked_items), reason="topic_rerank:no_index_or_items")
+
+    hits = search_doc_point_topics(
+        query,
+        index,
+        top_k=policy.top_k,
+        profile=policy.search_profile,
+    )
+    if policy.doc_ids or policy.doc_names:
+        hits = _filter_hits_by_doc_scope(
+            hits,
+            doc_ids=policy.doc_ids,
+            doc_names=policy.doc_names,
+            allow_global_fallback=False,
+        )
+    if policy.table_like:
+        rescored: list[TopicHit] = []
+        for hit in hits:
+            bonus = _score_table_like_bonus(query, hit.entry)
+            if bonus:
+                rescored.append(
+                    TopicHit(entry=hit.entry, score=round(hit.score + bonus, 4), hits=hit.hits)
+                )
+            else:
+                rescored.append(hit)
+        hits = sorted(rescored, key=lambda item: item.score, reverse=True)
+
+    if not hits or hits[0].score < policy.min_promote_score:
+        return TopicRerankResult(
+            ranked_items=tuple(ranked_items),
+            reason="topic_rerank:weak_hits",
+            policy_label=f"{policy.search_profile}:promote",
+            top_hits=tuple(hits[:5]),
+        )
+
+    topic_items = [
+        topic_hit_to_retrieved_item(hit)
+        for hit in hits[: policy.max_promotions]
+    ]
+    merged, promoted = promote_topic_items(
+        topic_items=topic_items,
+        ranked_items=ranked_items,
+        limit=len(ranked_items),
+    )
+    if promoted <= 0 or merged == ranked_items:
+        return TopicRerankResult(
+            ranked_items=tuple(ranked_items),
+            reason="topic_rerank:no_promotion",
+            policy_label=f"{policy.search_profile}:promote",
+            top_hits=tuple(hits[:5]),
+        )
+
+    return TopicRerankResult(
+        ranked_items=tuple(merged),
+        applied=True,
+        reason="topic_rerank:promoted",
+        policy_label=f"{policy.search_profile}:promote",
+        items_promoted=promoted,
+        top_hits=tuple(hits[:5]),
+    )
+
+
 def select_topic_retry_policy(query: str) -> TopicRetryPolicy:
     norm = normalize_catalog_text(query)
     if "запрещ" in norm:
@@ -328,9 +597,14 @@ def should_attempt_topic_retry(
     final_warnings: list[str],
     has_citations: bool,
     resolved_doc_names: tuple[str, ...] | list[str] = (),
+    topic_rerank_applied: bool = False,
 ) -> tuple[bool, str]:
     if os.environ.get("MR_NORM_DISABLE_TOPIC_RETRY", "").strip() == "1":
         return False, "topic_retry_disabled"
+    if topic_rerank_applied and has_citations:
+        warning_text = " ".join(final_warnings)
+        if "anti_refusal_guard" not in warning_text and "final answer returned no valid citations" not in warning_text:
+            return False, "topic_retry:rerank_satisfied"
     warning_text = " ".join(final_warnings)
     if not has_citations:
         return True, "topic_retry:no_valid_citations"

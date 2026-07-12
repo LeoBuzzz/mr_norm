@@ -498,3 +498,116 @@ def match_terms_in_query(
         enable_pue_aliases=enable_pue_aliases,
     )
     return matches.flat_terms()[:limit]
+
+
+def find_topic_alias_document_candidates(
+    query: str,
+    knowledge: DocumentKnowledgeIndex,
+    *,
+    enable_pue_aliases: bool = False,
+) -> list[KnowledgeCandidate]:
+    query_norm = normalize_catalog_text(query)
+    if not query_norm or not knowledge.documents:
+        return []
+
+    ranked: list[KnowledgeCandidate] = []
+    for topic in active_topic_aliases(knowledge.topic_aliases, enable_pue_aliases=enable_pue_aliases):
+        phrase_raw = str(topic.get("phrase") or "")
+        phrase = normalize_catalog_text(phrase_raw)
+        if not phrase:
+            continue
+        search_terms = [str(item) for item in topic.get("search_terms") or ()]
+        matched_phrase = (
+            phrase_matches_query(phrase_raw, query)
+            or morphology_phrase_matches_query(phrase_raw, query)
+            or any(phrase_matches_query(term, query) for term in search_terms)
+            or any(morphology_phrase_matches_query(term, query) for term in search_terms)
+        )
+        if not matched_phrase:
+            continue
+        positive = [normalize_catalog_text(item) for item in topic.get("doc_name_substrings") or []]
+        negative = [normalize_catalog_text(item) for item in topic.get("negative_doc_name_substrings") or []]
+        mentions_pue = normalize_catalog_text(PUE_ALIAS_KEY) in query_norm
+        for document in knowledge.documents:
+            doc_norm = normalize_catalog_text(document.doc_name)
+            if negative and any(item in doc_norm for item in negative):
+                continue
+            if not positive or not any(item in doc_norm for item in positive):
+                continue
+            if (
+                not enable_pue_aliases
+                and not mentions_pue
+                and is_pue_document_name(document.doc_name)
+            ):
+                continue
+            ranked.append(
+                KnowledgeCandidate(
+                    doc_id=document.doc_id,
+                    doc_name=document.doc_name,
+                    score=0.85,
+                    reasons=(f"topic_alias:{phrase}",),
+                    annotation=document.annotation,
+                )
+            )
+
+    merged: dict[str, KnowledgeCandidate] = {}
+    for candidate in ranked:
+        current = merged.get(candidate.doc_id)
+        if current is None or candidate.score > current.score:
+            merged[candidate.doc_id] = candidate
+    return sorted(merged.values(), key=lambda item: item.score, reverse=True)
+
+
+def find_abbreviation_document_candidates(
+    query: str,
+    knowledge: DocumentKnowledgeIndex,
+    *,
+    enable_pue_aliases: bool = False,
+) -> list[KnowledgeCandidate]:
+    """Resolve short labels via knowledge abbreviations (word-boundary match)."""
+    query_norm = normalize_catalog_text(query)
+    if not query_norm or not knowledge.abbreviations or not knowledge.documents:
+        return []
+
+    ranked: list[KnowledgeCandidate] = []
+    for abbr in knowledge.abbreviations:
+        if not enable_pue_aliases and is_pue_abbreviation_entry(abbr):
+            continue
+        abbreviation = normalize_catalog_text(str(abbr.get("abbreviation") or ""))
+        if len(abbreviation) < 2:
+            continue
+        if not re.search(rf"\b{re.escape(abbreviation)}\b", query_norm):
+            continue
+        expansion = normalize_catalog_text(str(abbr.get("expansion") or ""))
+        positive = [
+            normalize_catalog_text(item)
+            for item in abbr.get("doc_name_substrings") or ([expansion] if expansion else [])
+        ]
+        positive = [item for item in positive if item]
+        if not positive:
+            continue
+        negative = [
+            normalize_catalog_text(item) for item in abbr.get("negative_doc_name_substrings") or []
+        ]
+        for document in knowledge.documents:
+            doc_norm = normalize_catalog_text(document.doc_name)
+            if negative and any(item in doc_norm for item in negative if item):
+                continue
+            if not any(item in doc_norm for item in positive):
+                continue
+            ranked.append(
+                KnowledgeCandidate(
+                    doc_id=document.doc_id,
+                    doc_name=document.doc_name,
+                    score=0.92,
+                    reasons=(f"abbreviation:{abbreviation}",),
+                    annotation=document.annotation,
+                )
+            )
+
+    merged: dict[str, KnowledgeCandidate] = {}
+    for candidate in ranked:
+        current = merged.get(candidate.doc_id)
+        if current is None or candidate.score > current.score:
+            merged[candidate.doc_id] = candidate
+    return sorted(merged.values(), key=lambda item: item.score, reverse=True)

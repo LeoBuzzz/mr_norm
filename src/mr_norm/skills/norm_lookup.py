@@ -11,8 +11,11 @@ from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest
 from mr_norm.retrieval.doc_point_topic_index import (
     load_default_doc_point_topic_index,
     merge_topic_retry_items,
+    rerank_with_doc_point_topics,
     search_doc_point_topics,
+    select_topic_rerank_policy,
     select_topic_retry_policy,
+    should_apply_topic_rerank,
     should_attempt_topic_retry,
     topic_hit_to_retrieved_item,
 )
@@ -45,6 +48,7 @@ from mr_norm.runtime.pipeline_diagnostics import (
     should_retry_soft_catalog_lookup,
 )
 from mr_norm.runtime.planner import build_planner
+from mr_norm.skills.document_resolve import DocumentResolveResult, resolve_document
 from mr_norm.runtime.query_planner import (
     apply_prepared_plan,
     plan_query,
@@ -247,16 +251,28 @@ def run_norm_lookup(
     effective_query = request.query
     effective_filters = dict(request.filters)
     gost_snippets: list[GostSnippet] = []
+    document_resolve_result: DocumentResolveResult | None = None
+    skill_locked_doc_id = ""
 
     t0 = time.perf_counter()
     gost_snippets = prefetch_gost_snippets(request.query, config, request.filters)
     stage_timings.gost_prefetch_sec = time.perf_counter() - t0
 
+    if not effective_filters.get("doc_id") and not str(effective_filters.get("doc_name") or "").strip():
+        document_resolve_result = resolve_document(
+            request.query,
+            project_paths=project_paths,
+            enable_pue_aliases=request.enable_pue_aliases,
+        )
+        if document_resolve_result.found and document_resolve_result.status in {"exact", "probable"}:
+            skill_locked_doc_id = document_resolve_result.doc_id
+            effective_filters["doc_id"] = skill_locked_doc_id
+
     if request.understand_query_mode != "off":
         t0 = time.perf_counter()
         prepared_plan = plan_query(
             request.query,
-            filters=request.filters,
+            filters=effective_filters,
             mode=request.understand_query_mode,
             llm_provider=request.llm_provider,
             keys_path=keys_path,
@@ -268,8 +284,9 @@ def run_norm_lookup(
         understanding = prepared_plan_to_understanding(prepared_plan)
         effective_query, effective_filters = apply_prepared_plan(
             request.query,
-            request.filters,
+            effective_filters,
             prepared_plan,
+            skill_locked_doc_id=skill_locked_doc_id,
         )
 
     retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
@@ -394,6 +411,99 @@ def run_norm_lookup(
                 )
             stage_timings.retry_sec += time.perf_counter() - t0
 
+    topic_rerank_applied = False
+    topic_rerank_reason = ""
+    topic_rerank_policy = ""
+    topic_rerank_items_promoted = 0
+    topic_rerank_top_hits: list[dict[str, Any]] = []
+    do_topic_rerank, topic_rerank_reason = should_apply_topic_rerank(
+        query=request.query,
+        question_type=str(prepared_plan.question_type or "") if prepared_plan else "",
+        ranked_items=ranked_items,
+        resolved_doc_names=tuple(prepared_plan.resolved_doc_names) if prepared_plan else (),
+        point_number_hints=tuple(prepared_plan.point_number_hints) if prepared_plan else (),
+    )
+    if do_topic_rerank:
+        t0 = time.perf_counter()
+        try:
+            resolved_doc_ids: tuple[str, ...] = ()
+            if prepared_plan and prepared_plan.document_resolution.catalog_id:
+                resolved_doc_ids = (prepared_plan.document_resolution.catalog_id,)
+            rerank_policy = select_topic_rerank_policy(
+                request.query,
+                question_type=str(prepared_plan.question_type or "") if prepared_plan else "",
+                resolved_doc_ids=resolved_doc_ids,
+                resolved_doc_names=tuple(prepared_plan.resolved_doc_names) if prepared_plan else (),
+                ranked_items=ranked_items,
+            )
+            topic_rerank_policy = rerank_policy.search_profile + ":promote"
+            topic_index = load_default_doc_point_topic_index(
+                str((project_paths or ProjectPaths.from_root(None)).root)
+            )
+            rerank_result = rerank_with_doc_point_topics(
+                request.query,
+                ranked_items,
+                topic_index,
+                policy=rerank_policy,
+            )
+            topic_rerank_reason = rerank_result.reason
+            topic_rerank_top_hits = [
+                {
+                    "doc_id": hit.entry.doc_id,
+                    "doc_name": hit.entry.doc_name,
+                    "point_number": hit.entry.point_number,
+                    "score": hit.score,
+                    "hits": list(hit.hits),
+                }
+                for hit in rerank_result.top_hits
+            ]
+            if rerank_result.applied:
+                topic_rerank_applied = True
+                topic_rerank_items_promoted = rerank_result.items_promoted
+                ranked_items = list(rerank_result.ranked_items)
+                pipeline = replace(
+                    pipeline,
+                    rerank=replace(pipeline.rerank, items=ranked_items),
+                    diagnostics={
+                        **dict(pipeline.diagnostics),
+                        "topic_rerank_applied": True,
+                        "topic_rerank_reason": topic_rerank_reason,
+                        "topic_rerank_policy": topic_rerank_policy,
+                        "topic_rerank_items_promoted": topic_rerank_items_promoted,
+                        "topic_rerank_top_hits": topic_rerank_top_hits,
+                    },
+                )
+                if request.final_answer_backend == "prompt" and llm_providers.final_answer is not None:
+                    final_evidence = select_items_for_final_answer(
+                        ranked_items,
+                        request=runtime_request,
+                        limit=final_answer_limit,
+                    )
+                    merged_final = final_answer_impl.answer(
+                        runtime_request,
+                        final_evidence,
+                        limit=final_answer_limit,
+                    )
+                    pipeline = replace(
+                        pipeline,
+                        final_answer=merged_final,
+                    )
+            else:
+                pipeline = replace(
+                    pipeline,
+                    diagnostics={
+                        **dict(pipeline.diagnostics),
+                        "topic_rerank_applied": False,
+                        "topic_rerank_reason": topic_rerank_reason,
+                        "topic_rerank_policy": topic_rerank_policy,
+                        "topic_rerank_items_promoted": 0,
+                        "topic_rerank_top_hits": topic_rerank_top_hits,
+                    },
+                )
+        except Exception as exc:
+            topic_rerank_reason = f"topic_rerank:error:{type(exc).__name__}: {exc}"
+        stage_timings.topic_rerank_sec += time.perf_counter() - t0
+
     topic_retry_triggered = False
     topic_retry_reason = ""
     topic_retry_items_added = 0
@@ -404,6 +514,7 @@ def run_norm_lookup(
             final_warnings=list(pipeline.final_answer.warnings),
             has_citations=bool(pipeline.final_answer.citations),
             resolved_doc_names=prepared_plan.resolved_doc_names if prepared_plan else (),
+            topic_rerank_applied=topic_rerank_applied,
         )
         if should_topic_retry:
             t0 = time.perf_counter()
@@ -512,10 +623,23 @@ def run_norm_lookup(
     diagnostics["retry_triggered"] = retry_triggered
     diagnostics["retry_reason"] = retry_reason
     diagnostics["retry_items_added"] = retry_items_added
+    diagnostics["topic_rerank_applied"] = topic_rerank_applied
+    diagnostics["topic_rerank_reason"] = topic_rerank_reason
+    diagnostics["topic_rerank_policy"] = topic_rerank_policy
+    diagnostics["topic_rerank_items_promoted"] = topic_rerank_items_promoted
+    diagnostics["topic_rerank_top_hits"] = topic_rerank_top_hits
     diagnostics["topic_retry_triggered"] = topic_retry_triggered
     diagnostics["topic_retry_reason"] = topic_retry_reason
     diagnostics["topic_retry_policy"] = topic_retry_policy
     diagnostics["topic_retry_items_added"] = topic_retry_items_added
+    if document_resolve_result is not None:
+        diagnostics["document_resolve_found"] = document_resolve_result.found
+        diagnostics["document_resolve_status"] = document_resolve_result.status
+        diagnostics["document_resolve_doc_id"] = document_resolve_result.doc_id
+        diagnostics["document_resolve_doc_name"] = document_resolve_result.doc_name
+        diagnostics["document_resolve_mention_kind"] = document_resolve_result.mention_kind
+        diagnostics["document_resolve_confidence"] = document_resolve_result.confidence
+        diagnostics["document_resolve_warnings"] = list(document_resolve_result.warnings)
     pipeline_stage_timings = PipelineStageTimings(**(diagnostics.get("stage_timings") or {}))
     stage_timings = stage_timings.merge(pipeline_stage_timings)
     stage_timings.norm_lookup_sec = time.perf_counter() - lookup_started

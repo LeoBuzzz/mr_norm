@@ -831,6 +831,7 @@ def prepare_query(
         )
 
     explicit_doc_name = str((filters or {}).get("doc_name") or "").strip()
+    skill_locked_doc_id = str((filters or {}).get("doc_id") or "").strip()
     point_hint = extract_point_number_hint(original_query)
     point_number_hints = [point_hint] if point_hint else []
     term_matches = match_query_terms(
@@ -879,6 +880,16 @@ def prepare_query(
         warnings.extend(partial_warnings)
         pre_resolved_doc = True
         resolver = "partial_order"
+    elif skill_locked_doc_id:
+        locked_entry = catalog.by_doc_id().get(skill_locked_doc_id) or catalog.by_id().get(skill_locked_doc_id)
+        if locked_entry is not None:
+            resolved_doc_names = [locked_entry.doc_name]
+            resolved_catalog_id = locked_entry.catalog_id
+            confidence = 1.0
+            ambiguous = False
+            pre_resolved_doc = True
+            resolver = "document_resolve_skill"
+            warnings.append("document_resolve_skill:locked_doc_id")
     elif not explicit_doc_name:
         (
             early_names,
@@ -1071,7 +1082,7 @@ def prepare_query(
             warnings=warnings,
             knowledge_links=knowledge_links,
         )
-        if resolved_doc_names and not _query_mentions_pue(original_query) and not enable_pue_aliases:
+        if resolved_doc_names and not skill_locked_doc_id and not _query_mentions_pue(original_query) and not enable_pue_aliases:
             if any(is_pue_document_name(name) for name in resolved_doc_names):
                 warnings.append(
                     "removed deterministic ПУЭ doc filter without explicit mention or enable_pue_aliases"
@@ -1080,7 +1091,9 @@ def prepare_query(
                 resolved_catalog_id = ""
                 ambiguous = True
         explicit_doc_hint = _query_mentions_pue(original_query) or bool(term_matches.document_hints)
-        if resolved_doc_names and _should_skip_title_phrase_doc_filter(term_matches, resolved_doc_names):
+        if skill_locked_doc_id:
+            pass
+        elif resolved_doc_names and _should_skip_title_phrase_doc_filter(term_matches, resolved_doc_names):
             warnings.append(
                 "resolved document title equals query phrase; doc_name filter not applied"
             )
@@ -1187,10 +1200,16 @@ def apply_prepared_plan(
     query: str,
     filters: dict[str, Any] | None,
     plan: PreparedQueryPlan,
+    *,
+    skill_locked_doc_id: str = "",
 ) -> tuple[str, dict[str, Any]]:
     merged_filters = dict(filters or {})
+    locked_doc_id = str(skill_locked_doc_id or merged_filters.get("doc_id") or "").strip()
     catalog_id = str(plan.document_resolution.catalog_id or "").strip()
-    if (
+    if locked_doc_id:
+        merged_filters["doc_id"] = locked_doc_id
+        merged_filters.pop("doc_name", None)
+    elif (
         plan.resolved_doc_names
         and not plan.ambiguous
         and len(plan.resolved_doc_names) == 1
