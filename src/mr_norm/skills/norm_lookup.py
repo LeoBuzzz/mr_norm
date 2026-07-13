@@ -45,7 +45,7 @@ from mr_norm.runtime.contracts import (
 )
 from mr_norm.runtime.dialog_memory import (
     DialogContext,
-    apply_dialog_document_inheritance,
+    apply_dialog_followup_filters,
     build_retrieval_query,
 )
 from mr_norm.runtime.final_answer import build_final_answer
@@ -440,7 +440,7 @@ def run_norm_lookup(
     document_resolve_result: DocumentResolveResult | None = None
     skill_locked_doc_id = ""
 
-    effective_filters, inherited_warnings = apply_dialog_document_inheritance(
+    effective_filters, inherited_warnings = apply_dialog_followup_filters(
         user_query,
         effective_filters,
         request.dialog_context,

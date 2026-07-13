@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 from mr_norm.apps.vk_bot import MRNormVKBot
 from mr_norm.runtime.contracts import Citation, PipelineResult, PreparedQueryPlan
-from mr_norm.runtime.dialog_memory import DialogSessionStore
+from mr_norm.runtime.dialog_memory import DialogSessionStore, DialogSourceReference
+from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.skills.norm_lookup import NormLookupResult, NormLookupTrace
 
 
@@ -81,6 +82,54 @@ def test_process_dialog_message_continues_existing_dialog() -> None:
     _, kwargs = bot._process_search.await_args
     assert kwargs["dialog_context"] is not None
     assert len(kwargs["dialog_context"].turns) == 1
+
+
+def test_process_search_records_source_references() -> None:
+    bot = MRNormVKBot.__new__(MRNormVKBot)
+    bot._dialog_sessions = DialogSessionStore()
+    bot._vk_answer = AsyncMock()
+    result = _norm_lookup_result("готовый ответ")
+    result = NormLookupResult(
+        answer=result.answer,
+        citations=[
+            Citation(
+                chunk_id="chunk_65",
+                doc_name="Правила технической эксплуатации",
+                point_number="65",
+            )
+        ],
+        evidence=[
+            RetrievedItem(
+                chunk_id="chunk_65",
+                doc_id="doc_pte",
+                doc_name="Правила технической эксплуатации",
+                point_number="65",
+                text="65. Текст пункта.",
+            )
+        ],
+        trace=result.trace,
+        warnings=result.warnings,
+        pipeline=result.pipeline,
+        prepared_plan=result.prepared_plan,
+    )
+    bot._run_norm_lookup = AsyncMock(return_value=result)
+
+    message = MagicMock(peer_id=100, from_id=200)
+    asyncio.run(
+        bot._process_search(
+            message,
+            "Дай текст п. 65",
+            session_key="100:200",
+            stored_user_text="Дай текст п. 65",
+            retrieval_query="Дай текст п. 65",
+        )
+    )
+
+    turn = bot._dialog_sessions.get("100:200").last_turn
+    assert turn is not None
+    assert len(turn.source_references) == 1
+    assert turn.source_references[0].doc_id == "doc_pte"
+    assert turn.source_references[0].point_number == "65"
 
 
 def test_process_search_records_turn_after_answer() -> None:

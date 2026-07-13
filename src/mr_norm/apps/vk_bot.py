@@ -27,6 +27,9 @@ from mr_norm.runtime.dialog_memory import (
     DialogSessionStore,
     build_retrieval_query,
     build_session_key,
+    extract_source_references_from_citations,
+    extract_source_references_from_evidence,
+    merge_source_references,
     parse_dialog_input,
 )
 from mr_norm.skills.norm_lookup import NormLookupResult, run_norm_lookup
@@ -493,6 +496,16 @@ class MRNormVKBot:
                     catalog_id = str(result.prepared_plan.document_resolution.catalog_id or "").strip()
                     if catalog_id and not catalog_id.startswith("knowledge:"):
                         resolved_doc_id = catalog_id
+                evidence_by_chunk = {
+                    item.chunk_id: item for item in result.evidence if item.chunk_id
+                }
+                source_references = merge_source_references(
+                    extract_source_references_from_citations(
+                        citations=tuple(result.citations),
+                        evidence_by_chunk_id=evidence_by_chunk,
+                    ),
+                    extract_source_references_from_evidence(result.evidence),
+                )
                 self._dialog_sessions.append_turn(
                     session_key,
                     user_text=stored_user_text.strip(),
@@ -500,6 +513,7 @@ class MRNormVKBot:
                     retrieval_query=retrieval_query or stored_user_text.strip(),
                     prepared_plan=result.prepared_plan,
                     resolved_doc_id=resolved_doc_id,
+                    source_references=source_references,
                 )
 
             header = "Ответ MR Norm:\n\n"

@@ -2,18 +2,22 @@ from __future__ import annotations
 
 import pytest
 
-from mr_norm.runtime.contracts import PreparedQueryPlan, DocumentResolution
+from mr_norm.runtime.contracts import PreparedQueryPlan, DocumentResolution, Citation
 from mr_norm.runtime.dialog_memory import (
     DialogContext,
     DialogSessionStore,
+    DialogSourceReference,
     DialogTurn,
-    apply_dialog_document_inheritance,
+    apply_dialog_followup_filters,
     build_retrieval_query,
     build_session_key,
+    extract_source_references_from_citations,
     is_follow_up_query,
     parse_dialog_input,
-    query_has_explicit_document_or_point,
+    query_has_explicit_document,
+    query_has_explicit_point,
 )
+from mr_norm.retrieval.contracts import RetrievedItem
 
 
 def test_parse_dialog_input_new_dialog() -> None:
@@ -83,7 +87,69 @@ def test_build_retrieval_query_keeps_standalone_question() -> None:
     assert build_retrieval_query(query, context) == query
 
 
-def test_apply_dialog_document_inheritance_requires_unambiguous_prior_doc() -> None:
+def test_apply_dialog_followup_inherits_doc_for_point_only_query() -> None:
+    context = DialogContext(
+        session_key="1:2",
+        turns=(
+            DialogTurn(
+                user_text="что такое оперативный персонал",
+                answer="определение",
+                resolved_doc_id="doc_pte",
+                resolved_doc_names=("Правила технической эксплуатации",),
+                resolve_unambiguous=True,
+            ),
+        ),
+    )
+    filters, warnings = apply_dialog_followup_filters("Дай текст п. 65", {}, context)
+    assert filters["doc_id"] == "doc_pte"
+    assert filters["point_number"] == "65"
+    assert "dialog:inherited_document_context" in warnings
+
+
+def test_apply_dialog_followup_resolves_doc_from_prior_citation() -> None:
+    context = DialogContext(
+        session_key="1:2",
+        turns=(
+            DialogTurn(
+                user_text="что такое оперативный персонал",
+                answer="определение",
+                source_references=(
+                    DialogSourceReference(
+                        doc_id="doc_pte",
+                        doc_name="Правила технической эксплуатации",
+                        point_number="65",
+                    ),
+                ),
+            ),
+        ),
+    )
+    filters, warnings = apply_dialog_followup_filters("Дай текст п. 65", {}, context)
+    assert filters["doc_id"] == "doc_pte"
+    assert filters["point_number"] == "65"
+    assert "dialog:resolved_document_from_prior_citation" in warnings
+
+
+def test_apply_dialog_followup_ambiguous_prior_point_sources() -> None:
+    context = DialogContext(
+        session_key="1:2",
+        turns=(
+            DialogTurn(
+                user_text="вопрос",
+                answer="ответ",
+                source_references=(
+                    DialogSourceReference(doc_id="doc_a", doc_name="A", point_number="65"),
+                    DialogSourceReference(doc_id="doc_b", doc_name="B", point_number="65"),
+                ),
+            ),
+        ),
+    )
+    filters, warnings = apply_dialog_followup_filters("Дай текст п. 65", {}, context)
+    assert "doc_id" not in filters
+    assert filters["point_number"] == "65"
+    assert "dialog:ambiguous_prior_point_sources" in warnings
+
+
+def test_apply_dialog_followup_requires_unambiguous_prior_doc() -> None:
     context = DialogContext(
         session_key="1:2",
         turns=(
@@ -96,12 +162,12 @@ def test_apply_dialog_document_inheritance_requires_unambiguous_prior_doc() -> N
             ),
         ),
     )
-    filters, warnings = apply_dialog_document_inheritance("как часто?", {}, context)
+    filters, warnings = apply_dialog_followup_filters("как часто?", {}, context)
     assert filters["doc_id"] == "doc_1"
     assert "dialog:inherited_document_context" in warnings
 
 
-def test_apply_dialog_document_inheritance_skips_when_new_doc_mentioned() -> None:
+def test_apply_dialog_followup_skips_when_new_doc_mentioned() -> None:
     context = DialogContext(
         session_key="1:2",
         turns=(
@@ -114,7 +180,7 @@ def test_apply_dialog_document_inheritance_skips_when_new_doc_mentioned() -> Non
             ),
         ),
     )
-    filters, warnings = apply_dialog_document_inheritance("а в ПУЭ?", {}, context)
+    filters, warnings = apply_dialog_followup_filters("а в ПУЭ?", {}, context)
     assert "doc_id" not in filters
     assert warnings == []
 
@@ -122,7 +188,25 @@ def test_apply_dialog_document_inheritance_skips_when_new_doc_mentioned() -> Non
 def test_is_follow_up_query() -> None:
     assert is_follow_up_query("как часто?") is True
     assert is_follow_up_query("а в ПУЭ?") is True
-    assert query_has_explicit_document_or_point("пункт 24 правил работы с персоналом") is True
+    assert is_follow_up_query("Дай текст п. 65") is True
+    assert query_has_explicit_point("пункт 24 правил работы с персоналом") is True
+    assert query_has_explicit_document("а в ПУЭ?") is True
+
+
+def test_extract_source_references_from_citations() -> None:
+    item = RetrievedItem(
+        chunk_id="chunk_65",
+        doc_id="doc_pte",
+        doc_name="Правила технической эксплуатации",
+        point_number="65",
+    )
+    refs = extract_source_references_from_citations(
+        citations=(Citation(chunk_id="chunk_65", doc_name="Правила технической эксплуатации", point_number="65"),),
+        evidence_by_chunk_id={"chunk_65": item},
+    )
+    assert len(refs) == 1
+    assert refs[0].doc_id == "doc_pte"
+    assert refs[0].point_number == "65"
 
 
 def test_append_turn_stores_plan_metadata() -> None:
