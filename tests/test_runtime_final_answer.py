@@ -97,6 +97,29 @@ def test_prompt_pack_final_answer_does_not_repair_refusal_without_evidence() -> 
     assert "anti_refusal_guard:refusal_not_repaired_without_evidence" in result.warnings
 
 
+def test_prompt_pack_final_answer_strips_inline_chunk_markers() -> None:
+    request = RuntimeRequest(query="персонал", limit=1)
+    evidence = make_evidence()
+
+    def provider(_request, _evidence, _pack):
+        return {
+            "answer": (
+                "Обязательны инструктаж [chunk_427c6953f3275013]; "
+                "стажировка [chunk_f70616a750524bc3, chunk_64bf37f4d473f483]; "
+                "и допуск chunk_3bee162df76faac0."
+            ),
+            "citations": [{"chunk_id": "chunk_1", "doc_name": "ПУЭ", "point_number": "1.7.1"}],
+        }
+
+    result = PromptPackFinalAnswer(provider=provider).answer(request, evidence)
+
+    assert "chunk_" not in result.answer
+    assert "инструктаж" in result.answer
+    assert "стажировка" in result.answer
+    assert "допуск" in result.answer
+    assert "final_answer:stripped_inline_chunk_markers" in result.warnings
+
+
 def test_build_final_answer_rejects_unknown_backend() -> None:
     import pytest
 

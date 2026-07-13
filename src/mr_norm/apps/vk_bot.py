@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,12 @@ from mr_norm.apps.vk_longpoll_settings import ensure_longpoll_message_new
 from mr_norm.apps.vk_token_file import get_community_token_from_env_or_file, oauth_user_token_url
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.runtime.dialog_memory import (
+    DialogSessionStore,
+    build_retrieval_query,
+    build_session_key,
+    parse_dialog_input,
+)
 from mr_norm.skills.norm_lookup import NormLookupResult, run_norm_lookup
 
 logger = logging.getLogger(__name__)
@@ -236,6 +243,7 @@ class MRNormVKBot:
         self._config: IndexingConfig | None = None
         self._paths = ProjectPaths.from_root()
         self._keys_path = self._paths.root / "keys"
+        self._dialog_sessions = DialogSessionStore()
         if not self._keys_path.is_file():
             self._keys_path = None
 
@@ -320,7 +328,7 @@ class MRNormVKBot:
                     _plain("Неизвестная команда. Доступны: /help, /status, /settings, /search, /set_limit, /mode"),
                 )
             else:
-                await self._process_search(message, raw)
+                await self._process_dialog_message(message, raw)
         except Exception as exc:
             logger.exception("Ошибка dispatch: %s", exc)
             await self._vk_answer(message, _plain(f"Ошибка: {exc}")[: VKConfig.MAX_MESSAGE_LENGTH])
@@ -335,6 +343,10 @@ class MRNormVKBot:
             "• /settings — текущие настройки\n"
             "• /set_limit <1–40> — лимит фрагментов\n"
             "• /mode <1|2|3> — режим: 1 deterministic, 2 ollama, 3 polza\n\n"
+            "Диалог:\n"
+            "• сообщение без точки продолжает текущий диалог\n"
+            "• .вопрос — начать новый диалог\n"
+            "• . — очистить диалог\n\n"
             "Пример: Какие требования к хранению проектной документации?"
         )
         await self._vk_answer(message, text)
@@ -397,7 +409,12 @@ class MRNormVKBot:
             self._config = IndexingConfig.from_env()
         return self._config
 
-    async def _run_norm_lookup(self, query: str) -> NormLookupResult:
+    async def _run_norm_lookup(
+        self,
+        query: str,
+        *,
+        dialog_context=None,
+    ) -> NormLookupResult:
         options = HumanCliOptions(
             query=query,
             mode_preset=self.settings.mode_preset,
@@ -406,6 +423,8 @@ class MRNormVKBot:
             profile=self.settings.profile,
         )
         request = build_norm_lookup_request(options)
+        if dialog_context is not None and dialog_context.turns:
+            request = replace(request, dialog_context=dialog_context)
         config = self._ensure_config()
         return await asyncio.to_thread(
             run_norm_lookup,
@@ -415,11 +434,51 @@ class MRNormVKBot:
             project_paths=self._paths,
         )
 
-    async def _process_search(self, message: Message, query: str) -> None:
+    async def _process_dialog_message(self, message: Message, raw: str) -> None:
+        query, is_new_dialog, reset_only = parse_dialog_input(raw)
+        session_key = build_session_key(
+            peer_id=getattr(message, "peer_id", 0),
+            from_id=getattr(message, "from_id", 0),
+        )
+        lock = self._dialog_sessions.lock_for(session_key)
+        async with lock:
+            if reset_only:
+                self._dialog_sessions.reset(session_key)
+                await self._vk_answer(message, _plain("Новый диалог. Задайте вопрос."))
+                return
+            if is_new_dialog:
+                self._dialog_sessions.reset(session_key)
+            dialog_context = self._dialog_sessions.get(session_key)
+            active_context = dialog_context if dialog_context.turns else None
+            if not query.strip():
+                await self._vk_answer(
+                    message,
+                    _plain("Пустое сообщение. Напишите вопрос или начните новый диалог через ."),
+                )
+                return
+            await self._process_search(
+                message,
+                query,
+                dialog_context=active_context,
+                session_key=session_key,
+                stored_user_text=query,
+                retrieval_query=build_retrieval_query(query, active_context),
+            )
+
+    async def _process_search(
+        self,
+        message: Message,
+        query: str,
+        *,
+        dialog_context=None,
+        session_key: str = "",
+        stored_user_text: str = "",
+        retrieval_query: str = "",
+    ) -> None:
         hard = 4096
         try:
             await self._vk_answer(message, "Ищу релевантные фрагменты...")
-            result = await self._run_norm_lookup(query)
+            result = await self._run_norm_lookup(query, dialog_context=dialog_context)
             response = _format_norm_lookup_for_vk(result)
             if not response.strip():
                 await self._vk_answer(
@@ -427,6 +486,21 @@ class MRNormVKBot:
                     _plain("Релевантные фрагменты не найдены. Попробуйте переформулировать вопрос."),
                 )
                 return
+
+            if session_key and stored_user_text.strip() and result.answer.strip():
+                resolved_doc_id = ""
+                if result.prepared_plan is not None:
+                    catalog_id = str(result.prepared_plan.document_resolution.catalog_id or "").strip()
+                    if catalog_id and not catalog_id.startswith("knowledge:"):
+                        resolved_doc_id = catalog_id
+                self._dialog_sessions.append_turn(
+                    session_key,
+                    user_text=stored_user_text.strip(),
+                    answer=result.answer,
+                    retrieval_query=retrieval_query or stored_user_text.strip(),
+                    prepared_plan=result.prepared_plan,
+                    resolved_doc_id=resolved_doc_id,
+                )
 
             header = "Ответ MR Norm:\n\n"
             parts = _split_message(response, max(hard - len(header) - 80, 500))

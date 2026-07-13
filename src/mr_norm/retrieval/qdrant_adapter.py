@@ -63,6 +63,10 @@ class QdrantRetrievalClient:
 def point_to_item(point: Any, *, source_tool: str) -> RetrievedItem:
     payload = dict(getattr(point, "payload", None) or {})
     score = getattr(point, "score", None)
+    part_index = payload.get("part_index")
+    total_parts = payload.get("total_parts")
+    is_split = payload.get("is_split")
+    is_complete_point = payload.get("is_complete_point")
     return RetrievedItem(
         chunk_id=str(payload.get("chunk_id") or ""),
         doc_id=str(payload.get("doc_id") or ""),
@@ -76,6 +80,10 @@ def point_to_item(point: Any, *, source_tool: str) -> RetrievedItem:
         source_tool=source_tool,
         point_identity_key=str(payload.get("point_identity_key") or ""),
         qdrant_point_id=str(getattr(point, "id", "") or ""),
+        part_index=int(part_index) if part_index is not None else 0,
+        total_parts=int(total_parts) if total_parts is not None else 1,
+        is_split=bool(is_split) if is_split is not None else False,
+        is_complete_point=bool(is_complete_point) if is_complete_point is not None else True,
         matched={},
     )
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Protocol
 
@@ -16,6 +17,24 @@ REFUSAL_MARKERS = (
     "не содержит",
     "не найден",
 )
+
+# Inline markers like [chunk_abc] or [chunk_a, chunk_b] that models sometimes paste into answer.
+INLINE_CHUNK_MARKER_RE = re.compile(
+    r"\s*\[\s*chunk_[0-9a-fA-F]+(?:\s*,\s*chunk_[0-9a-fA-F]+)*\s*\]",
+    re.IGNORECASE,
+)
+BARE_CHUNK_ID_RE = re.compile(r"\bchunk_[0-9a-fA-F]{8,}\b", re.IGNORECASE)
+
+
+def strip_inline_chunk_markers(answer: str) -> str:
+    """Remove internal chunk ids from user-facing answer text."""
+    text = INLINE_CHUNK_MARKER_RE.sub("", answer or "")
+    text = BARE_CHUNK_ID_RE.sub("", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r" +\n", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    return text.strip()
 
 
 def _looks_like_refusal_answer(answer: str) -> bool:
@@ -127,7 +146,9 @@ def _parse_final_answer_payload(
     warnings = list(normalize_warnings)
     citations, citation_warnings = validate_citations(evidence, normalized["citations"])
     warnings.extend(citation_warnings)
-    answer = normalized["answer"]
+    answer = strip_inline_chunk_markers(normalized["answer"])
+    if answer != (normalized["answer"] or "").strip():
+        warnings.append("final_answer:stripped_inline_chunk_markers")
     if not citations:
         warnings = list(warnings) + ["final answer returned no valid citations"]
     return answer, citations, warnings

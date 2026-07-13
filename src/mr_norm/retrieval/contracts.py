@@ -28,6 +28,10 @@ class RetrievedItem:
     source_tool: str = ""
     point_identity_key: str = ""
     qdrant_point_id: str = ""
+    part_index: int = 0
+    total_parts: int = 1
+    is_split: bool = False
+    is_complete_point: bool = True
     matched: dict[str, Any] = field(default_factory=dict)
 
 

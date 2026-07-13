@@ -175,10 +175,14 @@ def build_final_answer_llm_provider(
         pack: Mapping[str, Any],
     ) -> dict[str, Any]:
         user_payload = {
-            "query": request.query,
+            "query": (request.user_query or request.query).strip(),
             "evidence": _serialize_evidence(evidence, limit=request.limit),
             "output_contract": pack.get("output_contract"),
         }
+        if request.user_query and request.user_query.strip() != request.query.strip():
+            user_payload["retrieval_query"] = request.query.strip()
+        if request.dialog_context and request.dialog_context.turns:
+            user_payload["dialog_turns"] = request.dialog_context.to_llm_turns(limit=5)
         return chat_json_with_model_fallback(
             llm_provider,
             models,

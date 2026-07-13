@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest, ToolResult
+
+if TYPE_CHECKING:
+    from mr_norm.runtime.dialog_memory import DialogContext
 
 
 @dataclass(frozen=True)
@@ -105,6 +108,8 @@ class RuntimeRequest:
     trace_id: str = ""
     mode: str = "evidence"
     prepared_plan: PreparedQueryPlan | None = None
+    user_query: str = ""
+    dialog_context: "DialogContext | None" = None
 
 
 @dataclass(frozen=True)

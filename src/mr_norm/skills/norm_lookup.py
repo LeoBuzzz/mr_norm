@@ -19,6 +19,7 @@ from mr_norm.retrieval.doc_point_topic_index import (
     should_attempt_topic_retry,
     topic_hit_to_retrieved_item,
 )
+from mr_norm.retrieval.document_catalog import extract_document_label_hint
 from mr_norm.retrieval.gost_definitions import (
     GostSnippet,
     gost_snippet_in_top_evidence,
@@ -29,11 +30,23 @@ from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool
 from mr_norm.runtime.contracts import (
     Citation,
+    FinalAnswerResult,
     PipelineResult,
+    PipelineTrace,
+    PlannerPlan,
     PreparedQueryPlan,
     PreparedToolQuery,
     QueryUnderstandingResult,
+    RerankResult,
+    RuntimeMetrics,
     RuntimeRequest,
+    RuntimeResult,
+    RuntimeTrace,
+)
+from mr_norm.runtime.dialog_memory import (
+    DialogContext,
+    apply_dialog_document_inheritance,
+    build_retrieval_query,
 )
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
@@ -48,7 +61,8 @@ from mr_norm.runtime.pipeline_diagnostics import (
     should_retry_soft_catalog_lookup,
 )
 from mr_norm.runtime.planner import build_planner
-from mr_norm.skills.document_resolve import DocumentResolveResult, resolve_document
+from mr_norm.skills.document_resolve import DocumentResolveResult, resolve_document, resolve_document_from_label
+from mr_norm.skills.point_lookup import PointLookupRequest, PointLookupResult, lookup_point
 from mr_norm.runtime.query_planner import (
     apply_prepared_plan,
     plan_query,
@@ -75,6 +89,7 @@ class NormLookupRequest:
     final_answer_model: str | None = None
     understand_query_mode: str = "auto"
     enable_pue_aliases: bool | None = None
+    dialog_context: DialogContext | None = None
 
     def to_runtime_request(self) -> RuntimeRequest:
         retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(self.limit)
@@ -87,6 +102,8 @@ class NormLookupRequest:
             profile=self.profile,
             trace_id=self.trace_id or "norm_lookup",
             mode=self.mode,
+            user_query=self.query,
+            dialog_context=self.dialog_context,
         )
 
 
@@ -187,6 +204,172 @@ def _run_doc_point_retry(
     return list(result.items), "retry:point_tool_refetch"
 
 
+def _resolve_document_for_norm_lookup(
+    *,
+    query: str,
+    project_paths: ProjectPaths | None,
+    enable_pue_aliases: bool | None,
+) -> DocumentResolveResult:
+    document_resolve_result = resolve_document(
+        query,
+        project_paths=project_paths,
+        enable_pue_aliases=enable_pue_aliases,
+    )
+    if document_resolve_result.found and document_resolve_result.status in {"exact", "probable"}:
+        return document_resolve_result
+
+    label = extract_document_label_hint(query)
+    if not label:
+        return document_resolve_result
+
+    label_result = resolve_document_from_label(
+        label,
+        project_paths=project_paths,
+        enable_pue_aliases=enable_pue_aliases,
+    )
+    if label_result.found and label_result.status in {"exact", "probable"}:
+        return label_result
+    return document_resolve_result
+
+
+def _pipeline_from_point_lookup(
+    *,
+    point_result: PointLookupResult,
+    request: NormLookupRequest,
+) -> PipelineResult:
+    evidence = list(point_result.evidence)
+    citations = list(point_result.citations)
+    runtime = RuntimeResult(
+        items=evidence,
+        tool_results={},
+        plan=[],
+        trace=RuntimeTrace(
+            trace_id=request.trace_id or "norm_lookup_point",
+            profile=request.profile,
+            selected_tools=["point"],
+            fusion="point_lookup_fast_path",
+        ),
+        metrics=RuntimeMetrics(
+            elapsed_sec=0.0,
+            tools_planned=1,
+            tools_succeeded=1 if evidence else 0,
+            items_returned=len(evidence),
+        ),
+    )
+    return PipelineResult(
+        runtime=runtime,
+        planner=PlannerPlan(selected_tools=["point"]),
+        rerank=RerankResult(items=evidence),
+        final_answer=FinalAnswerResult(
+            answer=point_result.answer,
+            citations=citations,
+            warnings=list(point_result.warnings),
+        ),
+        trace=PipelineTrace(
+            planner_backend=request.planner_backend,
+            reranker_backend=request.reranker_backend,
+            final_answer_backend="verbatim_point",
+        ),
+        warnings=list(point_result.warnings),
+        diagnostics={"point_lookup_fast_path": True, "point_lookup_status": point_result.status},
+    )
+
+
+def _try_point_lookup_fast_path(
+    *,
+    request: NormLookupRequest,
+    config: IndexingConfig,
+    project_paths: ProjectPaths | None,
+    prepared_plan: PreparedQueryPlan | None,
+    effective_filters: dict[str, Any],
+    understanding: QueryUnderstandingResult | None,
+    gost_snippets: list[GostSnippet],
+    document_resolve_result: DocumentResolveResult | None,
+    stage_timings: PipelineStageTimings,
+    lookup_started: float,
+) -> NormLookupResult | None:
+    if not prepared_plan or prepared_plan.question_type != "point_lookup":
+        return None
+
+    point_numbers: list[str] = []
+    if prepared_plan.point_number_hints:
+        point_numbers = [str(item).strip() for item in prepared_plan.point_number_hints if str(item).strip()]
+    elif str(effective_filters.get("point_number") or "").strip():
+        point_numbers = [str(effective_filters["point_number"]).strip()]
+
+    doc_id = str(effective_filters.get("doc_id") or "").strip()
+    doc_name = str(effective_filters.get("doc_name") or "").strip()
+    if not (doc_id or doc_name) and document_resolve_result and document_resolve_result.found:
+        doc_id = str(document_resolve_result.doc_id or "").strip()
+        doc_name = str(document_resolve_result.doc_name or "").strip()
+    if not (doc_id or doc_name):
+        label = extract_document_label_hint(request.query)
+        if label:
+            label_result = resolve_document_from_label(
+                label,
+                project_paths=project_paths,
+                enable_pue_aliases=request.enable_pue_aliases,
+            )
+            if label_result.found:
+                doc_id = str(label_result.doc_id or "").strip()
+                doc_name = str(label_result.doc_name or "").strip()
+                document_resolve_result = label_result
+
+    if not point_numbers or not (doc_id or doc_name):
+        return None
+
+    point_result = lookup_point(
+        PointLookupRequest(
+            query=request.query,
+            doc_id=doc_id,
+            doc_name=doc_name,
+            point_numbers=tuple(point_numbers),
+            trace_id=request.trace_id or "norm_lookup_point",
+        ),
+        config=config,
+        project_paths=project_paths,
+    )
+    if not point_result.found or not point_result.text.strip():
+        return None
+
+    retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
+    pipeline = _pipeline_from_point_lookup(point_result=point_result, request=request)
+    evidence = list(point_result.evidence)
+    warnings = list(dict.fromkeys([*pipeline.warnings, "norm_lookup:point_lookup_fast_path"]))
+    diagnostics = dict(pipeline.diagnostics)
+    if document_resolve_result is not None:
+        diagnostics["document_resolve_found"] = document_resolve_result.found
+        diagnostics["document_resolve_status"] = document_resolve_result.status
+        diagnostics["document_resolve_doc_id"] = document_resolve_result.doc_id
+        diagnostics["document_resolve_doc_name"] = document_resolve_result.doc_name
+    stage_timings.norm_lookup_sec = time.perf_counter() - lookup_started
+    diagnostics["stage_timings"] = stage_timings.with_total().to_dict()
+
+    return NormLookupResult(
+        answer=point_result.answer,
+        citations=list(point_result.citations),
+        evidence=evidence,
+        trace=NormLookupTrace(
+            planner_backend=request.planner_backend,
+            reranker_backend=request.reranker_backend,
+            final_answer_backend="verbatim_point",
+            runtime_profile=request.profile,
+            runtime_fusion="point_lookup_fast_path",
+            trace_id=request.trace_id or "norm_lookup_point",
+            selected_tools=("point",),
+            gost_prefetch_count=len(gost_snippets),
+            retrieval_limit=retrieval_limit,
+            final_answer_limit=final_answer_limit,
+            pipeline_diagnostics=diagnostics,
+        ),
+        warnings=warnings,
+        pipeline=pipeline,
+        understanding=understanding,
+        prepared_plan=prepared_plan,
+        gost_snippets=tuple(snippet.to_dict() for snippet in gost_snippets),
+    )
+
+
 def _payload_search_query(
     *,
     request: NormLookupRequest,
@@ -248,19 +431,29 @@ def run_norm_lookup(
     stage_timings = PipelineStageTimings()
     understanding: QueryUnderstandingResult | None = None
     prepared_plan: PreparedQueryPlan | None = None
-    effective_query = request.query
+    user_query = (request.query or "").strip()
+    retrieval_query = build_retrieval_query(user_query, request.dialog_context)
+    effective_query = retrieval_query
     effective_filters = dict(request.filters)
+    dialog_warnings: list[str] = []
     gost_snippets: list[GostSnippet] = []
     document_resolve_result: DocumentResolveResult | None = None
     skill_locked_doc_id = ""
 
+    effective_filters, inherited_warnings = apply_dialog_document_inheritance(
+        user_query,
+        effective_filters,
+        request.dialog_context,
+    )
+    dialog_warnings.extend(inherited_warnings)
+
     t0 = time.perf_counter()
-    gost_snippets = prefetch_gost_snippets(request.query, config, request.filters)
+    gost_snippets = prefetch_gost_snippets(retrieval_query, config, effective_filters)
     stage_timings.gost_prefetch_sec = time.perf_counter() - t0
 
     if not effective_filters.get("doc_id") and not str(effective_filters.get("doc_name") or "").strip():
-        document_resolve_result = resolve_document(
-            request.query,
+        document_resolve_result = _resolve_document_for_norm_lookup(
+            query=retrieval_query,
             project_paths=project_paths,
             enable_pue_aliases=request.enable_pue_aliases,
         )
@@ -271,7 +464,7 @@ def run_norm_lookup(
     if request.understand_query_mode != "off":
         t0 = time.perf_counter()
         prepared_plan = plan_query(
-            request.query,
+            retrieval_query,
             filters=effective_filters,
             mode=request.understand_query_mode,
             llm_provider=request.llm_provider,
@@ -279,15 +472,37 @@ def run_norm_lookup(
             project_paths=project_paths,
             enable_pue_aliases=request.enable_pue_aliases,
             gost_snippets=[snippet.to_dict() for snippet in gost_snippets],
+            dialog_context=request.dialog_context,
+            user_query=user_query,
         )
         stage_timings.query_planning_sec = time.perf_counter() - t0
         understanding = prepared_plan_to_understanding(prepared_plan)
         effective_query, effective_filters = apply_prepared_plan(
-            request.query,
+            user_query,
             effective_filters,
             prepared_plan,
             skill_locked_doc_id=skill_locked_doc_id,
         )
+
+    fast_path_result = _try_point_lookup_fast_path(
+        request=request,
+        config=config,
+        project_paths=project_paths,
+        prepared_plan=prepared_plan,
+        effective_filters=effective_filters,
+        understanding=understanding,
+        gost_snippets=gost_snippets,
+        document_resolve_result=document_resolve_result,
+        stage_timings=stage_timings,
+        lookup_started=lookup_started,
+    )
+    if fast_path_result is not None:
+        if dialog_warnings:
+            fast_path_result = replace(
+                fast_path_result,
+                warnings=list(dict.fromkeys([*dialog_warnings, *fast_path_result.warnings])),
+            )
+        return fast_path_result
 
     retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
     runtime_request = RuntimeRequest(
@@ -300,6 +515,8 @@ def run_norm_lookup(
         trace_id=request.trace_id or "norm_lookup",
         mode=request.mode,
         prepared_plan=prepared_plan,
+        user_query=user_query,
+        dialog_context=request.dialog_context,
     )
 
     llm_providers = build_pipeline_llm_providers(
@@ -614,7 +831,7 @@ def run_norm_lookup(
     understanding_warnings = (
         list(understanding.warnings) if understanding is not None else []
     )
-    warnings = list(pipeline.warnings) + plan_warnings + understanding_warnings + final_warnings
+    warnings = list(pipeline.warnings) + plan_warnings + understanding_warnings + final_warnings + dialog_warnings
     if retry_triggered:
         warnings.append(f"doc_point_retry:{retry_reason}:added={retry_items_added}")
     warnings = list(dict.fromkeys(warnings))

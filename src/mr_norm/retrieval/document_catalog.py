@@ -62,9 +62,22 @@ POINT_HINT_PATTERNS = (
         re.IGNORECASE,
     ),
 )
+POINT_MULTI_AND_PATTERN = re.compile(
+    r"(?:пункт\w*|п\.?\s*)\s*(\d+(?:[._]\d+)*(?:\s+и\s+\d+(?:[._]\d+)*)+)",
+    re.IGNORECASE,
+)
+POINT_MULTI_LIST_PATTERN = re.compile(
+    r"(?:пункт\w*|п\.?\s*)\s*((?:\d+(?:[._]\d+)*\s*,\s*)+\d+(?:[._]\d+)*)",
+    re.IGNORECASE,
+)
+DOCUMENT_LABEL_HINT_PATTERN = re.compile(
+    r"\b(птуэ|птэ|пуэ|пот|оду|птф|pue|pte|ptf)\b",
+    re.IGNORECASE,
+)
 KNOWN_QUERY_ALIASES: dict[str, tuple[str, ...]] = {
     "пуэ": ("правила устройства электроустановок", "электроустановок"),
     "птэ": ("правила технической эксплуатации", "технической эксплуатации"),
+    "птф": ("правила технологического функционирования", "технологического функционирования"),
     "озп": ("отопительный сезон", "готовности"),
 }
 PARTIAL_ORDER_HINT_PATTERNS = (
@@ -77,6 +90,7 @@ ENERGY_SECTOR_QUERY_MARKERS = (
     "электроэнергет",
     "электроустанов",
     "птэ",
+    "птф",
     "пуэ",
     "диспетчер",
     "лэп",
@@ -325,14 +339,54 @@ def _looks_like_calendar_date(value: str) -> bool:
     return 1 <= day <= 31 and 1 <= month <= 12 and 1900 <= year <= 2099
 
 
-def extract_point_number_hint(query: str) -> str:
+def _collect_point_numbers_from_block(block: str) -> list[str]:
+    hints: list[str] = []
+    for match in re.finditer(r"\d+(?:[._]\d+)*", block):
+        value = match.group(0)
+        if value and not _looks_like_calendar_date(value.replace("_", ".")):
+            hints.append(value)
+    return hints
+
+
+def extract_point_number_hints(query: str) -> list[str]:
     text = query or ""
-    for pattern in POINT_HINT_PATTERNS:
-        for match in pattern.finditer(text):
-            value = (match.group(1) or "").strip()
-            if value and not _looks_like_calendar_date(value):
-                return value
-    return ""
+    hints: list[str] = []
+
+    multi_and = POINT_MULTI_AND_PATTERN.search(text)
+    if multi_and:
+        hints.extend(_collect_point_numbers_from_block(multi_and.group(1)))
+
+    if not hints:
+        multi_list = POINT_MULTI_LIST_PATTERN.search(text)
+        if multi_list:
+            hints.extend(_collect_point_numbers_from_block(multi_list.group(1)))
+
+    if not hints:
+        for pattern in POINT_HINT_PATTERNS:
+            for match in pattern.finditer(text):
+                value = (match.group(1) or "").strip()
+                if value and not _looks_like_calendar_date(value.replace("_", ".")):
+                    hints.append(value)
+                    break
+            if hints:
+                break
+
+    return list(dict.fromkeys(hints))
+
+
+def extract_point_number_hint(query: str) -> str:
+    hints = extract_point_number_hints(query)
+    return hints[0] if hints else ""
+
+
+def extract_document_label_hint(query: str) -> str:
+    text = (query or "").strip()
+    if not text:
+        return ""
+    matches = list(DOCUMENT_LABEL_HINT_PATTERN.finditer(text))
+    if not matches:
+        return ""
+    return matches[-1].group(1)
 
 
 def _acronym_from_doc_name(doc_name: str) -> str:

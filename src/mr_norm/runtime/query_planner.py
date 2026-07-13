@@ -7,10 +7,11 @@ from pathlib import Path
 from typing import Any
 
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.runtime.dialog_memory import DialogContext
 from mr_norm.retrieval.document_catalog import (
     DocumentCatalog,
     DocumentCandidate,
-    extract_point_number_hint,
+    extract_point_number_hints,
     find_catalog_candidates,
     is_generic_tech_reg_doc_name,
     load_default_document_catalog,
@@ -788,6 +789,8 @@ def _llm_plan(
     llm_provider: str,
     keys_path: Path | None = None,
     gost_definitions: list[dict[str, Any]] | None = None,
+    dialog_context: DialogContext | None = None,
+    user_query: str = "",
 ) -> tuple[dict[str, Any], list[str]]:
     pack = load_prompt_pack_by_role("query_planning")
     profile = resolve_role_profile(llm_provider, "query_planning")
@@ -797,6 +800,11 @@ def _llm_plan(
         "matched_terms": matched_terms,
         "output_contract": pack.get("output_contract"),
     }
+    current_user_query = (user_query or query).strip()
+    if current_user_query and current_user_query != query.strip():
+        user_payload["current_user_query"] = current_user_query
+    if dialog_context and dialog_context.turns:
+        user_payload["dialog_turns"] = dialog_context.to_llm_turns(limit=3)
     if gost_definitions:
         user_payload["gost_definitions"] = gost_definitions
     payload = chat_json_with_model_fallback(
@@ -822,34 +830,37 @@ def prepare_query(
     keys_path: Path | None = None,
     enable_pue_aliases: bool = False,
     gost_snippets: list[dict[str, Any]] | None = None,
+    dialog_context: DialogContext | None = None,
+    user_query: str = "",
 ) -> PreparedQueryPlan:
-    original_query = (query or "").strip()
+    retrieval_query = (query or "").strip()
+    original_query = (user_query or retrieval_query).strip()
     if mode == "off" or not original_query:
         return PreparedQueryPlan(
             original_query=original_query,
             trace=QueryPlannerTrace(mode="off", resolver="none"),
         )
 
+    search_query = retrieval_query or original_query
     explicit_doc_name = str((filters or {}).get("doc_name") or "").strip()
     skill_locked_doc_id = str((filters or {}).get("doc_id") or "").strip()
-    point_hint = extract_point_number_hint(original_query)
-    point_number_hints = [point_hint] if point_hint else []
+    point_number_hints = extract_point_number_hints(original_query)
     term_matches = match_query_terms(
-        original_query,
+        search_query,
         knowledge,
         enable_pue_aliases=enable_pue_aliases,
     )
     matched_terms = term_matches.flat_terms()
 
     catalog_candidates = find_catalog_candidates(
-        original_query,
+        search_query,
         catalog,
         explicit_doc_name=explicit_doc_name,
         limit=8,
         enable_pue_aliases=enable_pue_aliases,
     )
     knowledge_candidates = find_knowledge_candidates(
-        original_query,
+        search_query,
         knowledge,
         limit=12,
         enable_pue_aliases=enable_pue_aliases,
@@ -861,8 +872,8 @@ def prepare_query(
         knowledge_candidates,
         knowledge_links=knowledge_links,
     )
-    candidates = _demote_generic_fz_candidates(candidates, original_query)
-    candidates = _boost_semantic_catalog_candidates(candidates, original_query)
+    candidates = _demote_generic_fz_candidates(candidates, search_query)
+    candidates = _boost_semantic_catalog_candidates(candidates, search_query)
 
     resolver = "deterministic"
     warnings: list[str] = []
@@ -874,7 +885,7 @@ def prepare_query(
     early_doc_resolver_applied = False
     early_doc_resolver_reason = ""
 
-    partial_hit = resolve_by_partial_order_hint(original_query, catalog)
+    partial_hit = resolve_by_partial_order_hint(search_query, catalog)
     if partial_hit:
         resolved_doc_names, resolved_catalog_id, confidence, ambiguous, partial_warnings = partial_hit
         warnings.extend(partial_warnings)
@@ -900,7 +911,7 @@ def prepare_query(
             early_reason,
         ) = try_early_deterministic_doc_resolution(
             candidates,
-            original_query=original_query,
+            original_query=search_query,
             explicit_doc_name=explicit_doc_name,
         )
         if early_applied:
@@ -913,7 +924,7 @@ def prepare_query(
             early_doc_resolver_reason = early_reason
             resolver = "early_deterministic"
             warnings.append(early_reason)
-    question_type = "point_lookup" if point_number_hints else detect_query_intent(original_query)
+    question_type = "point_lookup" if point_number_hints else detect_query_intent(search_query)
     answer_shape = "narrow"
     concepts: list[str] = list(
         dict.fromkeys([*term_matches.exact_phrase_terms, *term_matches.abbreviation_expansions[:4]])
@@ -941,15 +952,17 @@ def prepare_query(
             }
             if gost_payload:
                 llm_kwargs["gost_definitions"] = gost_payload
+            llm_kwargs["dialog_context"] = dialog_context
+            llm_kwargs["user_query"] = original_query
             llm_data, llm_warnings = _llm_plan(
-                original_query,
+                search_query,
                 candidates,
                 matched_terms,
                 **llm_kwargs,
             )
             llm_data, sanitize_warnings = _sanitize_llm_plan_fields(
                 llm_data,
-                original_query=original_query,
+                original_query=search_query,
                 enable_pue_aliases=enable_pue_aliases,
                 term_matches=term_matches,
             )
@@ -967,7 +980,7 @@ def prepare_query(
             confidence = float(llm_data.get("confidence", 0.0))
             candidate_names = llm_data.get("resolved_doc_names", [])
             selected_ids = llm_data.get("selected_catalog_ids", [])
-            min_doc_confidence = effective_doc_confidence_threshold(original_query)
+            min_doc_confidence = effective_doc_confidence_threshold(search_query)
             if pre_resolved_doc:
                 if confidence >= min_doc_confidence and len(candidate_names) == 1:
                     resolved_doc_names = candidate_names
@@ -1012,7 +1025,7 @@ def prepare_query(
                     fallback_confidence,
                     fallback_ambiguous,
                     fallback_warnings,
-                ) = _conditional_deterministic_fallback(candidates, original_query=original_query)
+                ) = _conditional_deterministic_fallback(candidates, original_query=search_query)
                 warnings.extend(fallback_warnings)
                 if fallback_names:
                     resolved_doc_names = fallback_names
@@ -1022,7 +1035,7 @@ def prepare_query(
                     resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
                 llm_data.get("tool_queries"),
-                original_query,
+                search_query,
                 term_matches=term_matches,
                 significant_words=significant_words,
                 question_type=question_type,
@@ -1031,7 +1044,7 @@ def prepare_query(
             warnings.append(f"llm query planning failed: {type(exc).__name__}: {exc}")
             if not pre_resolved_doc:
                 resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-                    _deterministic_resolve(candidates, original_query=original_query)
+                    _deterministic_resolve(candidates, original_query=search_query)
                 )
                 warnings.extend(det_warnings)
                 (
@@ -1042,7 +1055,7 @@ def prepare_query(
                     warnings,
                 ) = _apply_intent_document_resolution(
                     catalog=catalog,
-                    original_query=original_query,
+                    original_query=search_query,
                     question_type=question_type,
                     resolved_doc_names=resolved_doc_names,
                     resolved_catalog_id=resolved_catalog_id,
@@ -1054,7 +1067,7 @@ def prepare_query(
                 resolver = "deterministic_fallback"
             tool_queries = _normalize_tool_queries(
                 {},
-                original_query,
+                search_query,
                 term_matches=term_matches,
                 significant_words=significant_words,
                 question_type=question_type,
@@ -1062,7 +1075,7 @@ def prepare_query(
     else:
         if not pre_resolved_doc:
             resolved_doc_names, resolved_catalog_id, confidence, ambiguous, det_warnings = (
-                _deterministic_resolve(candidates, original_query=original_query)
+                _deterministic_resolve(candidates, original_query=search_query)
             )
             warnings.extend(det_warnings)
         (
@@ -1073,7 +1086,7 @@ def prepare_query(
             warnings,
         ) = _apply_intent_document_resolution(
             catalog=catalog,
-            original_query=original_query,
+            original_query=search_query,
             question_type=question_type,
             resolved_doc_names=resolved_doc_names,
             resolved_catalog_id=resolved_catalog_id,
@@ -1122,7 +1135,7 @@ def prepare_query(
             ambiguous = True
         tool_queries = _normalize_tool_queries(
             {},
-            original_query,
+            search_query,
             term_matches=term_matches,
             significant_words=significant_words,
             question_type=question_type,
@@ -1135,7 +1148,7 @@ def prepare_query(
         tool_queries = enrich_tool_queries_with_gost(
             tool_queries,
             snippets,
-            original_query=original_query,
+            original_query=search_query,
         )
 
     intent_routing_mode = ""
@@ -1289,6 +1302,8 @@ def plan_query(
     project_paths: ProjectPaths | None = None,
     enable_pue_aliases: bool | None = None,
     gost_snippets: list[dict[str, Any]] | None = None,
+    dialog_context: DialogContext | None = None,
+    user_query: str = "",
 ) -> PreparedQueryPlan:
     from mr_norm.config.pue_aliases import resolve_enable_pue_aliases
 
@@ -1303,4 +1318,6 @@ def plan_query(
         keys_path=keys_path,
         enable_pue_aliases=resolve_enable_pue_aliases(enable_pue_aliases),
         gost_snippets=gost_snippets,
+        dialog_context=dialog_context,
+        user_query=user_query,
     )

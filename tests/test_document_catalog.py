@@ -6,7 +6,9 @@ from pathlib import Path
 from mr_norm.retrieval.document_catalog import (
     DocumentCatalog,
     DocumentCatalogEntry,
+    extract_document_label_hint,
     extract_point_number_hint,
+    extract_point_number_hints,
     find_catalog_candidates,
     is_generic_tech_reg_doc_name,
     load_catalog_snapshot,
@@ -62,6 +64,17 @@ def test_extract_point_number_hint() -> None:
         == "4.14_1"
     )
     assert extract_point_number_hint("от 28.05.2008 № 400") == ""
+
+
+def test_extract_point_number_hints_multi() -> None:
+    assert extract_point_number_hints("Дай текст пунктов 3 и 99 ПТФ") == ["3", "99"]
+    assert extract_point_number_hints("п. 3, 99 правил") == ["3", "99"]
+    assert extract_point_number_hints("пункт 24 правил работы с персоналом") == ["24"]
+
+
+def test_extract_document_label_hint() -> None:
+    assert extract_document_label_hint("Дай текст пунктов 3 и 99 ПТФ") == "ПТФ"
+    assert extract_document_label_hint("что в ПУЭ про заземление") == "ПУЭ"
 
 
 def test_resolve_by_partial_order_hint_minenergo_number() -> None:
