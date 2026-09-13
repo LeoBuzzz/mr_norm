@@ -11,6 +11,7 @@ set QDRANT_HOST=localhost
 set QDRANT_PORT=6333
 set MR_NORM_QDRANT_COLLECTION=mr_norm_docs_bge_m3
 set RAG_EMBEDDING_DEVICE=cpu
+set MR_NORM_ENABLE_TAIL_POINT_FALLBACK=1
 
 "%PY%" -c "import vkbottle" 2>nul || (
     echo vkbottle not found, installing...
