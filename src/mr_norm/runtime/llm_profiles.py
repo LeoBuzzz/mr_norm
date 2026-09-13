@@ -12,11 +12,11 @@ OLLAMA_FINAL_ANSWER_FALLBACK_MODEL = "qwen3:30b"
 
 # Polza: cloud defaults (aligned with rag_norm: strong JSON planner + reliable final prose)
 POLZA_PLANNER_MODEL = "deepseek/deepseek-v3.2"
-POLZA_PLANNER_FALLBACK_MODEL = "openai/gpt-4o"
+POLZA_PLANNER_FALLBACK_MODEL = ""
 POLZA_RERANKER_MODEL = "qwen/qwen3.5-flash-02-23"
-POLZA_RERANKER_FALLBACK_MODEL = "google/gemini-3.1-flash-lite"
+POLZA_RERANKER_FALLBACK_MODEL = ""
 POLZA_FINAL_ANSWER_MODEL = "deepseek/deepseek-v3.2"
-POLZA_FINAL_ANSWER_FALLBACK_MODEL = "anthropic/claude-sonnet-4.6"
+POLZA_FINAL_ANSWER_FALLBACK_MODEL = ""
 POLZA_PREMIUM_FINAL_ANSWER_MODEL = "anthropic/claude-sonnet-4.6"
 
 
@@ -35,6 +35,8 @@ class LLMProviderProfiles:
     final_answer: LLMRoleProfile
     query_understanding: LLMRoleProfile
     query_planning: LLMRoleProfile
+    deep_research_analysis: LLMRoleProfile
+    deep_research_memo: LLMRoleProfile
 
 
 OLLAMA_PROFILES = LLMProviderProfiles(
@@ -62,6 +64,18 @@ OLLAMA_PROFILES = LLMProviderProfiles(
         model=OLLAMA_PLANNER_MODEL,
         fallback_model=OLLAMA_PLANNER_FALLBACK_MODEL,
         max_tokens=1536,
+    ),
+    deep_research_analysis=LLMRoleProfile(
+        model=OLLAMA_PLANNER_MODEL,
+        fallback_model=OLLAMA_PLANNER_FALLBACK_MODEL,
+        temperature=0.1,
+        max_tokens=2048,
+    ),
+    deep_research_memo=LLMRoleProfile(
+        model=OLLAMA_FINAL_ANSWER_MODEL,
+        fallback_model=OLLAMA_FINAL_ANSWER_FALLBACK_MODEL,
+        temperature=0.15,
+        max_tokens=6144,
     ),
 )
 
@@ -93,6 +107,18 @@ POLZA_PROFILES = LLMProviderProfiles(
         temperature=0.2,
         max_tokens=2048,
     ),
+    deep_research_analysis=LLMRoleProfile(
+        model=POLZA_PREMIUM_FINAL_ANSWER_MODEL,
+        fallback_model="",
+        temperature=0.1,
+        max_tokens=2048,
+    ),
+    deep_research_memo=LLMRoleProfile(
+        model=POLZA_PREMIUM_FINAL_ANSWER_MODEL,
+        fallback_model="",
+        temperature=0.15,
+        max_tokens=6144,
+    ),
 )
 
 
@@ -116,6 +142,10 @@ def get_role_profile(provider: str, role: str) -> LLMRoleProfile:
         return profiles.query_understanding
     if role == "query_planning":
         return profiles.query_planning
+    if role == "deep_research_analysis":
+        return profiles.deep_research_analysis
+    if role == "deep_research_memo":
+        return profiles.deep_research_memo
     raise ValueError(f"unsupported LLM role: {role}")
 
 

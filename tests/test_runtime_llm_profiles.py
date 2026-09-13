@@ -16,12 +16,9 @@ from mr_norm.runtime.llm_profiles import (
 )
 
 
-def test_resolve_role_models_uses_primary_and_fallback() -> None:
+def test_resolve_role_models_keeps_ollama_fallback_but_polza_is_single_model() -> None:
     assert resolve_role_models("ollama", "planner") == [OLLAMA_PLANNER_MODEL, OLLAMA_PLANNER_FALLBACK_MODEL]
-    assert resolve_role_models("polza", "final_answer") == [
-        POLZA_FINAL_ANSWER_MODEL,
-        POLZA_FINAL_ANSWER_FALLBACK_MODEL,
-    ]
+    assert resolve_role_models("polza", "final_answer") == [POLZA_FINAL_ANSWER_MODEL]
 
 
 def test_resolve_role_models_explicit_override_disables_fallback() -> None:
@@ -46,7 +43,15 @@ def test_format_role_model_chain() -> None:
     assert resolve_role_models("polza", "planner", "only-one") == ["only-one"]
 
 
-def test_polza_planner_fallback_differs_from_primary() -> None:
+def test_polza_planner_uses_only_primary_model() -> None:
     models = resolve_role_models("polza", "planner")
     assert models[0] == POLZA_PLANNER_MODEL
-    assert models[1] == POLZA_PLANNER_FALLBACK_MODEL
+    assert len(models) == 1
+
+
+def test_deep_research_roles_use_premium_polza_chain() -> None:
+    models = resolve_role_models("polza", "deep_research_analysis")
+    assert models[0] == "anthropic/claude-sonnet-4.6"
+    assert len(models) == 1
+    memo_profile = resolve_role_profile("polza", "deep_research_memo")
+    assert memo_profile.max_tokens == 6144
