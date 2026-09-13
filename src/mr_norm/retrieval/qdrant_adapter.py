@@ -121,6 +121,7 @@ def _is_transient_qdrant_error(exc: BaseException) -> bool:
         or "unexpected response: 502" in text
         or "unexpected response: 503" in text
         or "unexpected response: 504" in text
+        or "10054" in text
         or "connection reset" in text
     )
 
