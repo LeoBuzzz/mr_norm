@@ -111,7 +111,7 @@ def select_items_for_final_answer(
                 doc_name = catalog_name
 
     if not (doc_id or doc_name):
-        return ranked_items[:limit]
+        return _seed_first_items(ranked_items, limit=limit)
 
     doc_items = [
         item
@@ -121,40 +121,86 @@ def select_items_for_final_answer(
         <= DOC_POINT_BOOST_DOC
     ]
     if not doc_items:
-        return ranked_items[:limit]
+        return _seed_first_items(ranked_items, limit=limit)
 
     doc_items.sort(
-        key=lambda item: (
-            _doc_point_boost_tier(
-                item,
-                doc_id=doc_id,
-                doc_name=doc_name,
-                point_number=point_number,
-            ),
-            -float(item.score or 0.0),
-            item.chunk_id,
+        key=lambda item: _doc_point_boost_tier(
+            item,
+            doc_id=doc_id,
+            doc_name=doc_name,
+            point_number=point_number,
         )
     )
     doc_slots = min(len(doc_items), max(min_resolved_doc_slots, limit // 3))
-    selected: list[RetrievedItem] = []
-    seen: set[str] = set()
+    doc_prefix = _seed_first_items(doc_items, limit=doc_slots)
+    selected_ids = {item.chunk_id for item in doc_prefix if item.chunk_id}
+    remaining = [item for item in ranked_items if not item.chunk_id or item.chunk_id not in selected_ids]
+    return _seed_first_items(doc_prefix + remaining, limit=limit)
 
-    for item in doc_items[:doc_slots]:
-        if item.chunk_id:
-            seen.add(item.chunk_id)
-        selected.append(item)
 
-    for item in ranked_items:
-        if len(selected) >= limit:
-            break
-        key = item.chunk_id
-        if key and key in seen:
+def _point_group_key(item: RetrievedItem) -> tuple[str, str] | None:
+    doc_id = str(item.doc_id or "").strip()
+    point_id = str(item.point_id or "").strip()
+    identity = str(item.point_identity_key or "").strip()
+    if not doc_id:
+        return None
+    if point_id:
+        return "point_id", f"{doc_id}\x00{point_id}"
+    if identity:
+        return "point_identity_key", f"{doc_id}\x00{identity}"
+    return None
+
+
+def _related_split_key(item: RetrievedItem) -> tuple[str, str, str] | None:
+    """Return only the conservative relation key shared by split parts."""
+    doc_id = str(item.doc_id or "").strip()
+    point_number = str(item.point_number or "").strip()
+    identity = str(item.point_identity_key or "").strip()
+    if not (doc_id and point_number and identity):
+        return None
+    if not (item.is_split or item.total_parts > 1 or item.part_index != 0):
+        return None
+    return doc_id, point_number, identity
+
+
+def _seed_first_items(items: list[RetrievedItem], *, limit: int, max_related_per_seed: int = 2) -> list[RetrievedItem]:
+    """Keep first point fragments in reranker order, then bounded split parts."""
+    if limit <= 0:
+        return []
+
+    seeds: list[RetrievedItem] = []
+    related: list[RetrievedItem] = []
+    seen_chunks: set[str] = set()
+    seen_groups: set[tuple[str, str]] = set()
+    related_counts: dict[tuple[str, str], int] = {}
+    seed_by_relation: dict[tuple[str, str, str], tuple[str, str]] = {}
+
+    for item in items:
+        chunk_id = str(item.chunk_id or "")
+        if chunk_id and chunk_id in seen_chunks:
             continue
-        selected.append(item)
-        if key:
-            seen.add(key)
+        if chunk_id:
+            seen_chunks.add(chunk_id)
 
-    return selected[:limit]
+        group = _point_group_key(item)
+        relation = _related_split_key(item)
+        if group is not None and group in seen_groups:
+            seed_group = seed_by_relation.get(relation, group) if relation is not None else None
+            if seed_group is not None and related_counts.get(seed_group, 0) < max_related_per_seed:
+                related.append(item)
+                related_counts[seed_group] = related_counts.get(seed_group, 0) + 1
+            continue
+
+        if group is None:
+            seeds.append(item)
+            continue
+
+        seen_groups.add(group)
+        seeds.append(item)
+        if relation is not None:
+            seed_by_relation.setdefault(relation, group)
+
+    return (seeds + related)[:limit]
 
 
 def normalize_doc_key(value: str) -> str:

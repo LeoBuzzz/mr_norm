@@ -63,6 +63,32 @@ def test_select_items_for_final_answer_keeps_resolved_doc_slots():
     assert len(selected) == 4
 
 
+def test_select_items_for_final_answer_places_related_split_parts_after_seeds():
+    ranked = [
+        _item(chunk_id="seed_a", doc_id="doc_1", point_id="point_a", point_identity_key="a", point_number="1", is_split=True),
+        _item(chunk_id="part_a1", doc_id="doc_1", point_id="point_a", point_identity_key="a", point_number="1", part_index=1, total_parts=3, is_split=True),
+        _item(chunk_id="seed_b", doc_id="doc_1", point_id="point_b", point_identity_key="b", point_number="2", is_split=True),
+        _item(chunk_id="part_a2", doc_id="doc_1", point_id="point_a", point_identity_key="a", point_number="1", part_index=2, total_parts=3, is_split=True),
+    ]
+    selected = select_items_for_final_answer(
+        ranked,
+        request=RuntimeRequest(query="test", limit=4),
+        limit=4,
+    )
+    assert [item.chunk_id for item in selected] == ["seed_a", "seed_b", "part_a1", "part_a2"]
+
+
+def test_select_items_for_final_answer_preserves_resolved_point_seed_before_related():
+    ranked = [
+        _item(chunk_id="noise", doc_id="doc_1", point_number="2", score=0.99),
+        _item(chunk_id="resolved", doc_id="doc_1", point_id="point_18", point_identity_key="18::h::1", point_number="18", is_split=True, score=0.1),
+        _item(chunk_id="resolved_part", doc_id="doc_1", point_id="point_18", point_identity_key="18::h::1", point_number="18", part_index=1, total_parts=2, is_split=True, score=0.95),
+    ]
+    request = RuntimeRequest(query="test", filters={"doc_id": "doc_1", "point_number": "18"}, limit=10)
+    selected = select_items_for_final_answer(ranked, request=request, limit=3, min_resolved_doc_slots=2)
+    assert [item.chunk_id for item in selected] == ["resolved", "noise", "resolved_part"]
+
+
 def test_should_retry_doc_scoped_lookup_when_doc_missing_from_final_top():
     ranked = [_item(chunk_id="x", doc_name="Other", score=0.9) for _ in range(5)]
     do_retry, reason = should_retry_doc_scoped_lookup(
