@@ -9,7 +9,7 @@ from typing import Any, Protocol
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.document_catalog import extract_point_number_hint, normalize_catalog_text
-from mr_norm.retrieval.filters import build_filter_spec
+from mr_norm.retrieval.filters import build_filter_spec, build_payload_filter_spec
 from mr_norm.retrieval.qdrant_adapter import QdrantRetrievalClient
 
 GOST_REGISTRY_KEY = "gostr_57114_29122022"
@@ -40,6 +40,16 @@ GOST_TERM_STOP_WORDS: frozenset[str] = frozenset(
         "назови",
         "укажи",
         "перечисли",
+        "используй",
+        "использовать",
+        "используйте",
+        "гост",
+        "госту",
+        "гостом",
+        "по",
+        "терминам",
+        "термином",
+        "терминах",
         "означает",
         "называют",
         "относят",
@@ -223,31 +233,39 @@ def _term_matches_text(term: str, text: str) -> bool:
 
 def _extract_inline_point_for_term(text: str, canonical_term: str) -> str:
     term_norm = re.escape(normalize_catalog_text(canonical_term))
-    match = re.search(rf"(\d+(?:\.\d+)*)\s+{term_norm}\s*:", normalize_catalog_text(text))
+    raw = (text or "").lower().replace("ё", "е")
+    match = re.search(rf"(\d+(?:\.\d+)*)\s+{term_norm}\s*:", raw)
     if match:
         return match.group(1)
     roots = _term_token_roots(canonical_term)
     if len(roots) >= 2:
         pattern = (
             rf"(\d+(?:\.\d+)*)\s+[^\n:{{}}]{{0,80}}{re.escape(roots[0])}"
-            rf"[^\n:{{}}]{{0,80}}{re.escape(roots[1])}\s*:"
+            rf"[^\n:{{}}]{{0,80}}{re.escape(roots[1])}[^\n:{{}}]{{0,20}}:"
         )
-        match = re.search(pattern, normalize_catalog_text(text))
+        match = re.search(pattern, raw)
         if match:
             return match.group(1)
     return ""
 
 
 def _looks_like_definition(text: str, term: str) -> bool:
-    preview = (text or "").lower()[:400]
-    if any(marker in preview for marker in DEFINITION_INDICATORS):
-        return True
-    if _term_matches_text(term, text):
-        return True
+    preview = (text or "").lower()[:500]
+    if not _term_matches_text(term, preview):
+        return False
+    normalized = normalize_catalog_text(preview)
+    raw_preview = preview.replace("ё", "е")
+    roots = _term_token_roots(term)
+    # A definition heading is normally ``107 термин: ...`` or ``термин: ...``.
+    # Merely finding a word in the standard's alphabetical index/metadata is
+    # not enough: that was the source of huge irrelevant GOST chunks.
+    for root in roots:
+        if re.search(rf"{re.escape(root)}[^\n:]{{0,180}}:", raw_preview):
+            return True
     words = normalize_catalog_text(term).split()
     if len(words) >= 2:
         nominative = f"{words[0][:8]} {words[1][:6]}"
-        if nominative.strip() and nominative in normalize_catalog_text(text):
+        if nominative.strip() in normalized and ":" in raw_preview:
             return True
     return False
 
@@ -287,6 +305,43 @@ def fetch_gost_definitions(
 
     for term in terms:
         term_candidates: list[GostSnippet] = []
+        # Prefer lexical payload matching. It finds the actual term article
+        # (for example point 107) and avoids a semantically similar but huge
+        # introductory/index chunk. Vector search remains a fallback for
+        # spelling and morphology variants not covered by the text index.
+        payload_spec = build_payload_filter_spec(
+            term,
+            {"doc_id": doc_id},
+            search_fields=["text"],
+        )
+        try:
+            payload_items = client.payload_search(
+                payload_spec,
+                limit=limit_per_term,
+                source_tool="gost_definition",
+            )
+        except Exception:
+            payload_items = []
+        for item in payload_items:
+            if not _looks_like_definition(item.text, term):
+                continue
+            text_key = item.text[:120]
+            if text_key in seen_text_keys:
+                continue
+            seen_text_keys.add(text_key)
+            canonical = canonical_hint or term
+            term_candidates.append(
+                GostSnippet(
+                    keyword=term,
+                    text=item.text,
+                    doc_name=item.doc_name,
+                    point_number=item.point_number
+                    or _extract_inline_point_for_term(item.text, canonical),
+                    chunk_id=item.chunk_id,
+                    doc_id=item.doc_id or doc_id,
+                    score=item.score,
+                )
+            )
         query_variants = (f"определение {term}", term, f"{term} это")
         vectors = embedder.encode(list(query_variants))
         for query_text, vector in zip(query_variants, vectors, strict=True):

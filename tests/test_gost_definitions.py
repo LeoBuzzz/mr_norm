@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from mr_norm.retrieval.gost_definitions import (
     GostSnippet,
+    _extract_inline_point_for_term,
+    _looks_like_definition,
     enrich_tool_queries_with_gost,
     extract_gost_search_terms,
     fetch_gost_definitions,
@@ -23,6 +25,21 @@ def test_extract_gost_search_terms_inflected_phrase() -> None:
     assert "оперативного персонала" in terms
     assert "оперативный персонал" in terms
     assert "определение" not in terms
+
+
+def test_extract_gost_search_terms_ignores_gost_instruction_words() -> None:
+    terms = extract_gost_search_terms("дай определение оперативного персонала. используй ГОСТ по терминам")
+
+    assert terms == ["оперативного персонала", "оперативный персонал"]
+
+
+def test_gost_definition_filter_prefers_heading_and_extracts_point() -> None:
+    exact = "107 оперативный персонал: Работники субъектов электроэнергетики."
+    index_chunk = "... оперативный персонал административно-технический персонал ..."
+
+    assert _looks_like_definition(exact, "оперативный персонал")
+    assert not _looks_like_definition(index_chunk, "оперативный персонал")
+    assert _extract_inline_point_for_term(exact, "оперативный персонал") == "107"
 
 
 def test_merge_gost_into_evidence_prepends_and_dedupes() -> None:

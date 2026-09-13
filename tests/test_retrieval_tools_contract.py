@@ -29,14 +29,21 @@ class FakePayloadClient:
         self.source_tool = source_tool
         if self.first_empty and self.calls == 1:
             return []
+        requested_point = "1.9.28"
+        for condition in filter_spec.get("must") or []:
+            if condition.get("field") == "point_number":
+                requested_point = str(condition.get("value") or requested_point)
+        for condition in filter_spec.get("should") or []:
+            if condition.get("field") == "text":
+                requested_point = str(condition.get("value") or requested_point)
         return [
             RetrievedItem(
                 chunk_id="chunk_1",
                 doc_id="doc_1",
                 doc_name="Правила устройства электроустановок",
                 heading_path_text="Раздел 1 > Глава 1.9",
-                point_number="1.9.28",
-                text="1.9.28. Проверяемый текст.",
+                point_number=requested_point,
+                text=f"{requested_point}. Проверяемый текст.",
                 source_tool=source_tool,
             )
         ]

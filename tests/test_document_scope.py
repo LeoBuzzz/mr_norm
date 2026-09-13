@@ -99,3 +99,9 @@ def test_scope_supports_verbose_act_number_forms() -> None:
 
     for query, expected in cases.items():
         assert resolve_document_scope(query).include_doc_ids == (expected,)
+
+
+def test_short_gost_terms_alias_locks_the_terms_standard() -> None:
+    scope = resolve_document_scope("дай пункт 22 из ГОСТ по терминам")
+
+    assert scope.include_doc_ids == ("doc_4745dec28ca589e1",)

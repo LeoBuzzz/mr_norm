@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Protocol
 
 from mr_norm.config.indexing import IndexingConfig
@@ -41,11 +42,19 @@ def run_point_tool(
                     scope_filters,
                     search_fields=["text"],
                 )
-                items = client.payload_search(
+                fallback_items = client.payload_search(
                     fallback_spec,
-                    limit=clamp_limit(request.limit),
+                    # Text matching on a number is broad. Fetch enough
+                    # candidates to select the article whose heading really
+                    # starts with the requested point instead of accepting a
+                    # random chunk that merely mentions the number.
+                    limit=max(clamp_limit(request.limit), 50),
                     source_tool="point",
                 )
+                exact_text_items = [
+                    item for item in fallback_items if _text_starts_with_point(item.text, point_label)
+                ]
+                items = exact_text_items
                 if items:
                     warnings.append(
                         "point tool used text fallback because exact point_number metadata did not match"
@@ -97,3 +106,11 @@ def select_point_filters(filters: dict[str, Any] | None) -> tuple[dict[str, Any]
     return selected, warnings
 
 
+def _text_starts_with_point(text: str, expected: str) -> bool:
+    """Return whether a text chunk begins with the requested numbered article."""
+    value = str(expected or "").strip().replace("_", ".")
+    if not value:
+        return False
+    escaped = re.escape(value)
+    candidate_text = str(text or "").replace("_", ".")
+    return bool(re.match(rf"^\s*{escaped}(?:\s|[.:)])", candidate_text))
