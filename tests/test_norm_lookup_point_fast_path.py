@@ -44,3 +44,39 @@ def test_run_norm_lookup_uses_point_lookup_fast_path() -> None:
     assert "24. Инструктаж проводится" in result.answer
     assert result.trace.final_answer_backend == "verbatim_point"
     assert "norm_lookup:point_lookup_fast_path" in result.warnings
+
+
+def test_run_norm_lookup_does_not_broaden_after_explicit_point_miss() -> None:
+    prepared = PreparedQueryPlan(
+        original_query="пункт 22 ГОСТ по терминам",
+        question_type="point_lookup",
+        point_number_hints=("22",),
+    )
+    point_result = PointLookupResult(
+        found=False,
+        doc_id="doc_4745dec28ca589e1",
+        doc_name="ГОСТ Р 57114-2022 — Термины и определения",
+        point_number="22",
+        status="not_found",
+    )
+
+    with patch("mr_norm.skills.norm_lookup.plan_query", return_value=prepared):
+        with patch(
+            "mr_norm.skills.norm_lookup.apply_prepared_plan",
+            return_value=("query", {"doc_id": "doc_4745dec28ca589e1", "point_number": "22"}),
+        ):
+            with patch("mr_norm.skills.norm_lookup.prefetch_gost_snippets", return_value=[]):
+                with patch("mr_norm.skills.norm_lookup.lookup_point", return_value=point_result):
+                    with patch("mr_norm.skills.norm_lookup.run_pipeline") as run_pipeline:
+                        result = run_norm_lookup(
+                            NormLookupRequest(
+                                query="пункт 22 ГОСТ по терминам",
+                                understand_query_mode="auto",
+                            ),
+                            IndexingConfig(collection_name="test"),
+                        )
+
+    run_pipeline.assert_not_called()
+    assert result.evidence == []
+    assert "не найден" in result.answer
+    assert "norm_lookup:broad_search_suppressed_after_explicit_point_miss" in result.warnings

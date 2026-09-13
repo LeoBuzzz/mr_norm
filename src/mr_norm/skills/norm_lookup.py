@@ -332,7 +332,49 @@ def _try_point_lookup_fast_path(
         project_paths=project_paths,
     )
     if not point_result.found or not point_result.text.strip():
-        return None
+        # An explicit document + point request must never fall through to the
+        # broad vector/payload pipeline: a broad search can return another
+        # article that merely mentions the requested number (e.g. 223 for 22).
+        retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
+        pipeline = _pipeline_from_point_lookup(point_result=point_result, request=request)
+        document_label = doc_name or doc_id or "указанном документе"
+        point_label = ", ".join(point_numbers)
+        answer = f"Пункт {point_label} в документе «{document_label}» не найден в базе."
+        warnings = list(
+            dict.fromkeys(
+                [
+                    *pipeline.warnings,
+                    "norm_lookup:point_lookup_not_found",
+                    "norm_lookup:broad_search_suppressed_after_explicit_point_miss",
+                ]
+            )
+        )
+        return NormLookupResult(
+            answer=answer,
+            citations=[],
+            evidence=[],
+            trace=NormLookupTrace(
+                planner_backend=request.planner_backend,
+                reranker_backend=request.reranker_backend,
+                final_answer_backend="verbatim_point_not_found",
+                runtime_profile=request.profile,
+                runtime_fusion="point_lookup_fast_path",
+                trace_id=request.trace_id or "norm_lookup_point",
+                selected_tools=("point",),
+                gost_prefetch_count=len(gost_snippets),
+                retrieval_limit=retrieval_limit,
+                final_answer_limit=final_answer_limit,
+                pipeline_diagnostics={
+                    **dict(pipeline.diagnostics),
+                    "point_lookup_status": point_result.status,
+                },
+            ),
+            warnings=warnings,
+            pipeline=pipeline,
+            understanding=understanding,
+            prepared_plan=prepared_plan,
+            gost_snippets=tuple(snippet.to_dict() for snippet in gost_snippets),
+        )
 
     retrieval_limit, final_answer_limit, _ = resolve_retrieval_limits(request.limit)
     pipeline = _pipeline_from_point_lookup(point_result=point_result, request=request)
