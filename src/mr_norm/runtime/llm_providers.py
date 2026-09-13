@@ -20,6 +20,8 @@ from mr_norm.runtime.planner import PlannerProvider
 from mr_norm.runtime.reranker import RerankerProvider
 
 JSON_RESPONSE_FORMAT = {"type": "json_object"}
+LOCAL_FALLBACK_PROVIDER = "ollama"
+LOCAL_FALLBACK_MODEL = "qwen3:30b"
 
 
 def _serialize_evidence(items: Sequence[RetrievedItem], *, limit: int = 20) -> list[dict[str, Any]]:
@@ -77,10 +79,14 @@ def chat_json_with_model_fallback(
         raise ValueError("at least one LLM model is required")
 
     errors: list[str] = []
-    for model in models:
+    attempts: list[tuple[str, str]] = [(llm_provider, model) for model in models]
+    if llm_provider == "polza":
+        attempts.append((LOCAL_FALLBACK_PROVIDER, LOCAL_FALLBACK_MODEL))
+
+    for provider_name, model in attempts:
         try:
             client = build_chat_client(
-                llm_provider,
+                provider_name,
                 model,
                 keys_path=keys_path,
                 http_post=http_post,
@@ -93,7 +99,7 @@ def chat_json_with_model_fallback(
                 max_tokens=max_tokens,
             )
         except Exception as exc:
-            errors.append(f"{model}: {type(exc).__name__}: {exc}")
+            errors.append(f"{provider_name}/{model}: {type(exc).__name__}: {exc}")
 
     raise RuntimeError("LLM call failed for all models: " + "; ".join(errors))
 
@@ -140,11 +146,15 @@ def build_reranker_llm_provider(
     http_post: HttpPost | None = None,
 ) -> RerankerProvider:
     def provider(request: RuntimeRequest, runtime: RuntimeResult, pack: Mapping[str, Any]) -> dict[str, Any]:
+        plan = request.prepared_plan
         user_payload = {
             "query": request.query,
             "profile": request.profile,
             "evidence": _serialize_evidence(runtime.items, limit=evidence_limit),
             "output_contract": pack.get("output_contract"),
+            "question_type": plan.question_type if plan else "",
+            "resolved_doc_id": str((request.filters or {}).get("doc_id") or ""),
+            "exact_phrase_terms": list(plan.exact_phrase_terms) if plan else [],
         }
         return chat_json_with_model_fallback(
             llm_provider,

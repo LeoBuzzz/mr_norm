@@ -3,10 +3,17 @@ from __future__ import annotations
 import json
 
 from mr_norm.retrieval.contracts import RetrievedItem
-from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace
+from mr_norm.runtime.contracts import (
+    PreparedQueryPlan,
+    RuntimeMetrics,
+    RuntimeRequest,
+    RuntimeResult,
+    RuntimeTrace,
+)
 from mr_norm.runtime.llm_providers import (
     build_pipeline_llm_providers,
     build_planner_llm_provider,
+    build_reranker_llm_provider,
     chat_json_with_model_fallback,
 )
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
@@ -88,6 +95,71 @@ def test_chat_json_with_model_fallback_uses_second_model() -> None:
 
     assert payload["status"] == "ok"
     assert calls == ["primary-model", "fallback-model"]
+
+
+def test_polza_failure_falls_back_to_local_ollama(monkeypatch) -> None:
+    monkeypatch.setenv("POLZA_AI_API_KEY", "test-polza-key")
+    calls: list[tuple[str, str]] = []
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        payload = json.loads(body.decode("utf-8"))
+        model = payload["model"]
+        provider = "polza" if "polza.ai" in url else "ollama"
+        calls.append((provider, model))
+        if provider == "polza":
+            raise RuntimeError("connection reset")
+        return {"choices": [{"message": {"content": '{"status":"ok"}'}}]}
+
+    payload = chat_json_with_model_fallback(
+        "polza",
+        ["deepseek/deepseek-v3.2"],
+        http_post=fake_http_post,
+        system_prompt="test",
+        user_payload={"query": "test"},
+        temperature=0.1,
+        max_tokens=64,
+    )
+
+    assert payload["status"] == "ok"
+    assert calls == [("polza", "deepseek/deepseek-v3.2"), ("ollama", "qwen3:30b")]
+
+
+def test_build_reranker_llm_provider_includes_plan_context() -> None:
+    captured: list[dict] = []
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        payload = json.loads(body.decode("utf-8"))
+        user_content = json.loads(payload["messages"][1]["content"])
+        captured.append(user_content)
+        return {
+            "choices": [
+                {"message": {"content": json.dumps({"ranked_chunk_ids": ["chunk_1"]})}}
+            ]
+        }
+
+    provider = build_reranker_llm_provider(
+        "ollama",
+        ["qwen3:30b"],
+        temperature=0.0,
+        max_tokens=256,
+        http_post=fake_http_post,
+    )
+    request = RuntimeRequest(
+        query="заземление",
+        filters={"doc_id": "doc_abc"},
+        profile="deep",
+        prepared_plan=PreparedQueryPlan(
+            question_type="requirement",
+            exact_phrase_terms=("заземление",),
+        ),
+    )
+    pack = load_prompt_pack_by_role("reranker")
+    payload = provider(request, make_runtime_result(), pack)
+
+    assert payload["ranked_chunk_ids"] == ["chunk_1"]
+    assert captured[0]["question_type"] == "requirement"
+    assert captured[0]["resolved_doc_id"] == "doc_abc"
+    assert captured[0]["exact_phrase_terms"] == ["заземление"]
 
 
 def test_build_pipeline_llm_providers_only_for_prompt_backends() -> None:
