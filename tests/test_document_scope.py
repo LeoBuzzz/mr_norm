@@ -105,3 +105,9 @@ def test_short_gost_terms_alias_locks_the_terms_standard() -> None:
     scope = resolve_document_scope("дай пункт 22 из ГОСТ по терминам")
 
     assert scope.include_doc_ids == ("doc_4745dec28ca589e1",)
+
+
+def test_short_gost_terms_alias_supports_case_form_in_user_query() -> None:
+    scope = resolve_document_scope("дай пункт 22 из ГОСТа по терминам")
+
+    assert scope.include_doc_ids == ("doc_4745dec28ca589e1",)

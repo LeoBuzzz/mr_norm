@@ -19,7 +19,7 @@ from mr_norm.retrieval.doc_point_topic_index import (
     should_attempt_topic_retry,
     topic_hit_to_retrieved_item,
 )
-from mr_norm.retrieval.document_catalog import extract_document_label_hint
+from mr_norm.retrieval.document_catalog import extract_document_label_hint, load_default_document_catalog
 from mr_norm.retrieval.gost_definitions import (
     GostSnippet,
     gost_snippet_in_top_evidence,
@@ -299,8 +299,18 @@ def _try_point_lookup_fast_path(
     elif str(effective_filters.get("point_number") or "").strip():
         point_numbers = [str(effective_filters["point_number"]).strip()]
 
-    doc_id = str(effective_filters.get("doc_id") or "").strip()
-    doc_name = str(effective_filters.get("doc_name") or "").strip()
+    raw_doc_id = effective_filters.get("doc_id")
+    raw_doc_name = effective_filters.get("doc_name")
+    if isinstance(raw_doc_id, (list, tuple)):
+        raw_doc_id = raw_doc_id[0] if len(raw_doc_id) == 1 else ""
+    if isinstance(raw_doc_name, (list, tuple)):
+        raw_doc_name = raw_doc_name[0] if len(raw_doc_name) == 1 else ""
+    doc_id = str(raw_doc_id or "").strip()
+    doc_name = str(raw_doc_name or "").strip()
+    if doc_id and not doc_name:
+        catalog_entry = load_default_document_catalog().by_doc_id().get(doc_id)
+        if catalog_entry is not None:
+            doc_name = catalog_entry.doc_name
     if not (doc_id or doc_name) and document_resolve_result and document_resolve_result.found:
         doc_id = str(document_resolve_result.doc_id or "").strip()
         doc_name = str(document_resolve_result.doc_name or "").strip()
