@@ -1,0 +1,597 @@
+{
+  "schema_version": "document_alias_registry_v1",
+  "entries": [
+    {
+      "doc_id": "doc_6b2e4ec78884fb5f",
+      "aliases": [
+        "птф",
+        "птфэс",
+        "правила технологического функционирования"
+      ],
+      "act_numbers": [
+        "937"
+      ],
+      "act_kinds": [
+        "постановление",
+        "постановление правительства"
+      ]
+    },
+    {
+      "doc_id": "doc_888d9d2a434ba4e8",
+      "aliases": [
+        "закон об электроэнергетике",
+        "фз 35",
+        "35-фз"
+      ],
+      "act_numbers": [
+        "35"
+      ],
+      "act_kinds": [
+        "фз",
+        "федеральный закон"
+      ]
+    },
+    {
+      "doc_id": "doc_aba6345406b47fba",
+      "aliases": [
+        "приказ 690"
+      ],
+      "act_numbers": [
+        "690"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_7c4420ee6b8c3915",
+      "aliases": [
+        "правила вывода в ремонт"
+      ],
+      "act_numbers": [
+        "86"
+      ],
+      "act_kinds": [
+        "постановление",
+        "постановление правительства"
+      ]
+    },
+    {
+      "doc_id": "doc_ad116a1f6b41adb1",
+      "aliases": [
+        "правила охраны труда",
+        "правила от",
+        "правила от в электроустановках"
+      ],
+      "act_numbers": [
+        "903н"
+      ],
+      "act_kinds": [
+        "приказ",
+        "приказ минтруда"
+      ]
+    },
+    {
+      "doc_id": "doc_691ad88b0e765823",
+      "aliases": [
+        "птэ потребителей",
+        "птэ электроустановок потребителей"
+      ],
+      "act_numbers": [
+        "811"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_eae0520bf60a818d",
+      "aliases": [
+        "птэ"
+      ],
+      "act_numbers": [
+        "1070"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_fe233d807913d1f2",
+      "aliases": [
+        "инструкция по ликвидации",
+        "по ликвидации",
+        "по предотвращению нарушений нормального режима"
+      ],
+      "act_numbers": [
+        "548"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_da35fc1a267743f9",
+      "aliases": [
+        "правила техобслуживания",
+        "правила техобслуживания и ремонта"
+      ],
+      "act_numbers": [
+        "1013"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_e6915ad2d756375e",
+      "aliases": [
+        "методуказания по устойчивости",
+        "методические указания по устойчивости"
+      ],
+      "act_numbers": [
+        "630"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "doc_e41ce9884ed5620b",
+      "aliases": [
+        "методуказания по расчету надежности",
+        "методуказания по надежности",
+        "методические указания по расчету уровня надежности"
+      ],
+      "act_numbers": [
+        "1256"
+      ],
+      "act_kinds": [
+        "приказ"
+      ]
+    },
+    {
+      "doc_id": "",
+      "aliases": [
+        "методуказания по проектированию",
+        "методические указания по проектированию"
+      ],
+      "act_numbers": [
+        "1286"
+      ],
+      "act_kinds": [
+        "приказ минэнерго"
+      ],
+      "status": "catalog_gap"
+    },
+    {
+      "doc_id": "doc_fc7ef4265a0c65cc",
+      "aliases": [
+        "приказ по качеству"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_51a757da569f076d",
+      "aliases": [
+        "ГОСТ по диспетчерским наименованиям"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_bac4a8bb87f6f64c",
+      "aliases": [
+        "ГОСТ по отображению схем"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_4745dec28ca589e1",
+      "aliases": [
+        "Термины и определения"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_d81b26bb7269cd19",
+      "aliases": [
+        "ГОСТ по напряжениям"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_ef18285b05ae80fc",
+      "aliases": [
+        "ГОСТ по СИМ общий"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_5293f6550ca448c0",
+      "aliases": [
+        "ГОСТ по схемам"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_d71608402f199d28",
+      "aliases": [
+        "ГОСТ ДУ"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_eb457bf7e92caff5",
+      "aliases": [
+        "жилищный кодекс"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_6e79eed7f249ae6b",
+      "aliases": [
+        "ГОСТ по учету"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_73e131ea3bcf880b",
+      "aliases": [
+        "закон о безопасности объектов ТЭК"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_5c6aa6cbf3c314d8",
+      "aliases": [
+        "о переходе в вынужденный режим"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_3aab7ec19a37b821",
+      "aliases": [
+        "об отнесении к ЕНЭС"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_ac8d46f26ce768ff",
+      "aliases": [
+        "о единстве измерений"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_cb391c9eea5a6ee5",
+      "aliases": [
+        "системная надежность"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_108bbc4eb1b5b2e6",
+      "aliases": [
+        "о готовности к ОЗП"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_6c4ddd851c9d3a28",
+      "aliases": [
+        "о минимальных функциях коммерческого учета"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_31a0b3070729f346",
+      "aliases": [
+        "об охранных зонах"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_cd17bf81eb24c3e5",
+      "aliases": [
+        "об электросбережении"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_77d0f5f105e8d2d5",
+      "aliases": [
+        "о связи"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_e4597fecd1fa8e3a",
+      "aliases": [
+        "о составе проектной документации"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_c87e2f50ccd2502c",
+      "aliases": [
+        "о схемах территориального планирования"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_f60850a60b0d604e",
+      "aliases": [
+        "о техническом регулировании"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_37c5a520e8ae06b7",
+      "aliases": [
+        "о  розничных рынках",
+        "о функционированиирозничных рынков"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_5c182519723758d1",
+      "aliases": [
+        "о ценообразовании"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_d66842346c02cfbd",
+      "aliases": [
+        "о штабах"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_a7e255304539fe89",
+      "aliases": [
+        "об инвестиционных программах"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_4387e03d321eb0b6",
+      "aliases": [
+        "закон о единстве измерений"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_cce7641b2017a316",
+      "aliases": [
+        "о показателях надежности"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_2aec1a091e640f77",
+      "aliases": [
+        "о новых субъектах"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_fda367c87f1251e3",
+      "aliases": [
+        "правила недискриминационного доступа"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_c589f564b5ac8c81",
+      "aliases": [
+        "правила ОДУ"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_525834551f223c6d",
+      "aliases": [
+        "правила оптового рынка"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_b21107dd41fbdb84",
+      "aliases": [
+        "правила системныхи спытаний"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_7abdfb78e9eba161",
+      "aliases": [
+        "правила отнесения к ЕНЭС"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_d031d10cc8150018",
+      "aliases": [
+        "правила переключений"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_a898791c44a3aadc",
+      "aliases": [
+        "правила перехода в вынужденный режим"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_b935a1da25b7a70e",
+      "aliases": [
+        "правила по охране труда на высоте"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_24cc06cdb26572f8",
+      "aliases": [
+        "правила предоставления информации"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_f9705d2bad0a3739",
+      "aliases": [
+        "правила ПА тренировок",
+        "правила противоаварийных тренировок"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_f7d089797af91eb4",
+      "aliases": [
+        "правила противопожарного режима"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_59934ce4728c9429",
+      "aliases": [
+        "правила работы с персоналом"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_2cb5e65ac945553a",
+      "aliases": [
+        "правила разработки графиков",
+        "правила применения графиков",
+        "правила разработки и применения графиков"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_92f77b5a7146774d",
+      "aliases": [
+        "правила СВМ"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_41c73292c8a6ac4e",
+      "aliases": [
+        "о схемах перспективного планирования"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_719c600205e404ed",
+      "aliases": [
+        "правила расследования"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_b8801eac56b2ec4f",
+      "aliases": [
+        "об информмоделях",
+        "об информационных моделях"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_6de4a321b268a855",
+      "aliases": [
+        "о критериях ДУ"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_17c959c26f2ee8b3",
+      "aliases": [
+        "критерии СТСО"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_ebeab75662750042",
+      "aliases": [
+        "методика ОЗП"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_c771444e3cabe56c",
+      "aliases": [
+        "методуказания по моделированию"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_20b522f004092f10",
+      "aliases": [
+        "о перегрузочной способности транформаторов"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    },
+    {
+      "doc_id": "doc_1e4a178aa5114b30",
+      "aliases": [
+        "ПУЭ"
+      ],
+      "act_numbers": [],
+      "act_kinds": []
+    }
+  ]
+}

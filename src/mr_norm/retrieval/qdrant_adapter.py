@@ -93,7 +93,8 @@ def filter_spec_to_qdrant_filter(spec: dict[str, Any]):
 
     must = [_condition(item, models) for item in spec.get("must") or []]
     should = [_condition(item, models) for item in spec.get("should") or []]
-    return models.Filter(must=must or None, should=should or None)
+    must_not = [_condition(item, models) for item in spec.get("must_not") or []]
+    return models.Filter(must=must or None, must_not=must_not or None, should=should or None)
 
 
 def _condition(item: dict[str, Any], models: Any):

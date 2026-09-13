@@ -51,6 +51,7 @@ from mr_norm.runtime.dialog_memory import (
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_providers import build_pipeline_llm_providers
 from mr_norm.runtime.pipeline import run_pipeline
+from mr_norm.runtime.pipeline_features import default_reranker_backend
 from mr_norm.runtime.pipeline_timing import PipelineStageTimings
 from mr_norm.runtime.pipeline_diagnostics import (
     merge_retry_items,
@@ -62,6 +63,7 @@ from mr_norm.runtime.pipeline_diagnostics import (
 )
 from mr_norm.runtime.planner import build_planner
 from mr_norm.skills.document_resolve import DocumentResolveResult, resolve_document, resolve_document_from_label
+from mr_norm.skills.document_scope import resolve_document_scope
 from mr_norm.skills.point_lookup import PointLookupRequest, PointLookupResult, lookup_point
 from mr_norm.runtime.query_planner import (
     apply_prepared_plan,
@@ -81,7 +83,7 @@ class NormLookupRequest:
     trace_id: str = ""
     mode: str = "evidence"
     planner_backend: str = "deterministic"
-    reranker_backend: str = "passthrough"
+    reranker_backend: str = ""
     final_answer_backend: str = "evidence"
     llm_provider: str = "none"
     planner_model: str | None = None
@@ -447,11 +449,18 @@ def run_norm_lookup(
     )
     dialog_warnings.extend(inherited_warnings)
 
+    document_scope = resolve_document_scope(retrieval_query)
+    scope_filters = document_scope.to_filters()
+    scope_locked = document_scope.explicit
+    if scope_filters:
+        effective_filters.update(scope_filters)
+        dialog_warnings.extend(document_scope.warnings)
+
     t0 = time.perf_counter()
     gost_snippets = prefetch_gost_snippets(retrieval_query, config, effective_filters)
     stage_timings.gost_prefetch_sec = time.perf_counter() - t0
 
-    if not effective_filters.get("doc_id") and not str(effective_filters.get("doc_name") or "").strip():
+    if not scope_locked and not effective_filters.get("doc_id") and not str(effective_filters.get("doc_name") or "").strip():
         document_resolve_result = _resolve_document_for_norm_lookup(
             query=retrieval_query,
             project_paths=project_paths,
@@ -483,6 +492,8 @@ def run_norm_lookup(
             prepared_plan,
             skill_locked_doc_id=skill_locked_doc_id,
         )
+        if scope_locked:
+            effective_filters.update(scope_filters)
 
     fast_path_result = _try_point_lookup_fast_path(
         request=request,
@@ -519,13 +530,14 @@ def run_norm_lookup(
         dialog_context=request.dialog_context,
     )
 
+    reranker_backend = request.reranker_backend or default_reranker_backend(request.profile)
     llm_providers = build_pipeline_llm_providers(
         request.llm_provider,
         planner_model=request.planner_model,
         reranker_model=request.reranker_model,
         final_answer_model=request.final_answer_model,
         planner_backend=request.planner_backend,
-        reranker_backend=request.reranker_backend,
+        reranker_backend=reranker_backend,
         final_answer_backend=request.final_answer_backend,
         keys_path=keys_path,
     )
@@ -538,7 +550,7 @@ def run_norm_lookup(
         config,
         tool_runners=tool_runners,
         planner=build_planner(request.planner_backend, provider=llm_providers.planner),
-        reranker=build_reranker(request.reranker_backend, provider=llm_providers.reranker),
+        reranker=build_reranker(reranker_backend, provider=llm_providers.reranker),
         final_answer=final_answer_impl,
     )
 

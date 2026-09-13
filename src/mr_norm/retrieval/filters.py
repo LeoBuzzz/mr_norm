@@ -10,6 +10,12 @@ KEYWORD_FIELDS = {
     "point_identity_key",
     "point_number",
 }
+EXCLUDE_FILTER_KEYS = {
+    "exclude_doc_id": "doc_id",
+    "exclude_doc_name": "doc_name",
+    "doc_id_not": "doc_id",
+    "doc_name_not": "doc_name",
+}
 TEXT_FIELDS = {"heading_path_text", "text"}
 SUPPORTED_FILTER_FIELDS = KEYWORD_FIELDS | TEXT_FIELDS
 
@@ -36,13 +42,17 @@ def expand_doc_name_filter_variants(filters: dict[str, Any] | None) -> dict[str,
     expanded = dict(filters or {})
     if expanded.get("doc_name"):
         expanded["doc_name"] = doc_name_variants(expanded["doc_name"])
+    for source_key, target_key in EXCLUDE_FILTER_KEYS.items():
+        if expanded.get(source_key):
+            expanded[source_key] = doc_name_variants(expanded[source_key]) if target_key == "doc_name" else expanded[source_key]
     return expanded
 
 
 def normalize_filters(filters: dict[str, Any] | None) -> dict[str, Any]:
     normalized: dict[str, Any] = {}
     for key, value in (filters or {}).items():
-        if key not in SUPPORTED_FILTER_FIELDS:
+        normalized_key = EXCLUDE_FILTER_KEYS.get(key, key)
+        if normalized_key not in SUPPORTED_FILTER_FIELDS:
             continue
         if isinstance(value, str):
             prepared = value.strip()
@@ -59,13 +69,19 @@ def normalize_filters(filters: dict[str, Any] | None) -> dict[str, Any]:
 
 def build_filter_spec(filters: dict[str, Any] | None) -> dict[str, Any]:
     must: list[dict[str, Any]] = []
+    must_not: list[dict[str, Any]] = []
     for key, value in normalize_filters(filters).items():
-        kind = "text" if key in TEXT_FIELDS else "keyword"
+        target_key = EXCLUDE_FILTER_KEYS.get(key, key)
+        kind = "text" if target_key in TEXT_FIELDS else "keyword"
+        destination = must_not if key in EXCLUDE_FILTER_KEYS else must
         if isinstance(value, list):
-            must.append({"field": key, "kind": kind, "any": value})
+            destination.append({"field": target_key, "kind": kind, "any": value})
         else:
-            must.append({"field": key, "kind": kind, "value": value})
-    return {"must": must}
+            destination.append({"field": target_key, "kind": kind, "value": value})
+    spec = {"must": must}
+    if must_not:
+        spec["must_not"] = must_not
+    return spec
 
 
 def build_payload_filter_spec(
@@ -96,5 +112,6 @@ def build_payload_filter_spec(
 def filter_spec_to_trace(spec: dict[str, Any]) -> dict[str, Any]:
     return {
         "must": list(spec.get("must") or []),
+        "must_not": list(spec.get("must_not") or []),
         "should": list(spec.get("should") or []),
     }

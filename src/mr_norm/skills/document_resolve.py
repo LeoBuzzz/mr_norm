@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from mr_norm.config.paths import ProjectPaths
+from mr_norm.config.document_alias_registry import resolve_canonical_document_label
 from mr_norm.config.pue_aliases import active_known_query_aliases, resolve_enable_pue_aliases
 from mr_norm.retrieval.document_catalog import (
     DocumentCatalog,
@@ -396,6 +397,29 @@ def resolve_document(
     catalog = catalog or load_default_document_catalog(project_paths)
     pue_aliases = resolve_enable_pue_aliases(enable_pue_aliases)
 
+    canonical = resolve_canonical_document_label(text, catalog=catalog)
+    if canonical is not None:
+        doc_id, doc_name, status, reasons = canonical
+        if status == "exact":
+            return DocumentResolveResult(
+                found=True,
+                doc_id=doc_id,
+                doc_name=doc_name,
+                status="exact",
+                confidence=1.0,
+                mention_surface=text,
+                mention_kind="canonical",
+                evidence={"resolver": "canonical_alias_registry", "reasons": list(reasons)},
+            )
+        return DocumentResolveResult(
+            found=False,
+            status="not_found",
+            mention_surface=text,
+            mention_kind="canonical",
+            evidence={"resolver": "canonical_alias_registry", "reasons": list(reasons)},
+            warnings=("document_resolve:catalog_gap",),
+        )
+
     partial_result = _resolve_from_partial_order(text, catalog)
     if partial_result is not None:
         return partial_result
@@ -480,6 +504,29 @@ def resolve_document_from_label(
 
     catalog = catalog or load_default_document_catalog(project_paths)
     pue_aliases = resolve_enable_pue_aliases(enable_pue_aliases)
+
+    canonical = resolve_canonical_document_label(text, catalog=catalog)
+    if canonical is not None:
+        doc_id, doc_name, status, reasons = canonical
+        if status == "exact":
+            return DocumentResolveResult(
+                found=True,
+                doc_id=doc_id,
+                doc_name=doc_name,
+                status="exact",
+                confidence=1.0,
+                mention_surface=text,
+                mention_kind="canonical",
+                evidence={"resolver": "canonical_alias_registry", "reasons": list(reasons)},
+            )
+        return DocumentResolveResult(
+            found=False,
+            status="not_found",
+            mention_surface=text,
+            mention_kind="canonical",
+            evidence={"resolver": "canonical_alias_registry", "reasons": list(reasons)},
+            warnings=("document_resolve:catalog_gap",),
+        )
     knowledge = load_document_knowledge()
     knowledge_links = load_knowledge_catalog_mapping()
 

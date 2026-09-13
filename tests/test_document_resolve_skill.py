@@ -11,6 +11,7 @@ from mr_norm.skills.document_resolve import (
     resolve_document_by_name,
     resolve_document_from_label,
 )
+from mr_norm.skills.document_scope import DocumentScope
 from mr_norm.skills.norm_lookup import NormLookupRequest, run_norm_lookup
 from tests.test_skills_norm_lookup import make_pipeline_result
 
@@ -136,6 +137,9 @@ def test_run_norm_lookup_applies_document_resolve_doc_filter(monkeypatch) -> Non
         return PreparedQueryPlan(original_query=str(args[0] if args else ""))
 
     monkeypatch.setattr("mr_norm.skills.norm_lookup.resolve_document", lambda *args, **kwargs: locked)
+    # This test covers the legacy single-document fallback; scope extraction
+    # is exercised separately in test_document_scope.py.
+    monkeypatch.setattr("mr_norm.skills.norm_lookup.resolve_document_scope", lambda *args, **kwargs: DocumentScope())
     monkeypatch.setattr("mr_norm.skills.norm_lookup.prefetch_gost_snippets", lambda *args, **kwargs: [])
     monkeypatch.setattr("mr_norm.skills.norm_lookup.plan_query", fake_plan_query)
     monkeypatch.setattr("mr_norm.skills.norm_lookup.run_pipeline", lambda *args, **kwargs: make_pipeline_result())
