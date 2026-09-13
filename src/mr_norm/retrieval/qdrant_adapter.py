@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from mr_norm.config.indexing import IndexingConfig
@@ -26,37 +27,52 @@ class QdrantRetrievalClient:
     ) -> list[RetrievedItem]:
         self.calls += 1
         qdrant_filter = filter_spec_to_qdrant_filter(filter_spec)
-        if hasattr(self.client, "search"):
-            points = self.client.search(
-                collection_name=self.config.collection_name,
-                query_vector=(self.config.vector_name, vector),
-                query_filter=qdrant_filter,
-                limit=limit,
-                with_payload=True,
-                with_vectors=False,
-            )
-        else:
-            response = self.client.query_points(
-                collection_name=self.config.collection_name,
-                query=vector,
-                using=self.config.vector_name,
-                query_filter=qdrant_filter,
-                limit=limit,
-                with_payload=True,
-                with_vectors=False,
-            )
-            points = response.points
+        for attempt in range(3):
+            try:
+                if hasattr(self.client, "search"):
+                    points = self.client.search(
+                        collection_name=self.config.collection_name,
+                        query_vector=(self.config.vector_name, vector),
+                        query_filter=qdrant_filter,
+                        limit=limit,
+                        with_payload=True,
+                        with_vectors=False,
+                    )
+                else:
+                    response = self.client.query_points(
+                        collection_name=self.config.collection_name,
+                        query=vector,
+                        using=self.config.vector_name,
+                        query_filter=qdrant_filter,
+                        limit=limit,
+                        with_payload=True,
+                        with_vectors=False,
+                    )
+                    points = response.points
+                break
+            except Exception as exc:
+                if attempt >= 2 or not _is_transient_qdrant_error(exc):
+                    raise
+                time.sleep(0.5 * (attempt + 1))
         return [point_to_item(point, source_tool=source_tool) for point in points]
 
     def payload_search(self, filter_spec: dict[str, Any], *, limit: int, source_tool: str) -> list[RetrievedItem]:
         self.calls += 1
-        points, _offset = self.client.scroll(
-            collection_name=self.config.collection_name,
-            scroll_filter=filter_spec_to_qdrant_filter(filter_spec),
-            limit=limit,
-            with_payload=True,
-            with_vectors=False,
-        )
+        scroll_filter = filter_spec_to_qdrant_filter(filter_spec)
+        for attempt in range(3):
+            try:
+                points, _offset = self.client.scroll(
+                    collection_name=self.config.collection_name,
+                    scroll_filter=scroll_filter,
+                    limit=limit,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                break
+            except Exception as exc:
+                if attempt >= 2 or not _is_transient_qdrant_error(exc):
+                    raise
+                time.sleep(0.5 * (attempt + 1))
         return [point_to_item(point, source_tool=source_tool) for point in points]
 
 
@@ -95,6 +111,18 @@ def filter_spec_to_qdrant_filter(spec: dict[str, Any]):
     should = [_condition(item, models) for item in spec.get("should") or []]
     must_not = [_condition(item, models) for item in spec.get("must_not") or []]
     return models.Filter(must=must or None, must_not=must_not or None, should=should or None)
+
+
+def _is_transient_qdrant_error(exc: BaseException) -> bool:
+    status = getattr(exc, "status_code", None) or getattr(exc, "status", None)
+    text = str(exc).lower()
+    return bool(
+        status in {502, 503, 504}
+        or "unexpected response: 502" in text
+        or "unexpected response: 503" in text
+        or "unexpected response: 504" in text
+        or "connection reset" in text
+    )
 
 
 def _condition(item: dict[str, Any], models: Any):
