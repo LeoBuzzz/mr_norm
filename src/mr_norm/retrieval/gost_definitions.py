@@ -259,6 +259,17 @@ def _looks_like_definition(text: str, term: str) -> bool:
     # A definition heading is normally ``107 термин: ...`` or ``термин: ...``.
     # Merely finding a word in the standard's alphabetical index/metadata is
     # not enough: that was the source of huge irrelevant GOST chunks.
+    heading = raw_preview.split(":", 1)[0]
+    if len(roots) >= 2:
+        # For a multi-word term the words must form the article heading. A
+        # loose match would accept neighbouring entries such as
+        # ``оперативно-диспетчерский персонал`` for ``оперативный персонал``.
+        adjacent = re.search(
+            rf"{re.escape(roots[0])}\w{{0,6}}[^\w\n:]+{re.escape(roots[1])}\w{{0,6}}",
+            heading,
+        )
+        if not adjacent:
+            return False
     for root in roots:
         if re.search(rf"{re.escape(root)}[^\n:]{{0,180}}:", raw_preview):
             return True
@@ -335,8 +346,8 @@ def fetch_gost_definitions(
                     keyword=term,
                     text=item.text,
                     doc_name=item.doc_name,
-                    point_number=item.point_number
-                    or _extract_inline_point_for_term(item.text, canonical),
+                    point_number=_extract_inline_point_for_term(item.text, canonical)
+                    or item.point_number,
                     chunk_id=item.chunk_id,
                     doc_id=item.doc_id or doc_id,
                     score=item.score,
@@ -364,8 +375,8 @@ def fetch_gost_definitions(
                         keyword=term,
                         text=item.text,
                         doc_name=item.doc_name,
-                        point_number=item.point_number
-                        or _extract_inline_point_for_term(item.text, canonical),
+                        point_number=_extract_inline_point_for_term(item.text, canonical)
+                        or item.point_number,
                         chunk_id=item.chunk_id,
                         doc_id=item.doc_id or doc_id,
                         score=item.score,
