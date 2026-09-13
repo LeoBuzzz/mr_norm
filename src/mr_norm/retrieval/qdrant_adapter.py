@@ -14,8 +14,34 @@ class QdrantRetrievalClient:
         except ImportError as exc:
             raise RuntimeError("qdrant-client is required for retrieval tools") from exc
         self.config = config
-        self.client = QdrantClient(url=config.qdrant_url, timeout=config.qdrant_timeout_sec)
+        self._qdrant_client_type = QdrantClient
+        self.client = self._new_client()
         self.calls = 0
+
+    def _new_client(self):
+        # The bot can keep one HTTP connection pool alive for hours.  After a
+        # Docker proxy/Qdrant reset that pool may contain a poisoned socket;
+        # recreating the client is materially more reliable than retrying the
+        # same pool.  The installed client is newer than the server, so the
+        # compatibility probe is disabled to avoid an extra control request.
+        try:
+            return self._qdrant_client_type(
+                url=self.config.qdrant_url,
+                timeout=self.config.qdrant_timeout_sec,
+                check_compatibility=False,
+            )
+        except TypeError:
+            return self._qdrant_client_type(url=self.config.qdrant_url, timeout=self.config.qdrant_timeout_sec)
+
+    def _recover_client(self) -> None:
+        old_client = self.client
+        try:
+            close = getattr(old_client, "close", None)
+            if callable(close):
+                close()
+        except Exception:
+            pass
+        self.client = self._new_client()
 
     def vector_search(
         self,
@@ -27,7 +53,7 @@ class QdrantRetrievalClient:
     ) -> list[RetrievedItem]:
         self.calls += 1
         qdrant_filter = filter_spec_to_qdrant_filter(filter_spec)
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 if hasattr(self.client, "search"):
                     points = self.client.search(
@@ -51,15 +77,16 @@ class QdrantRetrievalClient:
                     points = response.points
                 break
             except Exception as exc:
-                if attempt >= 2 or not _is_transient_qdrant_error(exc):
+                if attempt >= 3 or not _is_transient_qdrant_error(exc):
                     raise
-                time.sleep(0.5 * (attempt + 1))
+                self._recover_client()
+                time.sleep(0.5 * (2**attempt))
         return [point_to_item(point, source_tool=source_tool) for point in points]
 
     def payload_search(self, filter_spec: dict[str, Any], *, limit: int, source_tool: str) -> list[RetrievedItem]:
         self.calls += 1
         scroll_filter = filter_spec_to_qdrant_filter(filter_spec)
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 points, _offset = self.client.scroll(
                     collection_name=self.config.collection_name,
@@ -70,9 +97,10 @@ class QdrantRetrievalClient:
                 )
                 break
             except Exception as exc:
-                if attempt >= 2 or not _is_transient_qdrant_error(exc):
+                if attempt >= 3 or not _is_transient_qdrant_error(exc):
                     raise
-                time.sleep(0.5 * (attempt + 1))
+                self._recover_client()
+                time.sleep(0.5 * (2**attempt))
         return [point_to_item(point, source_tool=source_tool) for point in points]
 
 
