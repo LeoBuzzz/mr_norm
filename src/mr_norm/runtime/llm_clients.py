@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -36,17 +37,32 @@ class LLMResponse:
     raw: dict[str, Any] = field(default_factory=dict)
 
 
+def _is_connection_reset(exc: urllib.error.URLError) -> bool:
+    reason = getattr(exc, "reason", None)
+    return bool(
+        isinstance(reason, (ConnectionAbortedError, ConnectionResetError))
+        or getattr(reason, "winerror", None) == 10054
+        or "10054" in str(exc)
+        or "connection reset" in str(exc).lower()
+    )
+
+
 def default_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict[str, Any]:
     request = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(request, timeout=timeout_sec) as response:
-            payload = response.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"LLM HTTP {exc.code}: {detail}") from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f"LLM request failed: {exc}") from exc
-    return json.loads(payload)
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout_sec) as response:
+                payload = response.read().decode("utf-8")
+            return json.loads(payload)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"LLM HTTP {exc.code}: {detail}") from exc
+        except urllib.error.URLError as exc:
+            if attempt < 2 and _is_connection_reset(exc):
+                time.sleep(0.5 * (attempt + 1))
+                continue
+            raise RuntimeError(f"LLM request failed: {exc}") from exc
+    raise RuntimeError("LLM request failed: retry loop exhausted")
 
 
 def parse_json_object(content: str) -> dict[str, Any]:

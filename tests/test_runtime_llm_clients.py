@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,7 @@ from mr_norm.runtime.llm_clients import (
     build_chat_client,
     load_polza_api_key,
     parse_json_object,
+    default_http_post,
 )
 
 
@@ -108,3 +110,29 @@ def test_ollama_chat_client_maps_json_object_to_format_json() -> None:
 def test_build_chat_client_rejects_unknown_provider() -> None:
     with pytest.raises(LLMConfigError, match="unsupported LLM provider"):
         build_chat_client("unknown", "model")
+
+
+def test_default_http_post_retries_connection_reset(monkeypatch) -> None:
+    calls = 0
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake_urlopen(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise urllib.error.URLError(ConnectionResetError(10054, "connection reset"))
+        return Response()
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+    assert default_http_post("https://example.test", {}, b"{}", 1) == {"ok": True}
+    assert calls == 3
