@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -25,6 +26,12 @@ DOC_POINT_BOOST_POINT = 2
 DOC_POINT_BOOST_OTHER = 3
 
 
+def tail_point_fallback_enabled() -> bool:
+    return os.environ.get("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+
+
 @dataclass
 class PipelineDiagnostics:
     retrieval_limit: int = 0
@@ -44,6 +51,7 @@ class PipelineDiagnostics:
     gold_doc_in_top_n: bool | None = None
     resolved_doc_id: str = ""
     resolved_point: str = ""
+    tail_point_fallback_trace: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -111,7 +119,8 @@ def select_items_for_final_answer(
                 doc_name = catalog_name
 
     if not (doc_id or doc_name):
-        return _seed_first_items(ranked_items, limit=limit)
+        selected = _seed_first_items(ranked_items, limit=limit)
+        return _append_tail_point_fallback(selected, ranked_items, limit=limit)
 
     doc_items = [
         item
@@ -121,7 +130,8 @@ def select_items_for_final_answer(
         <= DOC_POINT_BOOST_DOC
     ]
     if not doc_items:
-        return _seed_first_items(ranked_items, limit=limit)
+        selected = _seed_first_items(ranked_items, limit=limit)
+        return _append_tail_point_fallback(selected, ranked_items, limit=limit)
 
     doc_items.sort(
         key=lambda item: _doc_point_boost_tier(
@@ -135,7 +145,78 @@ def select_items_for_final_answer(
     doc_prefix = _seed_first_items(doc_items, limit=doc_slots)
     selected_ids = {item.chunk_id for item in doc_prefix if item.chunk_id}
     remaining = [item for item in ranked_items if not item.chunk_id or item.chunk_id not in selected_ids]
-    return _seed_first_items(doc_prefix + remaining, limit=limit)
+    selected = _seed_first_items(doc_prefix + remaining, limit=limit)
+    return _append_tail_point_fallback(selected, ranked_items, limit=limit)
+
+
+def _tail_point_key(item: RetrievedItem) -> tuple[str, str] | None:
+    doc_id = str(item.doc_id or "").strip()
+    identity = str(item.point_identity_key or "").strip()
+    return (doc_id, identity) if doc_id and identity else None
+
+
+def _explicit_item_marker(item: RetrievedItem, names: tuple[str, ...]) -> bool:
+    matched = item.matched if isinstance(item.matched, dict) else {}
+    return any(matched.get(name) is True for name in names)
+
+
+def _tail_point_candidate(
+    selected: list[RetrievedItem], ranked_items: list[RetrievedItem], *, limit: int
+) -> tuple[list[RetrievedItem], dict[str, Any]]:
+    """Return at most one verified point from ranks 6..10 and an audit trace."""
+    trace: dict[str, Any] = {"enabled": tail_point_fallback_enabled(), "status": "disabled"}
+    if not trace["enabled"]:
+        return [], trace
+    available_logical_slots = limit + 1 - len({_tail_point_key(item) or ("", item.chunk_id) for item in selected})
+    if available_logical_slots <= 0:
+        trace.update(status="rejected", reason="budget_exhausted")
+        return [], trace
+
+    selected_keys = {_tail_point_key(item) for item in selected}
+    groups: dict[tuple[str, str], list[RetrievedItem]] = {}
+    for item in ranked_items[5:10]:
+        key = _tail_point_key(item)
+        if key is not None:
+            groups.setdefault(key, []).append(item)
+    for key, group in groups.items():
+        if key in selected_keys:
+            trace.update(status="rejected", reason="point_already_selected")
+            continue
+        if any(_explicit_item_marker(item, ("table", "table_like", "is_table")) for item in group):
+            trace.update(status="rejected", reason="table")
+            continue
+        if any(_explicit_item_marker(item, ("truncated", "is_truncated", "looks_truncated")) for item in group):
+            trace.update(status="rejected", reason="truncated")
+            continue
+        if any(_explicit_item_marker(item, ("ambiguous", "is_ambiguous")) for item in group):
+            trace.update(status="rejected", reason="ambiguous")
+            continue
+        if len(group) == 1:
+            if not group[0].is_complete_point:
+                trace.update(status="rejected", reason="whole_point_unverifiable")
+                continue
+        elif len(group) == 2:
+            if not all(item.is_split and item.total_parts == 2 for item in group) or {item.part_index for item in group} != {0, 1}:
+                trace.update(status="rejected", reason="whole_point_unverifiable")
+                continue
+        else:
+            trace.update(status="rejected", reason="split_parts_gt_2")
+            continue
+        # A verified split group is one logical point even when it has two items.
+        if available_logical_slots < 1:
+            trace.update(status="rejected", reason="budget_exhausted")
+            continue
+        trace.update(status="accepted", reason="verified_whole_point", point_key=list(key), chunk_ids=[item.chunk_id for item in group])
+        return group, trace
+    trace.setdefault("reason", "no_verified_tail_point")
+    return [], trace
+
+
+def _append_tail_point_fallback(
+    selected: list[RetrievedItem], ranked_items: list[RetrievedItem], *, limit: int
+) -> list[RetrievedItem]:
+    additions, _trace = _tail_point_candidate(selected, ranked_items, limit=limit)
+    return selected + additions
 
 
 def _point_group_key(item: RetrievedItem) -> tuple[str, str] | None:
@@ -757,6 +838,19 @@ def build_pipeline_diagnostics(
     )
     payload["resolved_doc_id"] = doc_id
     payload["resolved_point"] = str(filters.get("point_number") or "")
+    _tail_additions, tail_trace = _tail_point_candidate(
+        _seed_first_items(ranked_items, limit=diagnostics.final_answer_limit or DEFAULT_FINAL_ANSWER_LIMIT),
+        ranked_items,
+        limit=diagnostics.final_answer_limit or DEFAULT_FINAL_ANSWER_LIMIT,
+    )
+    payload["tail_point_fallback_trace"] = tail_trace
+    if tail_trace.get("status") == "accepted":
+        payload["tail_point_fallback_warning"] = (
+            "tail_point_fallback:accepted:"
+            + ",".join(str(chunk_id) for chunk_id in tail_trace.get("chunk_ids", []))
+        )
+    elif tail_trace.get("enabled") and tail_trace.get("reason"):
+        payload["tail_point_fallback_warning"] = f"tail_point_fallback:rejected:{tail_trace['reason']}"
     if doc_id or doc_name:
         payload["gold_doc_in_top_n"] = any(
             _doc_point_boost_tier(item, doc_id=doc_id, doc_name=doc_name, point_number=payload["resolved_point"])

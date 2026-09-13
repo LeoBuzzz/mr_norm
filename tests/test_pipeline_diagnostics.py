@@ -128,6 +128,49 @@ def test_select_items_for_final_answer_prioritizes_exact_point_from_wide_pool():
     assert any(item.chunk_id == "gold" for item in selected)
 
 
+def test_tail_point_fallback_accepts_one_verified_point_and_preserves_order(monkeypatch):
+    monkeypatch.setenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "1")
+    ranked = [
+        _item(chunk_id=f"base_{idx}", doc_id="doc", point_identity_key=f"base-{idx}")
+        for idx in range(5)
+    ]
+    ranked.extend([
+        _item(chunk_id="tail_a", doc_id="doc", point_identity_key="tail", is_split=True, is_complete_point=False, part_index=0, total_parts=2),
+        _item(chunk_id="tail_b", doc_id="doc", point_identity_key="tail", is_split=True, is_complete_point=False, part_index=1, total_parts=2),
+    ])
+    selected = select_items_for_final_answer(ranked, request=RuntimeRequest(query="test"), limit=5)
+    assert [item.chunk_id for item in selected] == ["base_0", "base_1", "base_2", "base_3", "base_4", "tail_a", "tail_b"]
+
+
+def test_tail_point_fallback_flag_off_keeps_base_selection(monkeypatch):
+    monkeypatch.delenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", raising=False)
+    ranked = [_item(chunk_id=f"base_{idx}", doc_id="doc", point_identity_key=f"base-{idx}") for idx in range(5)]
+    ranked.append(_item(chunk_id="tail", doc_id="doc", point_identity_key="tail", is_complete_point=True))
+    selected = select_items_for_final_answer(ranked, request=RuntimeRequest(query="test"), limit=5)
+    assert [item.chunk_id for item in selected] == [f"base_{idx}" for idx in range(5)]
+
+
+def test_tail_point_fallback_excludes_ambiguous_and_truncated(monkeypatch):
+    monkeypatch.setenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "1")
+    for marker in ("ambiguous", "truncated"):
+        ranked = [_item(chunk_id=f"base_{idx}", doc_id="doc", point_identity_key=f"base-{idx}") for idx in range(5)]
+        ranked.append(_item(chunk_id="bad", doc_id="doc", point_identity_key="bad", matched={marker: True}))
+        selected = select_items_for_final_answer(ranked, request=RuntimeRequest(query="test"), limit=5)
+        assert [item.chunk_id for item in selected] == [f"base_{idx}" for idx in range(5)]
+
+
+def test_tail_point_fallback_allows_at_most_one_and_never_reorders(monkeypatch):
+    monkeypatch.setenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "1")
+    ranked = [_item(chunk_id=f"base_{idx}", doc_id="doc", point_identity_key=f"base-{idx}") for idx in range(5)]
+    ranked.extend([
+        _item(chunk_id="tail_1", doc_id="doc", point_identity_key="tail-1", is_complete_point=True),
+        _item(chunk_id="tail_2", doc_id="doc", point_identity_key="tail-2", is_complete_point=True),
+    ])
+    selected = select_items_for_final_answer(ranked, request=RuntimeRequest(query="test"), limit=5)
+    assert [item.chunk_id for item in selected[:5]] == [f"base_{idx}" for idx in range(5)]
+    assert len(selected) == 6
+
+
 def test_intent_tool_routing_requirement_broad():
     prepared = (
         PreparedToolQuery(tool_name="vector", queries=("query",)),
