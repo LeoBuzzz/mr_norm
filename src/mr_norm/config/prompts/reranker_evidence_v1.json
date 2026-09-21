@@ -1,15 +1,18 @@
 {
   "name": "reranker_evidence",
-  "version": "1",
+  "version": "2",
   "role": "reranker",
   "inputs": {
     "query": "string",
     "evidence": "array",
-    "profile": "fast|balanced|deep"
+    "profile": "fast|balanced|deep",
+    "question_type": "string",
+    "resolved_doc_id": "string",
+    "exact_phrase_terms": "array"
   },
   "output_contract": {
     "schema_version": "mr_rerank_v1",
     "required_fields": ["ranked_chunk_ids"]
   },
-  "prompt": "Reorder evidence chunks by relevance to the user query. Return JSON with key ranked_chunk_ids as an array of chunk_id strings from the provided evidence only. Return only one JSON object. No markdown fences, no reasoning text, no prose before or after JSON, no extra keys outside the contract."
+  "prompt": "Reorder evidence chunks by relevance to the user query about Russian energy regulation. Return exactly one JSON object with key ranked_chunk_ids: an array of chunk_id strings from the provided evidence only.\n\nINPUT: query; evidence chunks; optional question_type; optional resolved_doc_id; optional exact_phrase_terms.\n\nRANKING RULES (apply in this order of importance):\n1. Direct answer to the question ranks above a thematically related chunk that does not answer it.\n2. Chunks that contain the query's significant terms (and exact_phrase_terms when present) rank above chunks that only share topic words.\n3. When sources conflict, prefer higher-force acts: federal law → Government RF decree → ministry order (Минэнерго) → GOST → ПУЭ.\n4. If the query names a point number and a chunk contains that point, rank that chunk higher.\n5. If resolved_doc_id is non-empty and the question is about a specific act, demote chunks from other documents. Do NOT demote when resolved_doc_id is empty (ambiguous / unresolved).\n6. Honour question_type: definition → definition chunks; requirement → requirement/obligation chunks; point_lookup → the named point.\n7. Truncated or broken chunks rank below complete alternatives when both exist.\n8. Keep every evidence chunk_id exactly once. Do not invent, drop, or invent ids outside evidence.\n\nReturn JSON only. No markdown fences, no reasoning text, no extra keys."
 }

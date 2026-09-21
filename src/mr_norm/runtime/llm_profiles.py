@@ -15,6 +15,10 @@ POLZA_PLANNER_MODEL = "deepseek/deepseek-v3.2"
 POLZA_PLANNER_FALLBACK_MODEL = ""
 POLZA_RERANKER_MODEL = "qwen/qwen3.5-flash-02-23"
 POLZA_RERANKER_FALLBACK_MODEL = ""
+POLZA_RERANKER_FALLBACK_MODELS = (
+    "qwen/qwen3.8-flash",
+    "deepseek/deepseek-v3.2",
+)
 POLZA_FINAL_ANSWER_MODEL = "deepseek/deepseek-v3.2"
 POLZA_FINAL_ANSWER_FALLBACK_MODEL = ""
 POLZA_PREMIUM_FINAL_ANSWER_MODEL = "anthropic/claude-sonnet-4.6"
@@ -26,6 +30,7 @@ class LLMRoleProfile:
     fallback_model: str = ""
     temperature: float = 0.1
     max_tokens: int = 2048
+    fallback_models: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -88,6 +93,7 @@ POLZA_PROFILES = LLMProviderProfiles(
     reranker=LLMRoleProfile(
         model=POLZA_RERANKER_MODEL,
         fallback_model=POLZA_RERANKER_FALLBACK_MODEL,
+        fallback_models=POLZA_RERANKER_FALLBACK_MODELS,
         max_tokens=1024,
     ),
     final_answer=LLMRoleProfile(
@@ -154,10 +160,11 @@ def resolve_role_models(provider: str, role: str, explicit_model: str | None = N
         return [explicit_model.strip()]
 
     profile = get_role_profile(provider, role)
-    models = [profile.model]
-    fallback = profile.fallback_model.strip()
-    if fallback and fallback not in models:
-        models.append(fallback)
+    models: list[str] = []
+    for candidate in (profile.model, profile.fallback_model, *profile.fallback_models):
+        model = candidate.strip()
+        if model and model not in models:
+            models.append(model)
     return models
 
 
@@ -171,6 +178,7 @@ def resolve_role_profile(provider: str, role: str, explicit_model: str | None = 
     return LLMRoleProfile(
         model=model,
         fallback_model=base.fallback_model,
+        fallback_models=base.fallback_models,
         temperature=base.temperature,
         max_tokens=base.max_tokens,
     )

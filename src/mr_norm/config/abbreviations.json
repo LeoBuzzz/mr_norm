@@ -1,0 +1,8359 @@
+[
+  {
+    "abbreviation": "2009.",
+    "values": [
+      "288 с., Т. 4 – 2010. – 240 с. 41. ГОСТ Р 7.0.12 -2011 Библиографическая запись. Сокращение слов и словосочетаний на русском языке. Дата введения 2012 -09-01. 42. Жизнин С.З. Энергетическая дипломатия. Международная энергетическая безопасность: учеб. Словарь / Моск. гос. ин -т междунар. отношений (ун-т) МИД России; Межд. Ин -т энергетич. политики и дипломатии. М.: МГИМО, 2013. 44 с. 83 43. Папков Б.В.  Краткий словарь современной элект роэнергетики. Нижний Новгород: Нижегород. гос. техн. ун -т им. Р.Е. Алексеева, 2013. 395 с. 44. Системы энергетические. Термины и определения. М.: Энергия 2013. 12 с.  ГОСТ 32144 -2013 Межгосударственный стандарт. Электрическая энергия. Совместимость технических средств электромагнитная. Нормы качества электрической энергии в системах электроснабжения общего назначения. Москва: СТАНДАРТИНФОРМ, 2014. 16 с. 45. Электрический привод. Термины и определения / под ред. С.К. Козырева. М.: Издательство МЭИ, 2015. 96 с. 46. Дулепов Д.Е., Папков Б.В.  Аббревиатуры современной электроэнергетики. Княгинино: НГИЭУ, 2016. 43 с. 47. ГОСТ Р 57114 –2016 «Единая энергетическая система и изолированно работающие энергосистемы. Электроэнергетические системы. Оперативно-диспетчерское управление в электроэнергетике и оперативно-технологическое управление. Термины и определения». М.: Стандартинформ, 2016. 16 с. 48. Правила технологического функционирования электроэнергетических систем. Утверждены постановлением Правительства РФ от 13.08. 2018 г. № 937. 49. Доктрина энергетической безопасности Российской Федерации : [утверждена Указом Президента РФ от 13.05. 2019 г. № 216 ]. 50. Папков Б.В., Илюшин П.В., Куликов А.Л.  Краткий словарь современной электроэнергетики. Нижний Новгород: Научно -издательский центр XXI век, 2021. 414 с. 51. ЭЛЕКТРОЭНЕРГИЯ. Передача и распределение  // URL: https:// eepir.ru/spisok-sokrashhenij-i-abbreviatur. 84 Справочно е из дание Борис Васильевич Папков, Павел Владимирович Илюшин, Александр Леонидович Куликов АББРЕВИАТУРЫ СОВРЕМЕННОЙ ЭЛЕКТРОЭНЕРГЕТИКИ Технический редактор и комп. верстка С.Е. Речнова Сдано в набор 07.03.2023. Подписано в печать 06.04.2023. Формат 6084/16. Печать офсетная. Бумага офсетная. Уч.-изд. л. 5,05. Усл. печ. л. 4,88. Тираж 500 экз. Издательство «ИНЭИ РАН». 117186, г. Москва, ул. Нагорная, д. 31, корп. 2. www.eriras.ru"
+    ]
+  },
+  {
+    "abbreviation": "2DCF",
+    "values": [
+      "прогноз критических режимов на 2 суток вперёд (2 -day Congestion Forecast) E"
+    ]
+  },
+  {
+    "abbreviation": "ABB",
+    "values": [
+      "шведско-швейцарская компания, специализирующаяся в области электротехники, энергетического машиностроения и информационных технологий (Asea (Almanna Svenska Elektiska Aktiebolaget) Brown Boveri Ltd)"
+    ]
+  },
+  {
+    "abbreviation": "ACER",
+    "values": [
+      "Европейское агентство по кооперации энергетических регуляторов ( European Agency for Cooperation of Energy Regulators)"
+    ]
+  },
+  {
+    "abbreviation": "ACF",
+    "values": [
+      "средний коэффициент нагрузки (Average Capacity Factor)"
+    ]
+  },
+  {
+    "abbreviation": "ADLC",
+    "values": [
+      "средняя продолжительность ограничения нагрузки (Average Duration of Load Curtailment)"
+    ]
+  },
+  {
+    "abbreviation": "AF",
+    "values": [
+      "коэффициент готовности (Availability Factor)"
+    ]
+  },
+  {
+    "abbreviation": "AMR",
+    "values": [
+      "система считывания с устройств измерений (Automatic Meter Reading)"
+    ]
+  },
+  {
+    "abbreviation": "ANSI",
+    "values": [
+      "американский национальный институт стандартов (American National Standards Institute)"
+    ]
+  },
+  {
+    "abbreviation": "APERC",
+    "values": [
+      "Азиатско-Тихоокеанский энергетический исследовательский центр (Asia Pacific Energy Research Centre)"
+    ]
+  },
+  {
+    "abbreviation": "AR",
+    "values": [
+      "дополненная реальность (Augmented Reality)"
+    ]
+  },
+  {
+    "abbreviation": "ARAE",
+    "values": [
+      "средняя эффективность применения реклоузеров (Average Recloser Applicftion Efficiency)"
+    ]
+  },
+  {
+    "abbreviation": "ASAI",
+    "values": [
+      "показатель средней (фактически требуемой) продолжительности питания потребителей ( Average Service Availability Index)"
+    ]
+  },
+  {
+    "abbreviation": "ASHRAE",
+    "values": [
+      "американское общество инженеров по отоплению, холодильной технике и кондиционированию воздуха ( American Society of Heating, Refrigerating and Air-Conditioning Engineers) 64"
+    ]
+  },
+  {
+    "abbreviation": "ASIDI",
+    "values": [
+      "средний индекс длительности нарушений в работе ЭЭС (Average System Interruption Duration Index)"
+    ]
+  },
+  {
+    "abbreviation": "ASIFI",
+    "values": [
+      "индекс средней частоты нарушений электроснабжения (Average System Interruption Frequency Index)"
+    ]
+  },
+  {
+    "abbreviation": "ASUI",
+    "values": [
+      "среднее значение индекса недоступности услуг ( Average Service Unavailability Index) B"
+    ]
+  },
+  {
+    "abbreviation": "ATSOI",
+    "values": [
+      "ассоциация операторов магистральных сетей в области электроэнергетики Ирландии , см. ENTSO. Устоявшийся вариант перевода названия организации на русский язы к в настоящее время отсутствует"
+    ]
+  },
+  {
+    "abbreviation": "BALTSO",
+    "values": [
+      "ассоциация операторов магистральных сетей в области электроэнергетики стран Балтии: Эстонии, Латвии, Литвы (Baltic Transmission System Operators)"
+    ]
+  },
+  {
+    "abbreviation": "BSR",
+    "values": [
+      "Балтийское электрическое кольцо (Baltic Sea Ring) C"
+    ]
+  },
+  {
+    "abbreviation": "CAPS",
+    "values": [
+      "Центрально-Азиатская энергосистема (Central Asian Power System) 65"
+    ]
+  },
+  {
+    "abbreviation": "CBAM",
+    "values": [
+      "механизм регулирования углеродной границы; тариф на выбросы углерода (Carbon Border Adjustment Mechanism)"
+    ]
+  },
+  {
+    "abbreviation": "CCS",
+    "values": [
+      "технология улавливания и захоронения углекислого газа (Carbon Capture and Storage)"
+    ]
+  },
+  {
+    "abbreviation": "CEA",
+    "values": [
+      "канадская ассоциация электроэнергии (Canaddian Electricity Association)"
+    ]
+  },
+  {
+    "abbreviation": "CEER",
+    "values": [
+      "некоммерческий совет европейских энергетических регуляторов (Council of European Energy Regulators)"
+    ]
+  },
+  {
+    "abbreviation": "CELID",
+    "values": [
+      "индекс надёжности электроснабжения потребителей, при длительных нарушениях электроснабжения ( The Customers Experiencing Long Interruption Durations Index) CEMSMIn – индекс надёжности электроснабжения потребителей, которые подвергаются множественным постоянным длительным и кратковременным n нарушениям электроснабжения (The Customers Experiencing Multiple Sustained Interruption and Momentary Interruption Events Index)"
+    ]
+  },
+  {
+    "abbreviation": "CENELEC",
+    "values": [
+      "Европейский комитет по стандартизации в электротехнике (Comité européen de normalization électrotechnique)"
+    ]
+  },
+  {
+    "abbreviation": "CERA",
+    "values": [
+      "Кембриджская ассоциация энер гетических исследований (Cambridge Energy Research)"
+    ]
+  },
+  {
+    "abbreviation": "CHL",
+    "values": [
+      "потеря потребителя в часах (customer hours lost)"
+    ]
+  },
+  {
+    "abbreviation": "CIE",
+    "values": [
+      "международная комиссия по освещению (International Commission on Illumination ), французская аббревиатура – Commission Internationale de l'éclairage) см. МКО"
+    ]
+  },
+  {
+    "abbreviation": "CIGRE",
+    "values": [
+      "неправительственная и некоммерческая международная конференция (совет) по большим электрическим системам высокого напряжения (Conseil International des Grands Réseaux Électriques)"
+    ]
+  },
+  {
+    "abbreviation": "CIM",
+    "values": [
+      "общая информационная модель (Common Information Model)"
+    ]
+  },
+  {
+    "abbreviation": "CIP",
+    "values": [
+      "защита критической инфраструктуры ( Critical Infrastructure Protection)"
+    ]
+  },
+  {
+    "abbreviation": "CIRED",
+    "values": [
+      "ведущий международный форум по распределению электроэнергии (International Conference on Electricity Distribution) 66"
+    ]
+  },
+  {
+    "abbreviation": "COMTRADE",
+    "values": [
+      "формат, предназначенный для обмена данными о переходных процессах в электрических системах (COMmon format for TRAnsient Data Exchange)"
+    ]
+  },
+  {
+    "abbreviation": "CRIS",
+    "values": [
+      "Международный институт критических инфраструктур (International Institute for Critical Infrastructures)"
+    ]
+  },
+  {
+    "abbreviation": "CSP",
+    "values": [
+      "термальные солнечные станции (concentrated solar power)"
+    ]
+  },
+  {
+    "abbreviation": "CTAIDI",
+    "values": [
+      "индекс средней общей длительности нарушений энергоснабжения потребителей ( Customer Total Average Interruption Duration Index) D"
+    ]
+  },
+  {
+    "abbreviation": "DACF",
+    "values": [
+      "прогнозирование критических режимов на сутки вперёд (Day-ahead Congestion Forecast)"
+    ]
+  },
+  {
+    "abbreviation": "DC",
+    "values": [
+      "постоянный ток (Direct Current)"
+    ]
+  },
+  {
+    "abbreviation": "DER",
+    "values": [
+      "распределённые энергоресурсы (Distributed Energy Resources)"
+    ]
+  },
+  {
+    "abbreviation": "DMG",
+    "values": [
+      "система распределенной генерации нескольких источников энергии (Distributed Multi-energy Generation)"
+    ]
+  },
+  {
+    "abbreviation": "DMS",
+    "values": [
+      "система управления электроснабжением и распределительными сетями (Distribution Management System)"
+    ]
+  },
+  {
+    "abbreviation": "DPG",
+    "values": [
+      "распределённое производство энергии (Distributed Power Generation)"
+    ]
+  },
+  {
+    "abbreviation": "DPUI",
+    "values": [
+      "показатель ненадёжности пункта поставки (Delivery Point Unreliability Index)"
+    ]
+  },
+  {
+    "abbreviation": "DRP",
+    "values": [
+      "программа управления спросом (Demand Response Program)"
+    ]
+  },
+  {
+    "abbreviation": "DSA",
+    "values": [
+      "оценка динамической надежности (Dynamic Security Assessment)"
+    ]
+  },
+  {
+    "abbreviation": "DSI",
+    "values": [
+      "интеграция потребителей в системные услуги (demand side integration)"
+    ]
+  },
+  {
+    "abbreviation": "DSM",
+    "values": [
+      "менеджмент на основе спроса; управление электропотреблением; активное регулирование нагрузки ( Demand Side Management) 67"
+    ]
+  },
+  {
+    "abbreviation": "EAM",
+    "values": [
+      "управление активами предприятия ( Enterprise Asset Management)"
+    ]
+  },
+  {
+    "abbreviation": "EBITDA",
+    "values": [
+      "прибыль до вычета процентов, налогов, износа и амортизации (Earnings Before Interest, Taxes, Depreciation and Amortization)"
+    ]
+  },
+  {
+    "abbreviation": "EDC",
+    "values": [
+      "ожидаемая стоимость ущерба (Expected Damage Cost)"
+    ]
+  },
+  {
+    "abbreviation": "EDF",
+    "values": [
+      "электроэнергетическая компания Франции (Electricitѐ de France)"
+    ]
+  },
+  {
+    "abbreviation": "EDLC",
+    "values": [
+      "ожидаемая продолжительность ограничений нагрузки (Expected Duration of Load Curtailments)"
+    ]
+  },
+  {
+    "abbreviation": "EDNS",
+    "values": [
+      "ожидаемый неудовлетворённый спрос (Expected Demand not Supplied)"
+    ]
+  },
+  {
+    "abbreviation": "EDSO",
+    "values": [
+      "Европейская ассоциация операторов распределительных сетей для интеллектуальных ЭЭС ( European Distribution System Oprator Association for Smart Grids)"
+    ]
+  },
+  {
+    "abbreviation": "EENS",
+    "values": [
+      "ожидаемый недоотпуск энергии  вследствие дефицита энергоресурса (Expected Energy not Supplied)"
+    ]
+  },
+  {
+    "abbreviation": "EEX",
+    "values": [
+      "европейский рынок электроэнергии (European Energy Exchange market)"
+    ]
+  },
+  {
+    "abbreviation": "EFLC",
+    "values": [
+      "ожидаемая частота ограничений нагрузки (Expected Frequency of Load Curtailments)"
+    ]
+  },
+  {
+    "abbreviation": "EFOR",
+    "values": [
+      "эквивалентная вероятная относительная длительность аварийного простоя (Equivalent Forced Outage Rate)"
+    ]
+  },
+  {
+    "abbreviation": "EIR",
+    "values": [
+      "энергетический индекс надёжности (Energy Index Reliability)"
+    ]
+  },
+  {
+    "abbreviation": "EMS",
+    "values": [
+      "система управления производством и распределением электроэнергии (Energy Management System)"
+    ]
+  },
+  {
+    "abbreviation": "ENLC",
+    "values": [
+      "ожидаемое число ограничений нагрузки, случаев/год (Expected Number of Load Curtailments, Occurrences per Year) 68"
+    ]
+  },
+  {
+    "abbreviation": "ENS",
+    "values": [
+      "суммарный объём электроэнергии, недопоставленный во время всех отключений потребителей ( Energy Not Supplied)"
+    ]
+  },
+  {
+    "abbreviation": "ENTSO-E",
+    "values": [
+      "Европейская  сеть операторов  электропередачи  (European Network of Transmission System Operators for Electricity)"
+    ]
+  },
+  {
+    "abbreviation": "EPRI",
+    "values": [
+      "научно-исследовательский институт электроэнергетики (Electric Power Research Institute)"
+    ]
+  },
+  {
+    "abbreviation": "EREC",
+    "values": [
+      "Европейский Совет по возобновляемой энергетике (European Renewable Energy Council)",
+      "Европейский совет по возобновляемым источникам энергии (European Renewable Energy Council)"
+    ]
+  },
+  {
+    "abbreviation": "ERGEG",
+    "values": [
+      "Европейская группа регуляторов по электроэнергии и газу (European Regulators’  Group for Electricity and Gas)"
+    ]
+  },
+  {
+    "abbreviation": "EROEI",
+    "values": [
+      "соотношение полученной энергии к затраченной ; энергетическая рентабельность ( Energy Returned  on Energy Invested )"
+    ]
+  },
+  {
+    "abbreviation": "ERP",
+    "values": [
+      "планирование ресурсов предприятия ( Enterprise Resource Planning)"
+    ]
+  },
+  {
+    "abbreviation": "ESG",
+    "values": [
+      "один из мировых принципов ответственного инвестирования: проверка компании на соответствие принципам экологии, социального развития, корпоративного управления (Environmental, Social, Governance)"
+    ]
+  },
+  {
+    "abbreviation": "ESS",
+    "values": [
+      "системы хранения энергии (Energy Storage Systems)"
+    ]
+  },
+  {
+    "abbreviation": "ESTO-E",
+    "values": [
+      "европейское сообщество операторов магистральных сетей в области электроэнергетики ( European Network of Transmission System Operators for Electricity)"
+    ]
+  },
+  {
+    "abbreviation": "EUE",
+    "values": [
+      "математическое ожидание годового объёма ограничений потребителей в элек трической энергии из -за аварийных длительных ремонтов оборудования ( Expected Unserved Energy), см. LOEE  (ожидаемая необслуживаемая энергия)"
+    ]
+  },
+  {
+    "abbreviation": "EWEA",
+    "values": [
+      "Европейская ассоциация ветроэнергетики (European Wind Energy Association) 69 F"
+    ]
+  },
+  {
+    "abbreviation": "FA",
+    "values": [
+      "автоматически управляемое присоединение (Feeder Automation)"
+    ]
+  },
+  {
+    "abbreviation": "FACE",
+    "values": [
+      "методы, в которых оценивание состояния выполняется совместно с прогнозированием параметров ЭЭС в один и тот же момент времени (Forecasting-aided State Estimation)"
+    ]
+  },
+  {
+    "abbreviation": "FACTS",
+    "values": [
+      "комплекс технических и информационных средств автоматического управления параметрами линий электропередачи переменного тока (Flexible Alternating Current Transmission System)"
+    ]
+  },
+  {
+    "abbreviation": "FERC",
+    "values": [
+      "федеральная комиссия по регулированию энергетики США (Federal Energy Regulatory Commission)"
+    ]
+  },
+  {
+    "abbreviation": "FLISR",
+    "values": [
+      "автоматика локализации, изоляции повреждения и восстановления электроснабжения ( Fault Location, Isolation & Service Restoration)"
+    ]
+  },
+  {
+    "abbreviation": "FOR",
+    "values": [
+      "вероятная относительная длительность аварийного простоя, коэффициент вынужденного отключения ( Forced Outage Rate)"
+    ]
+  },
+  {
+    "abbreviation": "FPA",
+    "values": [
+      "Федеральный закон об энергетике США (Federal Power Act) G"
+    ]
+  },
+  {
+    "abbreviation": "GCCIA",
+    "values": [
+      "Совет сотрудничества стран Персидского залива (Gulf Cooperation Council Interconnection Authority)"
+    ]
+  },
+  {
+    "abbreviation": "GEI",
+    "values": [
+      "глобальная энергетическая инициатива (Global Energy Initiative)",
+      "глобальное энергетическое объединение ( Global Energy Interconnection), см. ГЭО"
+    ]
+  },
+  {
+    "abbreviation": "GEIDCO",
+    "values": [
+      "организация по развитию и кооперации глобального энергетического объединения ( Global Energy Interconnection Development and Cooperation Organization) 70"
+    ]
+  },
+  {
+    "abbreviation": "GENI",
+    "values": [
+      "институт глобальной энергетической сети (Global Energy Network Institute)"
+    ]
+  },
+  {
+    "abbreviation": "GPS",
+    "values": [
+      "глобальная спутниковая система навигации (Global Positioning Sistem) H"
+    ]
+  },
+  {
+    "abbreviation": "HVAC",
+    "values": [
+      "линия электропередачи высокого напряжения переменного тока (High Voltage Alternating Current)"
+    ]
+  },
+  {
+    "abbreviation": "HVDC",
+    "values": [
+      "линия электропередачи высокого напряжения постоянного тока (High Voltage Direct Current) I I – изолировано (Isole)"
+    ]
+  },
+  {
+    "abbreviation": "ICOLD",
+    "values": [
+      "Международная комиссия по большим плотинам (International Commission on Large Dams), см. МКБП"
+    ]
+  },
+  {
+    "abbreviation": "IDCF",
+    "values": [
+      "прогноз критических режимов  на текущий день ( Intraday Congestion Forecast)"
+    ]
+  },
+  {
+    "abbreviation": "IDEA",
+    "values": [
+      "децентрализованная электроэнергетическая система; Интернет энергии (Internet of Distributed Energy Architecture)"
+    ]
+  },
+  {
+    "abbreviation": "IEA",
+    "values": [
+      "международное энергетическое агентство (International Energy Agency), см. МЭА"
+    ]
+  },
+  {
+    "abbreviation": "IEC",
+    "values": [
+      "международная электротехническая комиссия (International Electrotechnical Commission), см. МЭК"
+    ]
+  },
+  {
+    "abbreviation": "IEEE",
+    "values": [
+      "институт (ассоциация) инженеров по электротехнике и электронике, США (Institute of Electrical and Electronics Engineers), профессиональное сообщество и группа разработчиков стандартов для американской электронной промышленности"
+    ]
+  },
+  {
+    "abbreviation": "IEF",
+    "values": [
+      "Международный энергетический форум (International Energy Forum)"
+    ]
+  },
+  {
+    "abbreviation": "IES",
+    "values": [
+      "общество инженеров -светотехников США (Illuminating Engineering Society) 71"
+    ]
+  },
+  {
+    "abbreviation": "IFAC",
+    "values": [
+      "международная федерация по автоматическому управлению (International Federation of Automatic Control)"
+    ]
+  },
+  {
+    "abbreviation": "INSAG",
+    "values": [
+      "международная консультативная группа по ядерной безопасности ( International  Nuclear  Safety Advisory Group) IoT – интернет вещей (Internet of Things)"
+    ]
+  },
+  {
+    "abbreviation": "IPEEC",
+    "values": [
+      "Международное партнерство по сотрудничеству в области энергоэффективности. ( The International Partnership for Energy Efficiency Cooperation)"
+    ]
+  },
+  {
+    "abbreviation": "IPO",
+    "values": [
+      "один из способов привлечения капитала при первой продаже акций на фондовом рынке (Initial Public Offering)"
+    ]
+  },
+  {
+    "abbreviation": "IPP",
+    "values": [
+      "независимые производители электроэнергии ( Independent Power Producers)"
+    ]
+  },
+  {
+    "abbreviation": "IPS",
+    "values": [
+      "объединённая энергосистема стран СНГ ( Interconnected Power System), см. UPS"
+    ]
+  },
+  {
+    "abbreviation": "IRENA",
+    "values": [
+      "Международное агентство по возобновляемой энергии (International Renewable Energy Agency)"
+    ]
+  },
+  {
+    "abbreviation": "IRES",
+    "values": [
+      "возобновляемые источники с переменным характером выдачи мощности ( Intermittent  Renewable  Energy Sources )"
+    ]
+  },
+  {
+    "abbreviation": "IRI",
+    "values": [
+      "приростный показатель надёжности ( Incremental Reliability Index)"
+    ]
+  },
+  {
+    "abbreviation": "ISGAN",
+    "values": [
+      "международная сетка смарт сети действий (International Smart Grid Action Network)"
+    ]
+  },
+  {
+    "abbreviation": "ISO",
+    "values": [
+      "международная неправительственная организация, объединяющая национальные организации  по стандартизации (International Standards Organization)"
+    ]
+  },
+  {
+    "abbreviation": "IT",
+    "values": [
+      "система открытых проводящих частей электроустановки, присоединённых к заземлителю, при изолированной или заземлённой через достаточно высокое сопротивление нейтрали источника питания; нейтраль источника изолирована или заземлена через приборы или устройства, имеющие большое сопротивление; корпуса электрооборудования глухо заземлены (см. I; см. T) 72"
+    ]
+  },
+  {
+    "abbreviation": "ITER",
+    "values": [
+      "международный термоядерный экспериментальный реактор (International Thermonuclear Experimental Reactor)",
+      "путь: проект международного экспериментального термоядерного реактора (Iter) L L1, L2, L3 – соответствие обозначений фаз трёхфазной системы А,В,С"
+    ]
+  },
+  {
+    "abbreviation": "LAN",
+    "values": [
+      "локальная районная сеть (Local Area Network)"
+    ]
+  },
+  {
+    "abbreviation": "LCD",
+    "values": [
+      "устройство управления нагрузкой (Load Control Device)"
+    ]
+  },
+  {
+    "abbreviation": "LCF",
+    "values": [
+      "коэффициент совпадения нагрузки ( Load Coincidence Factor)"
+    ]
+  },
+  {
+    "abbreviation": "LCOE",
+    "values": [
+      "средняя расчётная (нормированная) себестоимость производства электроэнергии на протяжении жизненного цикла электростанции (включая все возможные инвестиции, затраты и доходы) (Levelized Cost of Electricity)"
+    ]
+  },
+  {
+    "abbreviation": "LOEE",
+    "values": [
+      "математическое ожидание годового объёма ограничений потребителей в электрической энергии из -за аварийных длительных ремонтов оборудования ( Loss of Energy Expectation), см. EUE (потеря энергии ожидание)"
+    ]
+  },
+  {
+    "abbreviation": "LOLD",
+    "values": [
+      "продолжительность потери нагрузки (Loss of Load Duration)"
+    ]
+  },
+  {
+    "abbreviation": "LOLE",
+    "values": [
+      "ожидаемое число суток в году, когда происходит потеря нагрузки; среднее число дней дефицита мощности ( Loss of Load Expectation)"
+    ]
+  },
+  {
+    "abbreviation": "LOLF",
+    "values": [
+      "частота потери нагрузки (Loss of Load Frequency)"
+    ]
+  },
+  {
+    "abbreviation": "LOLH",
+    "values": [
+      "среднее число часов дефицита мощности; длительность потери нагрузки в часах (Loss of Load Hours)"
+    ]
+  },
+  {
+    "abbreviation": "LOLP",
+    "values": [
+      "вероятность потери нагрузки; вероятность дефицита мощности на малом интервале времени  в период максимальной нагрузки (Loss of Load Probability)"
+    ]
+  },
+  {
+    "abbreviation": "LVRT",
+    "values": [
+      "функция поддержания непрерывности электроснабжения при низком напряжении (Low Voltage Ride Through) 73 M"
+    ]
+  },
+  {
+    "abbreviation": "MAIFI",
+    "values": [
+      "мгновенный индекс средней частоты отключений (Momentary average Interruption Frequency Index)"
+    ]
+  },
+  {
+    "abbreviation": "MDUS",
+    "values": [
+      "система объединения и синхронизации данных счетчиков (Meter Data Unification and Synchronization)"
+    ]
+  },
+  {
+    "abbreviation": "MPP",
+    "values": [
+      "Средиземноморский энергетический пул (Mediterranean Power Pool)"
+    ]
+  },
+  {
+    "abbreviation": "MR",
+    "values": [
+      "Средиземноморское энергетическое кольцо (Mediterranean Ring) N N – заземляющий проводник нулевой рабочий (Neutral)"
+    ]
+  },
+  {
+    "abbreviation": "MTBFO",
+    "values": [
+      "среднее время между вынужденными отключениями , влияющими на баланс мощности  (Mean Time Between Forced Outages)"
+    ]
+  },
+  {
+    "abbreviation": "MTTF",
+    "values": [
+      "средняя наработка на отказ (Mean Time to Failure)"
+    ]
+  },
+  {
+    "abbreviation": "MTTR",
+    "values": [
+      "среднее время восстановления (Mean Time to Repair)"
+    ]
+  },
+  {
+    "abbreviation": "NAESB",
+    "values": [
+      "североамериканский совет по стандартам в энергетике, вырабатывающий стандарты бизнес -практики (North American Energy Standards Board)"
+    ]
+  },
+  {
+    "abbreviation": "NEC",
+    "values": [
+      "национальный электрический кодекс США ( National Electrical Code)"
+    ]
+  },
+  {
+    "abbreviation": "NERC",
+    "values": [
+      "Североамериканская корпорация по надежности в электроэнергетике (North American Electric Reliability Corporation), совет по надежности электроснабжения США"
+    ]
+  },
+  {
+    "abbreviation": "NORDEL",
+    "values": [
+      "Организация стран Северной Европы (Дания, Исландия, Норвегия, Финляндия, Швеция) по сотрудничеству  в области электроэнергетики ( Organisation for Nordic Electicity Power Cooperation) 74"
+    ]
+  },
+  {
+    "abbreviation": "NSM",
+    "values": [
+      "системы управления сетями (Network System Management) O"
+    ]
+  },
+  {
+    "abbreviation": "OMS",
+    "values": [
+      "система обработки отключений ( Outage Management System)"
+    ]
+  },
+  {
+    "abbreviation": "OPEC",
+    "values": [
+      "Организация стран-экспортёров нефти (Organization of Petroleum Exporting Countries) P"
+    ]
+  },
+  {
+    "abbreviation": "PACS",
+    "values": [
+      "система защиты, автоматизации и контроля (Protection, Automation and Control Sestem)"
+    ]
+  },
+  {
+    "abbreviation": "PDS",
+    "values": [
+      "концентратор синхронизированных векторных измерений (Phasor Data Concentrator)"
+    ]
+  },
+  {
+    "abbreviation": "PEN",
+    "values": [
+      "заземляющий проводник совмещенный (нулевой рабочий и нулевой защитный); объединенный нулевой проводник, защитная земля, нейтраль (Protective Earth and Neutral)"
+    ]
+  },
+  {
+    "abbreviation": "PERC",
+    "values": [
+      "солнечный элемент с технологией пассивации задней поверхности кремниевой пластины ( Passivated Emitter Rear Cell)"
+    ]
+  },
+  {
+    "abbreviation": "PINE",
+    "values": [
+      "интеллектуальная силовая электронная установка на границе сети (Power Electronics Intelligence at the Network Edge)"
+    ]
+  },
+  {
+    "abbreviation": "PLC",
+    "values": [
+      "вероятность ограничения нагрузки ( Probability of Load Curtailments)"
+    ]
+  },
+  {
+    "abbreviation": "PMU",
+    "values": [
+      "устройство синхронизированных векторных измерений; регистратор измерения комплексных электрических величин (Phasor Measurement Unit (synchrophasor))"
+    ]
+  },
+  {
+    "abbreviation": "PSCAD",
+    "values": [
+      "программный комплекс моделирования энергосистем (Power Systemc Computer Aided Design)"
+    ]
+  },
+  {
+    "abbreviation": "PSI",
+    "values": [
+      "вероятность системной неустойчивости ( Probability of System Instability)"
+    ]
+  },
+  {
+    "abbreviation": "PST",
+    "values": [
+      "процесс создания политических, рыночных и регулирующих условий практики планирования и функционирования энергетических систем (Power System Transformation)"
+    ]
+  },
+  {
+    "abbreviation": "PTI",
+    "values": [
+      "вероятность динамической неустойчивости ( Probability of Transient Instability)"
+    ]
+  },
+  {
+    "abbreviation": "PVI",
+    "values": [
+      "вероятность неустойчивости по напряжению ( Probability of Voltage Instability) R"
+    ]
+  },
+  {
+    "abbreviation": "RAB",
+    "values": [
+      "система долгосрочного тарифного регулирования по методике регулируемой базы капитала ( Regulatory Asset Base)"
+    ]
+  },
+  {
+    "abbreviation": "RBF",
+    "values": [
+      "радиально-базисная сеть (Radial Basis Function)"
+    ]
+  },
+  {
+    "abbreviation": "RCM",
+    "values": [
+      "техническое обслуживание, ориентированное на безотказность (Reliability Centered Maintenance)"
+    ]
+  },
+  {
+    "abbreviation": "RDCO",
+    "values": [
+      "относительное снижение стоимости владения сетью ( Relative Decline Cost of Ownership)"
+    ]
+  },
+  {
+    "abbreviation": "RDMS",
+    "values": [
+      "система управления решениями по надёжности (Reliability Decision Management System)"
+    ]
+  },
+  {
+    "abbreviation": "RI",
+    "values": [
+      "показатель риска (Risk)"
+    ]
+  },
+  {
+    "abbreviation": "RNRE",
+    "values": [
+      "индекс относительной  эффективности реконструкции сети (Relative Network Reconstruction Efficiency)"
+    ]
+  },
+  {
+    "abbreviation": "RTU",
+    "values": [
+      "устройство дистанционного управления (Remote Terminal Unit) 76 S"
+    ]
+  },
+  {
+    "abbreviation": "SAIDI",
+    "values": [
+      "индекс средней длительности прерываний электроснабжения конечных потребителей в системе; индекс средней продолжительности отключений на одного потребителя в системе; средняя продолжительность отключения в системе (System Average Interruption Duration Index)"
+    ]
+  },
+  {
+    "abbreviation": "SAIFI",
+    "values": [
+      "индекс средней частоты отключений (перерывов) электроснабжения всех конечных потребителей в системе за год; средняя частота появления повреждений в системе (System Average Interruption Frequency Index)"
+    ]
+  },
+  {
+    "abbreviation": "SARI",
+    "values": [
+      "показатель среднего времени восстановления по системе (System Average Restoration Index)"
+    ]
+  },
+  {
+    "abbreviation": "SAS",
+    "values": [
+      "автоматизированная система  управления подстанцией (Sabstation Automation System)"
+    ]
+  },
+  {
+    "abbreviation": "SCADA",
+    "values": [
+      "система диспетчерского управления, сбора информации и телеизмерений (Supervisory Control and Data Acquisition / Energy Management System)"
+    ]
+  },
+  {
+    "abbreviation": "SEM",
+    "values": [
+      "Единый электроэнергетический рынок (Single Energy Market)",
+      "стратифицированный электроэнергетический рынок (Stratum Electricity Market)"
+    ]
+  },
+  {
+    "abbreviation": "SMART",
+    "values": [
+      "конкретный (specific), измеримый (measurable), достижимый (attainable), уместный (relevant), ограниченный во времени (time-bound)"
+    ]
+  },
+  {
+    "abbreviation": "SMP",
+    "values": [
+      "граничная цена электроэнергии самого дорогого генератора системы (System Marginal Price)"
+    ]
+  },
+  {
+    "abbreviation": "SMС",
+    "values": [
+      "предельные издержки энергосистемы ( System Marginal Costs)"
+    ]
+  },
+  {
+    "abbreviation": "SPARE",
+    "values": [
+      "международная сеть национальных экологических общественных организаций; образовательная программа об энергетике и окружающей среде для детей -школьников (School Project for Application of Recourses and Energy) 77 SoC – уровень заряда (State of charge)"
+    ]
+  },
+  {
+    "abbreviation": "SSSC",
+    "values": [
+      "статический продольный синхронный компенсатор (Static Senchronous Series Compensator)"
+    ]
+  },
+  {
+    "abbreviation": "STATCOM",
+    "values": [
+      "статический синхронный компенсатор реактивной мощности (Static Senchrononous Compensator)"
+    ]
+  },
+  {
+    "abbreviation": "SVC",
+    "values": [
+      "статический тиристорный компенсатор реактивной мощности (Static Var Compensator) T Т – заземлено (Terre)"
+    ]
+  },
+  {
+    "abbreviation": "TCSC",
+    "values": [
+      "тиристорно-управляемый продольный компенсатор (Thyristor Controlled Series Compensation (capacitor))"
+    ]
+  },
+  {
+    "abbreviation": "TESIS",
+    "values": [
+      "трансевропейская синхронно объединённая энергосистема ( Trans-European  Synchronised  Interconnected  System)"
+    ]
+  },
+  {
+    "abbreviation": "TN",
+    "values": [
+      "система открытых проводящих частей электроустановки, присоединённых к заземлённой нейтрали источника питания; нейтраль источника глухо заземлена, корпуса электрооборудования присоединены к нейтральному проводу (см. Т; см. N)"
+    ]
+  },
+  {
+    "abbreviation": "TPSC",
+    "values": [
+      "устройство продольной компенсации с тиристорной защитой (Thyristor Protected Series Compensation)"
+    ]
+  },
+  {
+    "abbreviation": "TRM",
+    "values": [
+      "запас передачи по надёжности (Transmission Reliability Margin) U"
+    ]
+  },
+  {
+    "abbreviation": "TSO",
+    "values": [
+      "кооперация операторов системы электропередачи (Transmission System Operator) 78"
+    ]
+  },
+  {
+    "abbreviation": "UCPTE",
+    "values": [
+      "Западновропейский союз по координации производства и транспорта электроэнергии (Union of the Production and of Transmission of Electicity)"
+    ]
+  },
+  {
+    "abbreviation": "UCTE",
+    "values": [
+      "Западновропейский союз по координации транспорта электроэнергии (Union of the Coordination of Transmission of Electicity)"
+    ]
+  },
+  {
+    "abbreviation": "UIC",
+    "values": [
+      "удельный ущерб от перерыва электроснабжения ( Unit Interruption Cost)"
+    ]
+  },
+  {
+    "abbreviation": "UIRV",
+    "values": [
+      "удельные затраты на прирост надёжности ( Unit Incremental Reliability Value)"
+    ]
+  },
+  {
+    "abbreviation": "UKTSOA",
+    "values": [
+      "ассоциация операторов системы электропередачи Великобритании ( UK Transmission  System Operators  Association )"
+    ]
+  },
+  {
+    "abbreviation": "UPDEA",
+    "values": [
+      "союз производителей и поставщиков электроэнергии в Африке (Union of Producers, Transporters and Distributors of Electric Power in Africa)"
+    ]
+  },
+  {
+    "abbreviation": "UPFC",
+    "values": [
+      "объединённый регулятор потока мощности (Unified Power Flow Controller)"
+    ]
+  },
+  {
+    "abbreviation": "UPS",
+    "values": [
+      "Единая энергосистема; Объединённая энергосистема стран СНГ (Unified Power System), см. IPS 79 V"
+    ]
+  },
+  {
+    "abbreviation": "V2G",
+    "values": [
+      "электромобиль – сеть (Vehicle-to-Grid)"
+    ]
+  },
+  {
+    "abbreviation": "VLL",
+    "values": [
+      "стоимость аварийно недоотпущенной электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "VOLL",
+    "values": [
+      "стоимость потерянной нагрузки, ущерб потребителей (Value of Lost Load)"
+    ]
+  },
+  {
+    "abbreviation": "VPP",
+    "values": [
+      "виртуальная электростанция (Virtual Power Plants)"
+    ]
+  },
+  {
+    "abbreviation": "VR",
+    "values": [
+      "виртуальная реальность (Virtual Reality)"
+    ]
+  },
+  {
+    "abbreviation": "VRE",
+    "values": [
+      "возобновляемые источники с переменным характером выдачи мощности (Variable Renewable Energy) W, X"
+    ]
+  },
+  {
+    "abbreviation": "WACS",
+    "values": [
+      "система широкомасштабного управления режимами (Wide Area Control System )"
+    ]
+  },
+  {
+    "abbreviation": "WADE",
+    "values": [
+      "Всемирный союз распределённой энергетики (World Alliance for Decentralized Energy)"
+    ]
+  },
+  {
+    "abbreviation": "WAMS",
+    "values": [
+      "широкомасштабная система измерений на больших территориях; российский аналог системы мониторинга переходных режимов – СМПР ( Wide Area Monitoring (Measurement System)"
+    ]
+  },
+  {
+    "abbreviation": "WEC",
+    "values": [
+      "Всемирный (Мировой) Энергетический Совет (World Energy Council), см. МИРЭС"
+    ]
+  },
+  {
+    "abbreviation": "WECC",
+    "values": [
+      "Западный координационный совет по электроэнергетике (Western Electricite Coordinating Coucil)"
+    ]
+  },
+  {
+    "abbreviation": "WNA",
+    "values": [
+      "Всемирное ядерное сообщество (World Nuclear Association)"
+    ]
+  },
+  {
+    "abbreviation": "WWW",
+    "values": [
+      "Всемирная паутина (World Wide Web)"
+    ]
+  },
+  {
+    "abbreviation": "XBID",
+    "values": [
+      "межграничный внутренний рынок – единая система торговли электроэнергией (Cross-Border-Intraday-Market) 80 БИБЛИОГРАФИЧЕСКИЙ СПИСОК 1. Полонский С.М. Краткий словарь электротехнических терминов. Энциклопедия электротехника. Том 15  / под ред. В. А. Карпова. М. – Л.: Московское акционерное издательское общество 1927 г. 83 с. 2. Международный электротехнический словарь. Группа 10. Машины и трансформаторы. М.: Физматгиз, 1958. 214 с. 3. Международный электротехнический словарь. Группа 16. Релейная защита. М.: Физматгиз, 1960. 118 с. 4. Международный электротехнический словарь. Группа 20. Лабораторные и технические измерительны е приборы. М.: Физматгиз, 1962. 228 с. 5. Международный электротехнический словарь. Группа 15. Коммутационная аппаратура (распределительные щиты и аппараты для коммутации, управления и регулирования). М.: Физматгиз, 1963. 166 с. 6. Надёжность технических систе м и изделий. Основные понятия. Терминология: сб. рекомендуемых терминов / отв. редактор В.И. Сифоров. М.: Наука, 1965. Вып. 67а. 40 с. 7. Международный электротехнический словарь. Группа 25. Производство, передача и распределение электрической энергии. М.: С ов. энциклопедия, 1967. 164 с. 8. Международный электротехнический словарь. Группа 37. Автоматические управляющие и регулирующие системы. М.: Сов. энциклопедия. 1969. 112 с. 9. Энергетические системы. Терминология: сб. рекомендуемых терминов / отв. ред. В.А. Веников. М.: Наука, 1970. Вып. 81. 73 с. 10. Энергетический баланс. Терминология: сб. рекомендуемых терминов / отв. ред. Л.А. Мелентьев. М.: Наука, 1973. Вып. 86. 32 с. 11. Астафьев А.К. Философские аспекты синтеза понятий в технике и биологии (на примере теории надёжности) / А.К. Астафьев. Л.: Изд -во ЛГУ, 1978. 104 с. 12. Надежность систем энергетики. Терминология: сб. рекомендуемых терминов / отв. ред. Ю.Н. Руденко. М.: Наука, 1980. Вып. 95. 44 с. 81 13. ГОСТ 19431-84 (2005). Энергетика и электрификация. Термины и определения. М.: Издательство стандартов, 1984. 12 с. 14. Надёжность и эффективность в технике: справочник: в 10 т. / ред. совет: В.С. Авдуевский (пред.) [и др.] . Т. 1: Методология. Организация. Терминология / под ред. А.И. Рембезы. М.: Машиностроение, 1986. 224 с. 15. ГОСТ 21027 -75 (2005). Системы энергетические. Термины и определения. М.: Издательство стандартов, 1987. 8 с. 16. Шпаннеберг Х. Электрические машины: 1000 понятий для практиков: справочник / пер. с нем. В.А. Алешичкина ; под ред. А.Н. Ледовского. М.: Энергоатомиздат, 1988. 256 с. 17. ГОСТ 23875 -88 . Качество электрической энергии. Термины и определения. М.: Издательство стандартов, 1988. 15 с. 18. ГОСТ Р 51237-98 Нетрадиционная энергетика. Ветроэнергетика. Термины и определения. // Утв. Постановлением Госстандарта России от 25.12.1998 № 460. 19. Электротехника. Терминология : справочное пособие. Вып. 3"
+    ]
+  },
+  {
+    "abbreviation": "ААС",
+    "values": [
+      "активно-адаптивная сеть (система)"
+    ]
+  },
+  {
+    "abbreviation": "ААЭС",
+    "values": [
+      "активно-адаптивная электрическая сеть"
+    ]
+  },
+  {
+    "abbreviation": "АБ",
+    "values": [
+      "аккумуляторная батарея"
+    ]
+  },
+  {
+    "abbreviation": "АББЭ",
+    "values": [
+      "аккумуляторная батарея большой энергоёмкости"
+    ]
+  },
+  {
+    "abbreviation": "АБП",
+    "values": [
+      "агрегат бесперебойного питания"
+    ]
+  },
+  {
+    "abbreviation": "АВ",
+    "values": [
+      "автоматический выключатель"
+    ]
+  },
+  {
+    "abbreviation": "АВМ",
+    "values": [
+      "аналоговая вычислительная машина"
+    ]
+  },
+  {
+    "abbreviation": "АВН",
+    "values": [
+      "аппарат высокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "АВПКО",
+    "values": [
+      "анализ видов, последствий и критичности отказов"
+    ]
+  },
+  {
+    "abbreviation": "АВР",
+    "values": [
+      "аварийно-восстановительные работы",
+      "автоматический ввод резерва"
+    ]
+  },
+  {
+    "abbreviation": "АВРЧ",
+    "values": [
+      "автоматическое вторичное регулирование частоты"
+    ]
+  },
+  {
+    "abbreviation": "АВРЧМ",
+    "values": [
+      "автоматическое вторичное регулирование частоты и мощности"
+    ]
+  },
+  {
+    "abbreviation": "АВС",
+    "values": [
+      "аварийно-восстановительная служба"
+    ]
+  },
+  {
+    "abbreviation": "АВСН",
+    "values": [
+      "автоматика выделения собственных нужд"
+    ]
+  },
+  {
+    "abbreviation": "АГДП",
+    "values": [
+      "асинхронный генератор двойного питания"
+    ]
+  },
+  {
+    "abbreviation": "АГП",
+    "values": [
+      "автомат гашения поля"
+    ]
+  },
+  {
+    "abbreviation": "АГЭУ",
+    "values": [
+      "автономная гибридная электроустановка 10"
+    ]
+  },
+  {
+    "abbreviation": "АД",
+    "values": [
+      "асинхронный электродвигатель"
+    ]
+  },
+  {
+    "abbreviation": "АДВ",
+    "values": [
+      "автоматическая дозировка управляющих воздействий"
+    ]
+  },
+  {
+    "abbreviation": "АДЗ",
+    "values": [
+      "адаптивная дистанционная защита"
+    ]
+  },
+  {
+    "abbreviation": "АДП",
+    "values": [
+      "аварийно допустимый переток"
+    ]
+  },
+  {
+    "abbreviation": "АДС",
+    "values": [
+      "автоматическое деление сети"
+    ]
+  },
+  {
+    "abbreviation": "АДСК",
+    "values": [
+      "агрегат дугогасящий сухого исполнения с плавным конденсаторным регулированием"
+    ]
+  },
+  {
+    "abbreviation": "АДТН",
+    "values": [
+      "аварийно-допустимая токовая нагрузка"
+    ]
+  },
+  {
+    "abbreviation": "АДУВ",
+    "values": [
+      "автоматика дозировки управляющего воздействия"
+    ]
+  },
+  {
+    "abbreviation": "АЕG",
+    "values": [
+      "немецкая электротехническая компания «Всеобщая электрическая компания» (Allgemeine Elektrizitäts -Gesellschaft) (см. АЕГ)"
+    ]
+  },
+  {
+    "abbreviation": "АЕГ",
+    "values": [
+      "немецкая электротехническая компания (см. AEG)"
+    ]
+  },
+  {
+    "abbreviation": "АЗ",
+    "values": [
+      "аварийная защита"
+    ]
+  },
+  {
+    "abbreviation": "АЗГ",
+    "values": [
+      "автоматическая загрузка генераторов"
+    ]
+  },
+  {
+    "abbreviation": "АЗС",
+    "values": [
+      "автоматика загрузки станций"
+    ]
+  },
+  {
+    "abbreviation": "АИИС",
+    "values": [
+      "автоматизированная информационно-измерительная система"
+    ]
+  },
+  {
+    "abbreviation": "АИИСКУЭ",
+    "values": [
+      "автоматизированная информационно-измерительная система контроля и учета (коммерческого) электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "АИИСОУ",
+    "values": [
+      "автоматизированная информационно-измерительная система оперативного управления"
+    ]
+  },
+  {
+    "abbreviation": "АИИСТУЭ",
+    "values": [
+      "автоматизированная информационно-измерительная система технического учета электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "АИИСУЭ",
+    "values": [
+      "автоматизированная информационно-измерительная система учета электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "АИС",
+    "values": [
+      "автоматизированная информационная система"
+    ]
+  },
+  {
+    "abbreviation": "АИСКГН",
+    "values": [
+      "автоматизированная информационная система контроля гололедной нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "АИСКУЭ",
+    "values": [
+      "автоматизированная информационная система контроля и учета электропотребления"
+    ]
+  },
+  {
+    "abbreviation": "АКЭ",
+    "values": [
+      "анализатор качества электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "АЛАР",
+    "values": [
+      "автоматика ликвидации асинхронного режима"
+    ]
+  },
+  {
+    "abbreviation": "АМ",
+    "values": [
+      "асинхронная машина 11 АН СССР – Академия наук СССР"
+    ]
+  },
+  {
+    "abbreviation": "АО",
+    "values": [
+      "акционерное общество"
+    ]
+  },
+  {
+    "abbreviation": "АОПЛ",
+    "values": [
+      "автоматика ограничения перегрузки линии"
+    ]
+  },
+  {
+    "abbreviation": "АОПМ",
+    "values": [
+      "автоматическое ограничение перетоков мощности"
+    ]
+  },
+  {
+    "abbreviation": "АОПН",
+    "values": [
+      "автоматика ограничения повышения напряжения",
+      "автоматическое ограничение повышения напряжения"
+    ]
+  },
+  {
+    "abbreviation": "АОПО",
+    "values": [
+      "автоматическое ограничение недопустимых перегрузок оборудования"
+    ]
+  },
+  {
+    "abbreviation": "АОПТ",
+    "values": [
+      "автоматическое предотвращение перегрузок трансформатора"
+    ]
+  },
+  {
+    "abbreviation": "АОПЧ",
+    "values": [
+      "автоматическое ограничение повышения частоты"
+    ]
+  },
+  {
+    "abbreviation": "АОСН",
+    "values": [
+      "автоматическое ограничение снижения напряжения АО «СО ЕЭС»  – акционерное общество «Системный оператор Единой энергетической системы»"
+    ]
+  },
+  {
+    "abbreviation": "АОСЧ",
+    "values": [
+      "автоматическое ограничение снижения частоты"
+    ]
+  },
+  {
+    "abbreviation": "АОЧ",
+    "values": [
+      "автоматика ограничения отклонения частоты"
+    ]
+  },
+  {
+    "abbreviation": "АП",
+    "values": [
+      "активный потребитель"
+    ]
+  },
+  {
+    "abbreviation": "АПАХ",
+    "values": [
+      "автоматика прекращения асинхронного хода"
+    ]
+  },
+  {
+    "abbreviation": "АПБЭ",
+    "values": [
+      "агентство по прогнозированию балансов в электроэнергетике"
+    ]
+  },
+  {
+    "abbreviation": "АПВ",
+    "values": [
+      "автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "АПВОС",
+    "values": [
+      "автоматическое повторное включение с ожиданием синхронизма"
+    ]
+  },
+  {
+    "abbreviation": "АПВС",
+    "values": [
+      "автоматическое повторное включение с самосинхронизацией"
+    ]
+  },
+  {
+    "abbreviation": "АПВУС",
+    "values": [
+      "автоматическое повторное включение с улавливанием синхронизма"
+    ]
+  },
+  {
+    "abbreviation": "АПД",
+    "values": [
+      "аппаратура передачи данных"
+    ]
+  },
+  {
+    "abbreviation": "АПК",
+    "values": [
+      "аппаратно-программный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "АПНУ",
+    "values": [
+      "автоматическое предотвращение нарушения устойчивости"
+    ]
+  },
+  {
+    "abbreviation": "АПП",
+    "values": [
+      "автоматизированная программа переключений 12"
+    ]
+  },
+  {
+    "abbreviation": "АПС",
+    "values": [
+      "автоматическая пожарная сигнализация",
+      "автоматический пункт секционирования электрической сети"
+    ]
+  },
+  {
+    "abbreviation": "АРВ",
+    "values": [
+      "автоматическое регулирование возбуждения АРВ ПД – автоматический регулятор возбуждения пропорционального действия АРВ СД – автоматический регулятор возбуждения сильного действия"
+    ]
+  },
+  {
+    "abbreviation": "АРВЭ",
+    "values": [
+      "ассоциация развития возобновляемой энергетики"
+    ]
+  },
+  {
+    "abbreviation": "АРДП",
+    "values": [
+      "автоматика разгрузки при динамической перегрузке электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "АРКЗ",
+    "values": [
+      "автоматика разгрузки при близких или затяжных коротких замыканиях"
+    ]
+  },
+  {
+    "abbreviation": "АРКТ",
+    "values": [
+      "автоматическое регулирование коэффициента трансформации"
+    ]
+  },
+  {
+    "abbreviation": "АРЛ",
+    "values": [
+      "автоматика разгрузки линии"
+    ]
+  },
+  {
+    "abbreviation": "АРМ",
+    "values": [
+      "автоматизированное рабочее место",
+      "автоматический регулятор мощности"
+    ]
+  },
+  {
+    "abbreviation": "АРН",
+    "values": [
+      "автоматическое регулирование напряжения"
+    ]
+  },
+  {
+    "abbreviation": "АРНТ",
+    "values": [
+      "автоматическое регулирование напряжения на трансформаторах",
+      "автоматическое регулирование напряжения с токовой компенсацией"
+    ]
+  },
+  {
+    "abbreviation": "АРО",
+    "values": [
+      "автоматическая разгрузка оборудования"
+    ]
+  },
+  {
+    "abbreviation": "АРОГ",
+    "values": [
+      "автоматика разгрузки электропередач при отключении генераторов"
+    ]
+  },
+  {
+    "abbreviation": "АРОДЛ",
+    "values": [
+      "автоматика разгрузки при отключении двух линий электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "АРОЛ",
+    "values": [
+      "автоматика разгрузки при отключении одной линии электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "АРП",
+    "values": [
+      "автоматический регулятор перетока"
+    ]
+  },
+  {
+    "abbreviation": "АРПН",
+    "values": [
+      "автоматическое регулирование напряжения под нагрузкой 13"
+    ]
+  },
+  {
+    "abbreviation": "АРПЧ",
+    "values": [
+      "автоматическое регулирование перетока и частоты"
+    ]
+  },
+  {
+    "abbreviation": "АРС",
+    "values": [
+      "автоматический регулятор скорости"
+    ]
+  },
+  {
+    "abbreviation": "АРСП",
+    "values": [
+      "автоматика разгрузки при статической перегрузке электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "АРЧ",
+    "values": [
+      "автоматическое регулирование частоты"
+    ]
+  },
+  {
+    "abbreviation": "АРЧВ",
+    "values": [
+      "автоматика регулирования частоты вращения"
+    ]
+  },
+  {
+    "abbreviation": "АРЧМ",
+    "values": [
+      "автоматическое регулирование частоты и мощности"
+    ]
+  },
+  {
+    "abbreviation": "АС",
+    "values": [
+      "переменный ток (Alternative Current)"
+    ]
+  },
+  {
+    "abbreviation": "АСАРБ",
+    "values": [
+      "автоматическая система аварийной разгрузки блока"
+    ]
+  },
+  {
+    "abbreviation": "АСГ",
+    "values": [
+      "автономные системы генерации",
+      "асинхронизированный генератор"
+    ]
+  },
+  {
+    "abbreviation": "АСДУ",
+    "values": [
+      "автоматизированная система диспетчерского управления"
+    ]
+  },
+  {
+    "abbreviation": "АСДУЭ",
+    "values": [
+      "автоматизированная система диспетчерского учета электропотребления"
+    ]
+  },
+  {
+    "abbreviation": "АСК",
+    "values": [
+      "асинхронизированный синхронный компенсатор"
+    ]
+  },
+  {
+    "abbreviation": "АСКТС",
+    "values": [
+      "автоматизированная система контроля технического состояния"
+    ]
+  },
+  {
+    "abbreviation": "АСКУЭ",
+    "values": [
+      "автоматизированная система коммерческого учета электроэнергии",
+      "автоматизированная система контроля и управления электроснабжением (электропотреблением)"
+    ]
+  },
+  {
+    "abbreviation": "АСМ",
+    "values": [
+      "автоматизированная система мониторинга",
+      "асинхронизированная синхронная машина"
+    ]
+  },
+  {
+    "abbreviation": "АСММ",
+    "values": [
+      "атомная станция малой мощности АСМ РЗА – автоматизированная система мониторинга релейной защиты и автоматики"
+    ]
+  },
+  {
+    "abbreviation": "АСНИ",
+    "values": [
+      "автоматизированная система научных исследований"
+    ]
+  },
+  {
+    "abbreviation": "АСОДУ",
+    "values": [
+      "автоматизированная система оперативно-диспетчерского управления"
+    ]
+  },
+  {
+    "abbreviation": "АСОТУ",
+    "values": [
+      "автоматизированная система оперативно-технологического управления 14"
+    ]
+  },
+  {
+    "abbreviation": "АСРГ",
+    "values": [
+      "активные системы распределённой генерации"
+    ]
+  },
+  {
+    "abbreviation": "АСРР",
+    "values": [
+      "автоматизированная система расчета резервов"
+    ]
+  },
+  {
+    "abbreviation": "АСТ",
+    "values": [
+      "атомная станция теплоснабжения"
+    ]
+  },
+  {
+    "abbreviation": "АСТГ",
+    "values": [
+      "асинхронизированный турбогенератор"
+    ]
+  },
+  {
+    "abbreviation": "АСТДУ",
+    "values": [
+      "автоматизированная система технологического диспетчерского управления"
+    ]
+  },
+  {
+    "abbreviation": "АСТУ",
+    "values": [
+      "автоматизированная система технологического управления"
+    ]
+  },
+  {
+    "abbreviation": "АСТУЭ",
+    "values": [
+      "автоматизированная система технического учета электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "АСУ",
+    "values": [
+      "автоматизированная система управления"
+    ]
+  },
+  {
+    "abbreviation": "АСУГ",
+    "values": [
+      "автоматизированная система управления генератором АСУ МБ – автоматизированная система управления мобильными бригадами АСУ СИТО – автоматическая система управления состоянием изоляции трансформаторного оборудования"
+    ]
+  },
+  {
+    "abbreviation": "АСУТП",
+    "values": [
+      "автоматизированная система управления технологическим процессом"
+    ]
+  },
+  {
+    "abbreviation": "АСЭМ",
+    "values": [
+      "ассоциация энергоменеджеров"
+    ]
+  },
+  {
+    "abbreviation": "АСЭМПЧ",
+    "values": [
+      "асинхронизированный синхронный электромеханический преобразователь частоты"
+    ]
+  },
+  {
+    "abbreviation": "АСЭС",
+    "values": [
+      "автономная система электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "АТ",
+    "values": [
+      "автотрансформатор"
+    ]
+  },
+  {
+    "abbreviation": "АТС",
+    "values": [
+      "администратор торговой системы"
+    ]
+  },
+  {
+    "abbreviation": "АУВ",
+    "values": [
+      "автоматика управления выключателем"
+    ]
+  },
+  {
+    "abbreviation": "АУМСУ",
+    "values": [
+      "автоматическое управление мощностью в целях сохранения устойчивости энергосистемы АУНиАР – автоматика управления нормальными и аварийными режимами"
+    ]
+  },
+  {
+    "abbreviation": "АФ",
+    "values": [
+      "активный фильтр"
+    ]
+  },
+  {
+    "abbreviation": "АФД",
+    "values": [
+      "амплитудно-фазовая диаграмма"
+    ]
+  },
+  {
+    "abbreviation": "АФУ",
+    "values": [
+      "активное фильтрокомпенсирующее устройство 15"
+    ]
+  },
+  {
+    "abbreviation": "АЦП",
+    "values": [
+      "аналого-цифровой преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "АЧВР",
+    "values": [
+      "автоматический частотный ввод резерва"
+    ]
+  },
+  {
+    "abbreviation": "АЧД",
+    "values": [
+      "автоматика частотного деления"
+    ]
+  },
+  {
+    "abbreviation": "АЧП",
+    "values": [
+      "автоматический частотный пуск"
+    ]
+  },
+  {
+    "abbreviation": "АЧР",
+    "values": [
+      "автоматическая частотная разгрузка"
+    ]
+  },
+  {
+    "abbreviation": "АЧХ",
+    "values": [
+      "амплитудно-частотная характеристика"
+    ]
+  },
+  {
+    "abbreviation": "АЩСУ",
+    "values": [
+      "агрегатный щит станций управления"
+    ]
+  },
+  {
+    "abbreviation": "АЭК",
+    "values": [
+      "активный энергетический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "АЭП",
+    "values": [
+      "проектный институт «Атомэнергопроект»"
+    ]
+  },
+  {
+    "abbreviation": "АЭС",
+    "values": [
+      "атомная электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "АЭУ",
+    "values": [
+      "автономная энергетическая установка Б"
+    ]
+  },
+  {
+    "abbreviation": "БАВР",
+    "values": [
+      "быстродействующее автоматическое включение резерва"
+    ]
+  },
+  {
+    "abbreviation": "БАДЭС",
+    "values": [
+      "башенная аэродинамическая электростанция"
+    ]
+  },
+  {
+    "abbreviation": "БАПВ",
+    "values": [
+      "быстродействующее автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "БАРН",
+    "values": [
+      "бесконтактное автоматическое регулирование напряжения"
+    ]
+  },
+  {
+    "abbreviation": "БД",
+    "values": [
+      "база данных"
+    ]
+  },
+  {
+    "abbreviation": "БЗ",
+    "values": [
+      "блоки зажимов"
+    ]
+  },
+  {
+    "abbreviation": "БИМ",
+    "values": [
+      "блок индикации микропроцессорный"
+    ]
+  },
+  {
+    "abbreviation": "БК",
+    "values": [
+      "батарея конденсаторов"
+    ]
+  },
+  {
+    "abbreviation": "БКТП",
+    "values": [
+      "блочная комплектная трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "БКТПБ",
+    "values": [
+      "блочная комплектная трансформаторная подстанция в бетонной оболочке"
+    ]
+  },
+  {
+    "abbreviation": "БКУ",
+    "values": [
+      "блок ключей управления"
+    ]
+  },
+  {
+    "abbreviation": "БКУР",
+    "values": [
+      "блок ключей управления реле"
+    ]
+  },
+  {
+    "abbreviation": "БКЭ",
+    "values": [
+      "быстродействующий коммутационный элемент 16"
+    ]
+  },
+  {
+    "abbreviation": "БКЭС",
+    "values": [
+      "блочно-комплектная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "БМИ",
+    "values": [
+      "бумажно-масляная изоляция"
+    ]
+  },
+  {
+    "abbreviation": "БМИУ",
+    "values": [
+      "блочно-модульная инверторная установка БМ СНЭ – блочно-модульная система накопления электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "БН",
+    "values": [
+      "энергетический реактор на быстрых нейтронах для АЭС"
+    ]
+  },
+  {
+    "abbreviation": "БПИ",
+    "values": [
+      "бумажная пропитанная изоляция"
+    ]
+  },
+  {
+    "abbreviation": "БР",
+    "values": [
+      "балансирующий рынок"
+    ]
+  },
+  {
+    "abbreviation": "БРЭЛЛ",
+    "values": [
+      "энергетическое кольцо: Белоруссия, Россия, Эстония, Латвия, Литва"
+    ]
+  },
+  {
+    "abbreviation": "БСК",
+    "values": [
+      "батарея статических конденсаторов"
+    ]
+  },
+  {
+    "abbreviation": "БТЕ",
+    "values": [
+      "Британская тепловая единица"
+    ]
+  },
+  {
+    "abbreviation": "БТИЗ",
+    "values": [
+      "биполярный транзистор с изолированным затвором (одна из наиболее важных инноваций в области управления и распределения электроэнергии – основа интеллектуальных энергосистем)"
+    ]
+  },
+  {
+    "abbreviation": "БТС",
+    "values": [
+      "большая техническая система"
+    ]
+  },
+  {
+    "abbreviation": "БУ",
+    "values": [
+      "балансирующий узел В В – вольт – единица измерения напряжения В∙А – вольт-ампер – единица измерения полной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ВАБ",
+    "values": [
+      "вероятностный анализ безопасности вар – вольт-ампер реактивный – единица измерения реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ВАЗП",
+    "values": [
+      "выпрямительный агрегат зарядный, подзарядный"
+    ]
+  },
+  {
+    "abbreviation": "ВАХ",
+    "values": [
+      "вольт-амперная характеристика"
+    ]
+  },
+  {
+    "abbreviation": "ВАЭС",
+    "values": [
+      "воздухо-аккумулирующая электростанция Вб – вебер – единица измерения магнитного потока"
+    ]
+  },
+  {
+    "abbreviation": "ВБР",
+    "values": [
+      "вероятность безотказной работы"
+    ]
+  },
+  {
+    "abbreviation": "ВБЭР",
+    "values": [
+      "водяной блочный энергетический реактор 17"
+    ]
+  },
+  {
+    "abbreviation": "ВВ",
+    "values": [
+      "выключатель вводной",
+      "выключатель воздушный"
+    ]
+  },
+  {
+    "abbreviation": "ВВО",
+    "values": [
+      "высоковольтное оборудование"
+    ]
+  },
+  {
+    "abbreviation": "ВВП",
+    "values": [
+      "валовой внутренний продукт"
+    ]
+  },
+  {
+    "abbreviation": "ВВЭР",
+    "values": [
+      "водо-водяной энергетический реактор для АЭС"
+    ]
+  },
+  {
+    "abbreviation": "ВГ",
+    "values": [
+      "высшие гармоники"
+    ]
+  },
+  {
+    "abbreviation": "ВГЭК",
+    "values": [
+      "ветрогидроэнергетический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ВДК",
+    "values": [
+      "вакуумная дугогасительная камера",
+      "вольтодобавочный канал"
+    ]
+  },
+  {
+    "abbreviation": "ВДТ",
+    "values": [
+      "вольтодобавочный трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ВДЭС",
+    "values": [
+      "ветро-дизельная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ВЗ",
+    "values": [
+      "высокочастотный заградитель"
+    ]
+  },
+  {
+    "abbreviation": "ВИНИТИ",
+    "values": [
+      "всероссийский институт научной и технической информации"
+    ]
+  },
+  {
+    "abbreviation": "ВИЭ",
+    "values": [
+      "возобновляемый источник энергии"
+    ]
+  },
+  {
+    "abbreviation": "ВИЭК",
+    "values": [
+      "вертикально интегрированная энергетическая компания ВиЭС – виртуальная электростанция (см. ВЭС)"
+    ]
+  },
+  {
+    "abbreviation": "ВКЗ",
+    "values": [
+      "вторичное короткое замыкание"
+    ]
+  },
+  {
+    "abbreviation": "ВКЛ",
+    "values": [
+      "воздушно-кабельная линия"
+    ]
+  },
+  {
+    "abbreviation": "ВЛ",
+    "values": [
+      "воздушная линия электропередачи",
+      "воздушная линия"
+    ]
+  },
+  {
+    "abbreviation": "ВЛЗ",
+    "values": [
+      "воздушная линия с защищенными проводами"
+    ]
+  },
+  {
+    "abbreviation": "ВЛИ",
+    "values": [
+      "воздушная линия электропередачи с самонесущими изолированными проводами"
+    ]
+  },
+  {
+    "abbreviation": "ВМ",
+    "values": [
+      "выключатель масляный"
+    ]
+  },
+  {
+    "abbreviation": "ВН",
+    "values": [
+      "выключатель нагрузки",
+      "высокое напряжение (110 кВ и выше)"
+    ]
+  },
+  {
+    "abbreviation": "ВНД",
+    "values": [
+      "внутренняя норма доходности"
+    ]
+  },
+  {
+    "abbreviation": "ВНИИАЭС",
+    "values": [
+      "Всероссийский научно-исследовательский институт атомных электростанций"
+    ]
+  },
+  {
+    "abbreviation": "ВНИИКП",
+    "values": [
+      "Всероссийский научно-исследовательский институт кабельной промышленности"
+    ]
+  },
+  {
+    "abbreviation": "ВНИИР",
+    "values": [
+      "Всероссийский научно-исследовательский институт релестроения с опытным производством 18"
+    ]
+  },
+  {
+    "abbreviation": "ВНИИЭ",
+    "values": [
+      "Всероссийский научно-исследовательский институт электроэнергетики"
+    ]
+  },
+  {
+    "abbreviation": "ВНП",
+    "values": [
+      "валовой национальный продукт"
+    ]
+  },
+  {
+    "abbreviation": "ВНТ",
+    "values": [
+      "выключатель нагрузки трехпозиционный"
+    ]
+  },
+  {
+    "abbreviation": "ВОБ",
+    "values": [
+      "вероятностная оценка безопасности",
+      "выездная оперативная бригада"
+    ]
+  },
+  {
+    "abbreviation": "ВОК",
+    "values": [
+      "волоконно-оптический кабель"
+    ]
+  },
+  {
+    "abbreviation": "ВОЛС",
+    "values": [
+      "волоконно-оптическая линия связи"
+    ]
+  },
+  {
+    "abbreviation": "ВОМП",
+    "values": [
+      "волновой метод определения места повреждения"
+    ]
+  },
+  {
+    "abbreviation": "ВП",
+    "values": [
+      "вентильный преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "ВПТ",
+    "values": [
+      "вставка постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ВПЭР",
+    "values": [
+      "возобновляемые природные энергетические ресурсы"
+    ]
+  },
+  {
+    "abbreviation": "ВР",
+    "values": [
+      "выключатель-разъединитель"
+    ]
+  },
+  {
+    "abbreviation": "ВРП",
+    "values": [
+      "валовой региональный продукт"
+    ]
+  },
+  {
+    "abbreviation": "ВРУ",
+    "values": [
+      "вводное распределительное устройство"
+    ]
+  },
+  {
+    "abbreviation": "ВРШНО",
+    "values": [
+      "вводно-распределительный шкаф наружного освещения"
+    ]
+  },
+  {
+    "abbreviation": "ВРЩ",
+    "values": [
+      "вводной распределительный щит"
+    ]
+  },
+  {
+    "abbreviation": "ВСВГО",
+    "values": [
+      "выбор состава включённого генерирующего оборудования Вт – ватт – единица измерения активной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ВТВ",
+    "values": [
+      "высоковольтный тиристорный вентиль"
+    ]
+  },
+  {
+    "abbreviation": "ВТИ",
+    "values": [
+      "Всероссийский теплотехнический институт"
+    ]
+  },
+  {
+    "abbreviation": "ВТО",
+    "values": [
+      "Всемирная торговая организация"
+    ]
+  },
+  {
+    "abbreviation": "ВТСП",
+    "values": [
+      "высокотемпературная сверхпроводимость",
+      "высокотемпературный сверхпроводник ВТСП КЛ – высокотемпературное сверхпроводниковая кабельная линия ВТСП ТОУ – высокотемпературное сверхпроводниковое токоограничивающее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ВУ",
+    "values": [
+      "вводное устройство 19"
+    ]
+  },
+  {
+    "abbreviation": "ВУПГ",
+    "values": [
+      "выпрямительное устройство плавки гололёда"
+    ]
+  },
+  {
+    "abbreviation": "ВФ",
+    "values": [
+      "ветроферма"
+    ]
+  },
+  {
+    "abbreviation": "ВЧ",
+    "values": [
+      "высокая частота"
+    ]
+  },
+  {
+    "abbreviation": "ВЧКС",
+    "values": [
+      "высокочастотный канал связи"
+    ]
+  },
+  {
+    "abbreviation": "ВЭ",
+    "values": [
+      "выключатель элегазовый"
+    ]
+  },
+  {
+    "abbreviation": "ВЭИ",
+    "values": [
+      "Всероссийский электротехнический институт им. В.И. Ленина"
+    ]
+  },
+  {
+    "abbreviation": "ВЭР",
+    "values": [
+      "вторичный энергетический ресурс"
+    ]
+  },
+  {
+    "abbreviation": "ВЭС",
+    "values": [
+      "ветроэлектрическая станция",
+      "виртуальная электростанция (см. ВиЭС, VPP)"
+    ]
+  },
+  {
+    "abbreviation": "ВЭУ",
+    "values": [
+      "ветроэнергетическая установка Г"
+    ]
+  },
+  {
+    "abbreviation": "ГА",
+    "values": [
+      "генерирующий агрегат"
+    ]
+  },
+  {
+    "abbreviation": "ГАЭС",
+    "values": [
+      "гидроаккумулирующая электрическая станция ГБП (г.б.п.) – граница балансовой принадлежности ГВт – единица измерения мощности (1 ГВт – 109 Вт)"
+    ]
+  },
+  {
+    "abbreviation": "ГВО",
+    "values": [
+      "график временного отключения потребителя"
+    ]
+  },
+  {
+    "abbreviation": "ГГ",
+    "values": [
+      "гидрогенератор"
+    ]
+  },
+  {
+    "abbreviation": "ГГУ",
+    "values": [
+      "газогенераторная установка ГеоЭС – геотермальная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ГЕРКОН",
+    "values": [
+      "герметизированный магнитоуправляемый контакт ГидроОГК – гидрогенерирующая оптовая компания"
+    ]
+  },
+  {
+    "abbreviation": "ГИЛ",
+    "values": [
+      "газоизолированная (газонаполненная) линия электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "ГИН",
+    "values": [
+      "генератор импульсных напряжений"
+    ]
+  },
+  {
+    "abbreviation": "ГИО",
+    "values": [
+      "гололедно-изморозевые отложения"
+    ]
+  },
+  {
+    "abbreviation": "ГИС",
+    "values": [
+      "геоинформационная система"
+    ]
+  },
+  {
+    "abbreviation": "ГИТ",
+    "values": [
+      "генератор импульсных токов 20",
+      "геомагнитно-индуцированные токи"
+    ]
+  },
+  {
+    "abbreviation": "ГК",
+    "values": [
+      "гасительная камера",
+      "генерирующая компания"
+    ]
+  },
+  {
+    "abbreviation": "ГКНТ",
+    "values": [
+      "государственный комитет по науке и технике"
+    ]
+  },
+  {
+    "abbreviation": "ГКО",
+    "values": [
+      "Государственный комитет обороны"
+    ]
+  },
+  {
+    "abbreviation": "ГКЭС",
+    "values": [
+      "глобальная кольцевая энергетическая система"
+    ]
+  },
+  {
+    "abbreviation": "ГЛОНАСС",
+    "values": [
+      "глобальная навигационная спутниковая система ГНЦ НИИАР – государственный научный центр – научноисследовательский институт атомных реакторов"
+    ]
+  },
+  {
+    "abbreviation": "ГО",
+    "values": [
+      "граница балансовой принадлежности и эксплуатационной ответственности ГосСОПКА – государственная система обнаружения, предупреждения и ликвидации последствий компьютерных атак"
+    ]
+  },
+  {
+    "abbreviation": "ГОСТ",
+    "values": [
+      "государственный стандарт"
+    ]
+  },
+  {
+    "abbreviation": "ГОТВ",
+    "values": [
+      "газовые огнетушащие вещества"
+    ]
+  },
+  {
+    "abbreviation": "ГОУ",
+    "values": [
+      "групповой объект управления"
+    ]
+  },
+  {
+    "abbreviation": "ГОЭЛРО",
+    "values": [
+      "план государственной электрификации России (Государственная комиссия по электрификации России)"
+    ]
+  },
+  {
+    "abbreviation": "ГП",
+    "values": [
+      "гарантирующий поставщик"
+    ]
+  },
+  {
+    "abbreviation": "ГПА",
+    "values": [
+      "газопоршневой агрегат"
+    ]
+  },
+  {
+    "abbreviation": "ГПД",
+    "values": [
+      "газопоршневой двигатель"
+    ]
+  },
+  {
+    "abbreviation": "ГПИ",
+    "values": [
+      "Государственный проектный институт"
+    ]
+  },
+  {
+    "abbreviation": "ГПП",
+    "values": [
+      "главная понизительная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ГПУ",
+    "values": [
+      "газопоршневая установка"
+    ]
+  },
+  {
+    "abbreviation": "ГПЭС",
+    "values": [
+      "газопоршневая электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "ГР",
+    "values": [
+      "глубина регулирования"
+    ]
+  },
+  {
+    "abbreviation": "ГРАМ",
+    "values": [
+      "групповое регулирование активной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ГРРМ",
+    "values": [
+      "групповое регулирование реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ГРС",
+    "values": [
+      "городская распределительная сеть"
+    ]
+  },
+  {
+    "abbreviation": "ГРЩ",
+    "values": [
+      "главный распределительный щит"
+    ]
+  },
+  {
+    "abbreviation": "ГРЭС",
+    "values": [
+      "государственная районная электрическая станция 21"
+    ]
+  },
+  {
+    "abbreviation": "ГСМ",
+    "values": [
+      "горюче-смазочные материалы"
+    ]
+  },
+  {
+    "abbreviation": "ГСС",
+    "values": [
+      "газоснабжающая система"
+    ]
+  },
+  {
+    "abbreviation": "ГТ",
+    "values": [
+      "газовая турбина",
+      "грозозащитный трос"
+    ]
+  },
+  {
+    "abbreviation": "ГТД",
+    "values": [
+      "газотурбинный двигатель"
+    ]
+  },
+  {
+    "abbreviation": "ГТП",
+    "values": [
+      "группа точек поставки"
+    ]
+  },
+  {
+    "abbreviation": "ГТС",
+    "values": [
+      "газотранспортная система"
+    ]
+  },
+  {
+    "abbreviation": "ГТУ",
+    "values": [
+      "газотурбинная установка"
+    ]
+  },
+  {
+    "abbreviation": "ГТЭС",
+    "values": [
+      "газотурбинная электрическая станция",
+      "геотермальная электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "ГУ",
+    "values": [
+      "генераторный узел Гц – герц – единица измерения частоты"
+    ]
+  },
+  {
+    "abbreviation": "ГЦН",
+    "values": [
+      "главный циркуляционный насос"
+    ]
+  },
+  {
+    "abbreviation": "ГЭГТ",
+    "values": [
+      "гидронакопитель энергии гравитационного типа"
+    ]
+  },
+  {
+    "abbreviation": "ГЭК",
+    "values": [
+      "гибридный энергетический комплекс ГЭнБ – глобальная энергетическая безопасность"
+    ]
+  },
+  {
+    "abbreviation": "ГЭО",
+    "values": [
+      "глобальное объединение энергосистем (см. GEI)"
+    ]
+  },
+  {
+    "abbreviation": "ГЭП",
+    "values": [
+      "гибкая электропередача"
+    ]
+  },
+  {
+    "abbreviation": "ГЭС",
+    "values": [
+      "гидравлическая электрическая станция ГЭС ВСР – гидроэлектростанция с водохранилищем суточного регулирования"
+    ]
+  },
+  {
+    "abbreviation": "ГЭУ",
+    "values": [
+      "главная энергетическая установка Д"
+    ]
+  },
+  {
+    "abbreviation": "ДА",
+    "values": [
+      "делительная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "ДАР",
+    "values": [
+      "дополнительная аварийная разгрузка"
+    ]
+  },
+  {
+    "abbreviation": "ДВ",
+    "values": [
+      "дутьевой вентилятор"
+    ]
+  },
+  {
+    "abbreviation": "ДВС",
+    "values": [
+      "двигатель внутреннего сгорания"
+    ]
+  },
+  {
+    "abbreviation": "ДГ",
+    "values": [
+      "дизель-генератор 22",
+      "диспетчерский график"
+    ]
+  },
+  {
+    "abbreviation": "ДГК",
+    "values": [
+      "дугогасящая катушка"
+    ]
+  },
+  {
+    "abbreviation": "ДГР",
+    "values": [
+      "дугогасящий реактор"
+    ]
+  },
+  {
+    "abbreviation": "ДГУ",
+    "values": [
+      "дизельная генераторная установка"
+    ]
+  },
+  {
+    "abbreviation": "ДГЭС",
+    "values": [
+      "деривационная гидравлическая электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ДДТН",
+    "values": [
+      "длительно допустимая токовая нагрузка"
+    ]
+  },
+  {
+    "abbreviation": "ДДТП",
+    "values": [
+      "длительно допустимая температура провода Дж – джоуль – единица измерения работы, энергии и количества теплоты"
+    ]
+  },
+  {
+    "abbreviation": "ДЗ",
+    "values": [
+      "дифференциальная защита"
+    ]
+  },
+  {
+    "abbreviation": "ДЗГ",
+    "values": [
+      "дифференциальная защита генератора"
+    ]
+  },
+  {
+    "abbreviation": "ДЗЛ",
+    "values": [
+      "дифференциальная защита линии"
+    ]
+  },
+  {
+    "abbreviation": "ДЗТ",
+    "values": [
+      "дифференциальная защита трансформатора"
+    ]
+  },
+  {
+    "abbreviation": "ДЗТХ",
+    "values": [
+      "дифференциальная защита с тормозной характеристикой"
+    ]
+  },
+  {
+    "abbreviation": "ДЗШ",
+    "values": [
+      "дифференциальная защита шин"
+    ]
+  },
+  {
+    "abbreviation": "ДК",
+    "values": [
+      "дугогасящая катушка"
+    ]
+  },
+  {
+    "abbreviation": "ДКИН",
+    "values": [
+      "динамический компенсатор искажений напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ДКН",
+    "values": [
+      "динамический компенсатор напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ДКР",
+    "values": [
+      "древесно-кустарниковая растительность ДЛЭП СВН – дальняя линия электропередачи сверхвысокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ДМ",
+    "values": [
+      "дополнительная мощность"
+    ]
+  },
+  {
+    "abbreviation": "ДП",
+    "values": [
+      "диспетчерский пункт"
+    ]
+  },
+  {
+    "abbreviation": "ДПИ",
+    "values": [
+      "долгосрочные предельные издержки"
+    ]
+  },
+  {
+    "abbreviation": "ДПМ",
+    "values": [
+      "договор о предоставлении мощности",
+      "договор поставки мощности"
+    ]
+  },
+  {
+    "abbreviation": "ДПОЗЗ",
+    "values": [
+      "однофазное замыкание на землю через перемежающуюся дугу"
+    ]
+  },
+  {
+    "abbreviation": "ДПР",
+    "values": [
+      "длительный переходный режим"
+    ]
+  },
+  {
+    "abbreviation": "ДПТ",
+    "values": [
+      "двигатель постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ДРМ",
+    "values": [
+      "долгосрочный рынок мощности 23"
+    ]
+  },
+  {
+    "abbreviation": "ДРСК",
+    "values": [
+      "Дальневосточная распределительная компания"
+    ]
+  },
+  {
+    "abbreviation": "ДСП",
+    "values": [
+      "дуговая сталеплавильная печь"
+    ]
+  },
+  {
+    "abbreviation": "ДТЗ",
+    "values": [
+      "дистанционная токовая защита"
+    ]
+  },
+  {
+    "abbreviation": "ДТК",
+    "values": [
+      "двунаправленный тиристорный ключ"
+    ]
+  },
+  {
+    "abbreviation": "ДТН",
+    "values": [
+      "допустимая токовая нагрузка"
+    ]
+  },
+  {
+    "abbreviation": "ДТО",
+    "values": [
+      "дифференциальная токовая отсечка"
+    ]
+  },
+  {
+    "abbreviation": "ДУ",
+    "values": [
+      "диспетчерское управление",
+      "дистанционное управление"
+    ]
+  },
+  {
+    "abbreviation": "ДФЗ",
+    "values": [
+      "дифференциально-фазная высокочастотная защита"
+    ]
+  },
+  {
+    "abbreviation": "ДХН",
+    "values": [
+      "динамические характеристики нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "ДЦ",
+    "values": [
+      "диспетчерский центр"
+    ]
+  },
+  {
+    "abbreviation": "ДЩ",
+    "values": [
+      "диспетчерский щит"
+    ]
+  },
+  {
+    "abbreviation": "ДЭС",
+    "values": [
+      "дизельная электростанция Е"
+    ]
+  },
+  {
+    "abbreviation": "ЕБРР",
+    "values": [
+      "Европейский банк реконструкции и развития"
+    ]
+  },
+  {
+    "abbreviation": "ЕНЭС",
+    "values": [
+      "Единая национальная (общероссийская) электрическая сеть"
+    ]
+  },
+  {
+    "abbreviation": "ЕС",
+    "values": [
+      "Европейский союз"
+    ]
+  },
+  {
+    "abbreviation": "ЕСГ",
+    "values": [
+      "Единая система газоснабжения"
+    ]
+  },
+  {
+    "abbreviation": "ЕСКД",
+    "values": [
+      "Единая система конструкторской документации"
+    ]
+  },
+  {
+    "abbreviation": "ЕСН",
+    "values": [
+      "Единая система нефтеснабжения"
+    ]
+  },
+  {
+    "abbreviation": "ЕСТД",
+    "values": [
+      "Единая система технической документации"
+    ]
+  },
+  {
+    "abbreviation": "ЕТССЭ",
+    "values": [
+      "Единая технологическая сеть связи в электроэнергетике"
+    ]
+  },
+  {
+    "abbreviation": "ЕЦССЭ",
+    "values": [
+      "Единая цифровая сеть связи электроэнергетики ЕЭС России – Единая энергетическая система России"
+    ]
+  },
+  {
+    "abbreviation": "ЕЭЭС",
+    "values": [
+      "Единая электроэнергетическая система 24 Ж"
+    ]
+  },
+  {
+    "abbreviation": "ЖАЛ",
+    "values": [
+      "жесткая анкерная линия"
+    ]
+  },
+  {
+    "abbreviation": "ЖКХ",
+    "values": [
+      "жилищно-коммунальное хозяйство"
+    ]
+  },
+  {
+    "abbreviation": "ЖЦ",
+    "values": [
+      "жизненный цикл технических систем З"
+    ]
+  },
+  {
+    "abbreviation": "ЗА",
+    "values": [
+      "защитный аппарат"
+    ]
+  },
+  {
+    "abbreviation": "ЗВС",
+    "values": [
+      "заградитель высокочастотный спиральный"
+    ]
+  },
+  {
+    "abbreviation": "ЗДЗ",
+    "values": [
+      "защита от дуговых замыканий"
+    ]
+  },
+  {
+    "abbreviation": "ЗДР",
+    "values": [
+      "защита дальнего резервирования"
+    ]
+  },
+  {
+    "abbreviation": "ЗЗЗ",
+    "values": [
+      "защита от замыканий на землю"
+    ]
+  },
+  {
+    "abbreviation": "ЗИП",
+    "values": [
+      "запасные части, инструмент и принадлежности"
+    ]
+  },
+  {
+    "abbreviation": "ЗКТО",
+    "values": [
+      "задатчик кратности тока отсечки"
+    ]
+  },
+  {
+    "abbreviation": "ЗМН",
+    "values": [
+      "защита минимального напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ЗН",
+    "values": [
+      "заземляющие ножи разъединителя"
+    ]
+  },
+  {
+    "abbreviation": "ЗННП",
+    "values": [
+      "защита напряжений нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ЗНОП",
+    "values": [
+      "защита напряжений обратной последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ЗНП",
+    "values": [
+      "защита нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ЗНР",
+    "values": [
+      "защита от неполнофазного режима",
+      "защита от несимметричного режима"
+    ]
+  },
+  {
+    "abbreviation": "ЗНФ",
+    "values": [
+      "защита от непереключения фаз выключателя"
+    ]
+  },
+  {
+    "abbreviation": "ЗОФ",
+    "values": [
+      "защита от обрыва фазы"
+    ]
+  },
+  {
+    "abbreviation": "ЗПА",
+    "values": [
+      "зарядно-подзарядный агрегат"
+    ]
+  },
+  {
+    "abbreviation": "ЗПН",
+    "values": [
+      "защита от повышения напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ЗПЧ",
+    "values": [
+      "защита от повышения частоты"
+    ]
+  },
+  {
+    "abbreviation": "ЗРУ",
+    "values": [
+      "закрытое распределительное устройство"
+    ]
+  },
+  {
+    "abbreviation": "ЗС",
+    "values": [
+      "зарядная станция 25"
+    ]
+  },
+  {
+    "abbreviation": "ЗСПМ",
+    "values": [
+      "зона свободного перетока мощности"
+    ]
+  },
+  {
+    "abbreviation": "ЗТП",
+    "values": [
+      "закрытая трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ЗУ",
+    "values": [
+      "заземляющее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ЗЯТЦ",
+    "values": [
+      "замкнутый ядерный топливный цикл И"
+    ]
+  },
+  {
+    "abbreviation": "ИАСУ",
+    "values": [
+      "интегрированная автоматизированная система управления ИАСУ КУ – интегрированная автоматизированная система управления коммерческим учётом"
+    ]
+  },
+  {
+    "abbreviation": "ИБП",
+    "values": [
+      "источник бесперебойного питания"
+    ]
+  },
+  {
+    "abbreviation": "ИБРАЭ",
+    "values": [
+      "институт проблем безопасного развития атомной энергетики"
+    ]
+  },
+  {
+    "abbreviation": "ИВН",
+    "values": [
+      "источник высокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ИВС",
+    "values": [
+      "иной владелец сетей"
+    ]
+  },
+  {
+    "abbreviation": "ИВЦ",
+    "values": [
+      "информационно-вычислительный центр"
+    ]
+  },
+  {
+    "abbreviation": "ИГ",
+    "values": [
+      "интергармоники"
+    ]
+  },
+  {
+    "abbreviation": "ИГЭУ",
+    "values": [
+      "Ивановский государственный энергетический университет им. В.И. Ленина"
+    ]
+  },
+  {
+    "abbreviation": "ИДН",
+    "values": [
+      "индуктивный делитель напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ИЗЭ",
+    "values": [
+      "изолированная зона электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "ИИ",
+    "values": [
+      "искусственный интеллект"
+    ]
+  },
+  {
+    "abbreviation": "ИИК",
+    "values": [
+      "измерительно-информационный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ИИС",
+    "values": [
+      "информационно-измерительная система"
+    ]
+  },
+  {
+    "abbreviation": "ИИЭС",
+    "values": [
+      "интеллектуальная интегрированная электрическая система"
+    ]
+  },
+  {
+    "abbreviation": "ИК",
+    "values": [
+      "инфракрасное излучение",
+      "искусственная коммутация"
+    ]
+  },
+  {
+    "abbreviation": "ИКЗ",
+    "values": [
+      "индикатор короткого замыкания"
+    ]
+  },
+  {
+    "abbreviation": "ИКУП",
+    "values": [
+      "информационно-коммуникационная управляющая подсистема 26"
+    ]
+  },
+  {
+    "abbreviation": "ИЛ",
+    "values": [
+      "испытательная лаборатория"
+    ]
+  },
+  {
+    "abbreviation": "ИМС",
+    "values": [
+      "интегральная микросхема"
+    ]
+  },
+  {
+    "abbreviation": "ИНН",
+    "values": [
+      "искусственная нейронная сеть"
+    ]
+  },
+  {
+    "abbreviation": "ИНП",
+    "values": [
+      "Институт народнохозяйственного прогнозирования РАН"
+    ]
+  },
+  {
+    "abbreviation": "ИНС",
+    "values": [
+      "искусственная нейронная сеть ИНТЕР РАО  – российская электроэнергетическая компания, контролирующая ряд генерирующих и распределительных энергетических активов в России и за рубежом ИНЭИ РАН – Институт энергетических исследований РАН"
+    ]
+  },
+  {
+    "abbreviation": "ИО",
+    "values": [
+      "информационное обеспечение",
+      "исполнительный орган"
+    ]
+  },
+  {
+    "abbreviation": "ИП",
+    "values": [
+      "источник питания"
+    ]
+  },
+  {
+    "abbreviation": "ИПВЛ",
+    "values": [
+      "индикатор повреждения воздушной линии электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "ИПВЭ",
+    "values": [
+      "источник переменной возобновляемой энергии"
+    ]
+  },
+  {
+    "abbreviation": "ИПЕМ",
+    "values": [
+      "институт проблем естественных монополий"
+    ]
+  },
+  {
+    "abbreviation": "ИПКЭ",
+    "values": [
+      "измеритель показателей качества электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "ИПТС",
+    "values": [
+      "интегральный показатель технического состояния"
+    ]
+  },
+  {
+    "abbreviation": "ИПУ",
+    "values": [
+      "индивидуальный прибор учёта"
+    ]
+  },
+  {
+    "abbreviation": "ИРГ",
+    "values": [
+      "источник распределённой генерации"
+    ]
+  },
+  {
+    "abbreviation": "ИРМ",
+    "values": [
+      "источник реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ИС",
+    "values": [
+      "измерительная система",
+      "испытательный стенд",
+      "источник света"
+    ]
+  },
+  {
+    "abbreviation": "ИСО",
+    "values": [
+      "международная организация по стандартизации, см. ISO"
+    ]
+  },
+  {
+    "abbreviation": "ИСУ",
+    "values": [
+      "интеллектуальная система учёта"
+    ]
+  },
+  {
+    "abbreviation": "ИСУЭ",
+    "values": [
+      "интеллектуальная система учёта электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "ИСУЭХ",
+    "values": [
+      "интеллектуальная система управления электросетевым хозяйством 27 ИСЭиЭПС Коми НЦ УРО РАН – Институт социально-экономических и энергетических проблем Севера Коми научного центра Уральского отделения РАН ИСЭМ СО РАН – Институт систем энергетики им. Л.А Мелентьева Сибирского отделения РАН"
+    ]
+  },
+  {
+    "abbreviation": "ИСЭ",
+    "values": [
+      "интеллектуальная система электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "ИТКИ",
+    "values": [
+      "информационно-телекоммуникационная инфраструктура"
+    ]
+  },
+  {
+    "abbreviation": "ИТС",
+    "values": [
+      "индекс технического состояния"
+    ]
+  },
+  {
+    "abbreviation": "ИТТ",
+    "values": [
+      "измерительный трансформатор тока"
+    ]
+  },
+  {
+    "abbreviation": "ИТЭР",
+    "values": [
+      "международный термоядерный экспериментальный реактор"
+    ]
+  },
+  {
+    "abbreviation": "ИУ",
+    "values": [
+      "измерительное устройство",
+      "испытательная установка"
+    ]
+  },
+  {
+    "abbreviation": "ИЦ",
+    "values": [
+      "испытательный центр"
+    ]
+  },
+  {
+    "abbreviation": "ИЧМ",
+    "values": [
+      "интерфейс человек-машина"
+    ]
+  },
+  {
+    "abbreviation": "ИЭ",
+    "values": [
+      "измерительный элемент ИЭД АН Украины – институт электродинамики Академии наук Украины"
+    ]
+  },
+  {
+    "abbreviation": "ИЭММ",
+    "values": [
+      "источник энергии малой мощности"
+    ]
+  },
+  {
+    "abbreviation": "ИЭС",
+    "values": [
+      "интеллектуальная энергетическая система ИЭС ААС – интеллектуальная электроэнергетическая система с активно-адаптивной сетью"
+    ]
+  },
+  {
+    "abbreviation": "ИЭУ",
+    "values": [
+      "интеллектуальное электронное устройство"
+    ]
+  },
+  {
+    "abbreviation": "ИЭЭС",
+    "values": [
+      "изолированная электроэнергетическая система"
+    ]
+  },
+  {
+    "abbreviation": "ИЭЭФ",
+    "values": [
+      "индикатор энергетической эффективности К"
+    ]
+  },
+  {
+    "abbreviation": "КА",
+    "values": [
+      "коммутационный аппарат"
+    ]
+  },
+  {
+    "abbreviation": "КАСУБ",
+    "values": [
+      "комплексная автоматизированная система управления безопасностью"
+    ]
+  },
+  {
+    "abbreviation": "КАТЭК",
+    "values": [
+      "Канско-Ачинский топливно-энергетический комплекс 28"
+    ]
+  },
+  {
+    "abbreviation": "КБ",
+    "values": [
+      "кибербезопасность"
+    ]
+  },
+  {
+    "abbreviation": "КБО",
+    "values": [
+      "контакт блокировки отсечки"
+    ]
+  },
+  {
+    "abbreviation": "КБП",
+    "values": [
+      "комбинированный блок питания"
+    ]
+  },
+  {
+    "abbreviation": "КВВСО",
+    "values": [
+      "контакт выбора времени срабатывания отсечки"
+    ]
+  },
+  {
+    "abbreviation": "КВЛ",
+    "values": [
+      "кабельно-воздушная линия электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "КВО",
+    "values": [
+      "критически важный объект"
+    ]
+  },
+  {
+    "abbreviation": "КВОИ",
+    "values": [
+      "критически важный объект информатизации"
+    ]
+  },
+  {
+    "abbreviation": "КВУ",
+    "values": [
+      "комплектное выпрямительное устройство"
+    ]
+  },
+  {
+    "abbreviation": "КД",
+    "values": [
+      "концентратор данных"
+    ]
+  },
+  {
+    "abbreviation": "КДУ",
+    "values": [
+      "комплекс диспетчерского управления"
+    ]
+  },
+  {
+    "abbreviation": "КЗ",
+    "values": [
+      "короткое замыкание",
+      "короткозамыкатель"
+    ]
+  },
+  {
+    "abbreviation": "КИИ",
+    "values": [
+      "критическая информационная инфраструктура КИПиА – контрольно-измерительные приборы и автоматика"
+    ]
+  },
+  {
+    "abbreviation": "КИТ",
+    "values": [
+      "коэффициент использования топлива"
+    ]
+  },
+  {
+    "abbreviation": "КИТАСУ",
+    "values": [
+      "компьютерные информационные технологии автоматизированных систем управления"
+    ]
+  },
+  {
+    "abbreviation": "КИТТ",
+    "values": [
+      "коэффициент использования теплоты топлива"
+    ]
+  },
+  {
+    "abbreviation": "КИУМ",
+    "values": [
+      "коэффициент использования установленной мощности (производительности) электроустановки"
+    ]
+  },
+  {
+    "abbreviation": "ККМ",
+    "values": [
+      "концевая кабельная муфта"
+    ]
+  },
+  {
+    "abbreviation": "КЛ",
+    "values": [
+      "кабельная линия электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "КЛС",
+    "values": [
+      "кабельная линия связи"
+    ]
+  },
+  {
+    "abbreviation": "КНИ",
+    "values": [
+      "коэффициент нелинейных искажений"
+    ]
+  },
+  {
+    "abbreviation": "КНЭ",
+    "values": [
+      "кратковременное нарушение электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "КО",
+    "values": [
+      "классификатор отказов",
+      "коммерческий оператор"
+    ]
+  },
+  {
+    "abbreviation": "КОМ",
+    "values": [
+      "конкурентный отбор мощности"
+    ]
+  },
+  {
+    "abbreviation": "КОН",
+    "values": [
+      "контроль несанкционированного отключения"
+    ]
+  },
+  {
+    "abbreviation": "КОУ",
+    "values": [
+      "комплектные осветительные устройства"
+    ]
+  },
+  {
+    "abbreviation": "КПД",
+    "values": [
+      "коэффициент полезного действия 29"
+    ]
+  },
+  {
+    "abbreviation": "КПОС",
+    "values": [
+      "контроль перетоков по опасным сечениям"
+    ]
+  },
+  {
+    "abbreviation": "КПР",
+    "values": [
+      "контроль предшествующего режима"
+    ]
+  },
+  {
+    "abbreviation": "КПЭП",
+    "values": [
+      "краткосрочное прогнозирование электропотребления"
+    ]
+  },
+  {
+    "abbreviation": "КР",
+    "values": [
+      "капитальный ремонт"
+    ]
+  },
+  {
+    "abbreviation": "КРМ",
+    "values": [
+      "компенсация реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "КРУ",
+    "values": [
+      "комплектное распределительное устройство"
+    ]
+  },
+  {
+    "abbreviation": "КРУН",
+    "values": [
+      "комплектное распределительное устройство наружной установки"
+    ]
+  },
+  {
+    "abbreviation": "КРУЭ",
+    "values": [
+      "комплектное распределительное устройство с элегазовой изоляцией"
+    ]
+  },
+  {
+    "abbreviation": "КС",
+    "values": [
+      "кабельная секция"
+    ]
+  },
+  {
+    "abbreviation": "КСВД",
+    "values": [
+      "концентраторы синхронизированных векторных данных"
+    ]
+  },
+  {
+    "abbreviation": "КСЗ",
+    "values": [
+      "комплект ступенчатой защиты"
+    ]
+  },
+  {
+    "abbreviation": "КСО",
+    "values": [
+      "камера комплектная одностороннего обслуживания"
+    ]
+  },
+  {
+    "abbreviation": "КСПА",
+    "values": [
+      "координирующая система противоаварийной автоматики"
+    ]
+  },
+  {
+    "abbreviation": "КСУКЭМР",
+    "values": [
+      "комплексная система управления качеством электромонтажных работ"
+    ]
+  },
+  {
+    "abbreviation": "КТП",
+    "values": [
+      "комплектная трансформаторная подстанция КТП ВУ – комплектная трансформаторная подстанция внутренней установки КТП НУ – комплектная трансформаторная подстанция наружной установки"
+    ]
+  },
+  {
+    "abbreviation": "КТУ",
+    "values": [
+      "коэффициент трудового участия"
+    ]
+  },
+  {
+    "abbreviation": "КУ",
+    "values": [
+      "кабель управления",
+      "компенсирующее устройство",
+      "конденсаторная установка"
+    ]
+  },
+  {
+    "abbreviation": "КУН",
+    "values": [
+      "конденсаторная установка низкого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "КУЭ",
+    "values": [
+      "коммерческий учёт электроэнергии КФМ ЭЭС – киберфизическая модель ЭЭС"
+    ]
+  },
+  {
+    "abbreviation": "КФС",
+    "values": [
+      "киберфизическая система"
+    ]
+  },
+  {
+    "abbreviation": "КЦН",
+    "values": [
+      "контроль цепей напряжения 30"
+    ]
+  },
+  {
+    "abbreviation": "КЭ",
+    "values": [
+      "качество электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "КЭП",
+    "values": [
+      "консольная электропередача"
+    ]
+  },
+  {
+    "abbreviation": "КЭС",
+    "values": [
+      "конденсационная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "КЭЭ",
+    "values": [
+      "качество электрической энергии Л"
+    ]
+  },
+  {
+    "abbreviation": "ЛАДВ",
+    "values": [
+      "локальная автоматика дозировки управляющих воздействий"
+    ]
+  },
+  {
+    "abbreviation": "ЛАПНУ",
+    "values": [
+      "локальная автоматика предотвращения нарушения устойчивости"
+    ]
+  },
+  {
+    "abbreviation": "ЛАТР",
+    "values": [
+      "лабораторный автотрансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ЛЗШ",
+    "values": [
+      "логическая защита шин"
+    ]
+  },
+  {
+    "abbreviation": "ЛИАБ",
+    "values": [
+      "литий-ионная аккумуляторная батарея"
+    ]
+  },
+  {
+    "abbreviation": "ЛИЭС",
+    "values": [
+      "локальная интеллектуальная электрическая система",
+      "локальный источник электроснабжения лк – люкс – единица освещённости"
+    ]
+  },
+  {
+    "abbreviation": "ЛКС",
+    "values": [
+      "линейно-кабельное сооружение лм – люмен – единица светового потока"
+    ]
+  },
+  {
+    "abbreviation": "ЛМЗ",
+    "values": [
+      "Ленинградский металлический завод"
+    ]
+  },
+  {
+    "abbreviation": "ЛН",
+    "values": [
+      "лампа накаливания"
+    ]
+  },
+  {
+    "abbreviation": "ЛПА",
+    "values": [
+      "локальная противоаварийная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "ЛПР",
+    "values": [
+      "лицо, принимающее решение"
+    ]
+  },
+  {
+    "abbreviation": "ЛПТ",
+    "values": [
+      "линия постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ЛР",
+    "values": [
+      "линейный разрядник",
+      "линейный разъединитель"
+    ]
+  },
+  {
+    "abbreviation": "ЛРТ",
+    "values": [
+      "линейный регулировочный трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ЛСЭС",
+    "values": [
+      "локальная система электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "ЛЭП",
+    "values": [
+      "линия электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "ЛЭС",
+    "values": [
+      "локальная электроэнергетическая система 31 М"
+    ]
+  },
+  {
+    "abbreviation": "М.",
+    "values": [
+      "Изд-во стандартов 1989 г. 343 с. 20. Шульц Ю.  Электроизмерительная техника: 1000 понятий для практиков: справочник / пер. с нем. Н.А. Домрина. М.: Энергоатомиздат 1989. 288 с. 21. ГОСТ 27.002 -89. Надежность в технике. Основные понятия. Термины и определения. М.: Издательство стандартов, 1990. 37 с. 22. ГОСТ 24291-90 Электрическая часть электростанции и электрической сети. Термины и определения (взамен ГОСТ 24291 -80) // Утв. Постановление Государственного комитета СССР по управлению качеством продукции и стандартам от 27.12.1990 № 3403. 23. Надёжность систем энергетики и их оборудования / под общ. ред. Ю.Н. Руденко: в 4 т. Т.  1: Справочник по общим моделям анализа и синтеза надёжности систем энер гетики / под ред. Ю.Н. Руденко . М.: Энергоатомиздат, 1994. 480 с. 24. Закон РФ «О государственном регулировании тарифов на электрическую и тепловую энергию в РФ» от 14.04.1995 г. № 41-ФЗ. 25. Закон РФ «Об энергосбережении» от 03.04.1996 г. № 28-ФЗ. 26. Политехнический словарь. М.: Большая Российская энциклопедия, 1998. 656 с. 82 27. Надёжность ЭЭС. Терминология (Материалы СИГРЭ, 1987): перевод. Иркутск: ИСЭМ СО РАН, 2000. 30 с. 28. Закон РФ «Об электроэнергетике» от 26.03.2003 г. № 35-ФЗ. 29. ГОСТ 23875 -88 (2003). Качество электрической энергии. Термины и определения. М.: Издательство стандартов, 1988. 15 с. 30. ГОСТ Р  52002-2003 Электротехника. Термины и определения основных понятий (взамен ГОСТ 19880-74). 31. ГОСТ 16022 -83 (2005) Реле электрические. Термины и определения. 32. ГОСТ 17703 -72 (2005) Аппараты электрические коммутационные. Основные понятия. Термины и определения. 33. ГОСТ 26522 -85 (2005) Короткие замыкания в электроустановках. Термины и определения. 34.  Энергетическая безопасность: термины и определения / отв. ред. Н.И. Воропай. М.: ИАЦ Энергия, 2005. 60 с. 35. Красник В.В. Правовые аспекты деятельности энергослужбы предприятий и организаций: термины, определения, основные поня тия: справочник. М.: Изд-во НЦ ЭНАС, 2005. 152 с. 36. Папков Б.В.  Терминология современной электроэнергетики. Н. Новгород: Изд-во Волго-Вятской академии гос. службы, 2006. 92 с. 37. Надежность систем энергетики: сб. рекомендуемых терминов  / отв. ред. Н.И. Воропай. М: ИАЦ СО «Энергия», 2007. 192 с. 38. Рабенко В.С. , Мурашкин Ю.Н.  Термины и определения, установленные руководящими документами в электроэнергетике. Словарь понятий и терминов. Иваново: ГОУ ВПО ИГЭУ, 2008. 204 с. 39. Электроэнергетика. Термины и определения. Стандарт организации. Некоммерческое партнерство «Инновации в электроэнергетике» Издание официальное. М.: НП «ИНВЭЛ», 2008. 655 с. 40. Электротехническая энциклопедия: 4 т. / под ред. А.Ф. Дьякова",
+      "Издательство МЭИ, Т. 1 – 2005. – 316 с., Т. 2 – 2008. – 430 с., Т. 3"
+    ]
+  },
+  {
+    "abbreviation": "МАГАТЭ",
+    "values": [
+      "Международное агентство по атомной энергии"
+    ]
+  },
+  {
+    "abbreviation": "МАУ",
+    "values": [
+      "маслоабсорбционная установка"
+    ]
+  },
+  {
+    "abbreviation": "МБИ",
+    "values": [
+      "маслобарьерная изоляция"
+    ]
+  },
+  {
+    "abbreviation": "МБРР",
+    "values": [
+      "Международный банк реконструкции и развития"
+    ]
+  },
+  {
+    "abbreviation": "МВИ",
+    "values": [
+      "методика выполнения измерений"
+    ]
+  },
+  {
+    "abbreviation": "МВИНБСЭ",
+    "values": [
+      "международный научный семинар «Методические вопросы исследования надежности больших систем энергетики им. Ю.Н. Руденко»"
+    ]
+  },
+  {
+    "abbreviation": "МГД",
+    "values": [
+      "генератор – магнитогидродинамический генератор"
+    ]
+  },
+  {
+    "abbreviation": "МГС",
+    "values": [
+      "многогранные гнутые стойки (опоры воздушных ЛЭП)"
+    ]
+  },
+  {
+    "abbreviation": "МГТУ",
+    "values": [
+      "мобильная газотурбинная установка"
+    ]
+  },
+  {
+    "abbreviation": "МГТЭС",
+    "values": [
+      "мобильная газотурбинная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "МГЭО",
+    "values": [
+      "межгосударственное энергетическое объединение"
+    ]
+  },
+  {
+    "abbreviation": "МГЭП",
+    "values": [
+      "межгосударственная электропередача"
+    ]
+  },
+  {
+    "abbreviation": "МГЭС",
+    "values": [
+      "малая гидроэлектростанция",
+      "межгосударственные электрические связи М/Д – система охлаждения трансформатора (масляное охлаждение с дутьем и естественной циркуляцией масла) М/ДЦ – система охлаждения трансформатора (масляное охлаждение с дутьем и принудительной циркуляцией масла) М/Д/ДЦ – система охлаждения трансформатора (масляное охлаждение с дутьем и естественной циркуляцией масла и масляное охлаждение с дутьем и принудительной циркуляцией масла через воздушные охладители) М/НДЦ  – система охлаждения трансформатора (масляное охлаждение с дутьем и направленной принудительной циркуляцией масла"
+    ]
+  },
+  {
+    "abbreviation": "МД",
+    "values": [
+      "модуль диагностики 32"
+    ]
+  },
+  {
+    "abbreviation": "МДА",
+    "values": [
+      "многопараметрическая делительная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "МДП",
+    "values": [
+      "максимально допустимый переток",
+      "машина двойного питания"
+    ]
+  },
+  {
+    "abbreviation": "МДС",
+    "values": [
+      "магнитодвижущая сила"
+    ]
+  },
+  {
+    "abbreviation": "МИВН",
+    "values": [
+      "мобильный источник высокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "МИП",
+    "values": [
+      "многофункциональный измерительный преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "МИРЭК",
+    "values": [
+      "Мировая энергетическая конференция"
+    ]
+  },
+  {
+    "abbreviation": "МИРЭС",
+    "values": [
+      "Мировой энергетический совет, см. WEC"
+    ]
+  },
+  {
+    "abbreviation": "МК",
+    "values": [
+      "модуль коммутации"
+    ]
+  },
+  {
+    "abbreviation": "МКБП",
+    "values": [
+      "международная комиссия по большим плотинам, см. ICOLD"
+    ]
+  },
+  {
+    "abbreviation": "МКО",
+    "values": [
+      "международная комиссия по освещению, см. CIE"
+    ]
+  },
+  {
+    "abbreviation": "ММО",
+    "values": [
+      "метод машинного обучения"
+    ]
+  },
+  {
+    "abbreviation": "ММСК",
+    "values": [
+      "межрегиональная магистральная сетевая компания"
+    ]
+  },
+  {
+    "abbreviation": "МНЗ",
+    "values": [
+      "максимальная токовая направленная защита"
+    ]
+  },
+  {
+    "abbreviation": "МНК",
+    "values": [
+      "маслонаполненный кабель"
+    ]
+  },
+  {
+    "abbreviation": "МНУ",
+    "values": [
+      "маслонапорная установка"
+    ]
+  },
+  {
+    "abbreviation": "МО",
+    "values": [
+      "машинное обучение"
+    ]
+  },
+  {
+    "abbreviation": "МОЭСК",
+    "values": [
+      "Московская объединённая электросетевая компания"
+    ]
+  },
+  {
+    "abbreviation": "МПЗ",
+    "values": [
+      "микропроцессорная релейная защита"
+    ]
+  },
+  {
+    "abbreviation": "МПИ",
+    "values": [
+      "межповерочный интервал"
+    ]
+  },
+  {
+    "abbreviation": "МПСЭЭ",
+    "values": [
+      "международное партнёрство по сотрудничеству в области энергоэффективности"
+    ]
+  },
+  {
+    "abbreviation": "МПУ",
+    "values": [
+      "маслоприемное устройство"
+    ]
+  },
+  {
+    "abbreviation": "МРГ",
+    "values": [
+      "микрогенерация"
+    ]
+  },
+  {
+    "abbreviation": "МРГЭ",
+    "values": [
+      "малая распределенная генерация энергии"
+    ]
+  },
+  {
+    "abbreviation": "МРСК",
+    "values": [
+      "межрегиональная распределительная сетевая компания"
+    ]
+  },
+  {
+    "abbreviation": "МСК",
+    "values": [
+      "магистральная сетевая компания"
+    ]
+  },
+  {
+    "abbreviation": "МСС",
+    "values": [
+      "межсистемная связь"
+    ]
+  },
+  {
+    "abbreviation": "МСФО",
+    "values": [
+      "международный стандарт финансовой отчётности 33"
+    ]
+  },
+  {
+    "abbreviation": "МСЭП",
+    "values": [
+      "межсистемная электропередача"
+    ]
+  },
+  {
+    "abbreviation": "МСЭС",
+    "values": [
+      "межсистемная электрическая связь"
+    ]
+  },
+  {
+    "abbreviation": "МТ",
+    "values": [
+      "муфта транспозиции"
+    ]
+  },
+  {
+    "abbreviation": "МТЗ",
+    "values": [
+      "максимальная токовая защита"
+    ]
+  },
+  {
+    "abbreviation": "МТП",
+    "values": [
+      "мачтовая трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "МТР",
+    "values": [
+      "материально-технические ресурсы"
+    ]
+  },
+  {
+    "abbreviation": "МТС",
+    "values": [
+      "материально-техническое снабжение"
+    ]
+  },
+  {
+    "abbreviation": "МУ",
+    "values": [
+      "методические указания",
+      "монтажное управление"
+    ]
+  },
+  {
+    "abbreviation": "МУРЗ",
+    "values": [
+      "микропроцессорные устройства релейной защиты"
+    ]
+  },
+  {
+    "abbreviation": "МФК",
+    "values": [
+      "многофункциональный микропроцессорный контроллер"
+    ]
+  },
+  {
+    "abbreviation": "МФТО",
+    "values": [
+      "межфазовая токовая отсечка"
+    ]
+  },
+  {
+    "abbreviation": "МЧС",
+    "values": [
+      "Министерство чрезвычайных ситуаций"
+    ]
+  },
+  {
+    "abbreviation": "МЭА",
+    "values": [
+      "международное энергетическое агентство, см. IEA"
+    ]
+  },
+  {
+    "abbreviation": "МЭЗ",
+    "values": [
+      "мастерская электромонтажных заготовок"
+    ]
+  },
+  {
+    "abbreviation": "МЭИ",
+    "values": [
+      "Московский энергетический институт"
+    ]
+  },
+  {
+    "abbreviation": "МЭК",
+    "values": [
+      "Международная электротехническая комиссия, см. IEC"
+    ]
+  },
+  {
+    "abbreviation": "МЭС",
+    "values": [
+      "магистральные электрические сети",
+      "межсистемные электрические сети Н"
+    ]
+  },
+  {
+    "abbreviation": "НАК",
+    "values": [
+      "национальный антитеррористический комитет"
+    ]
+  },
+  {
+    "abbreviation": "НАПВ",
+    "values": [
+      "несинхронное автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "НАУ",
+    "values": [
+      "низковольтная аппаратура управления"
+    ]
+  },
+  {
+    "abbreviation": "НВВ",
+    "values": [
+      "необходимая валовая выручка"
+    ]
+  },
+  {
+    "abbreviation": "НВИЭ",
+    "values": [
+      "нетрадиционные возобновляемые источники энергии"
+    ]
+  },
+  {
+    "abbreviation": "НВЧЗ",
+    "values": [
+      "направленная высокочастотная защита"
+    ]
+  },
+  {
+    "abbreviation": "НДС",
+    "values": [
+      "налог на добавленную стоимость 34"
+    ]
+  },
+  {
+    "abbreviation": "НДТ",
+    "values": [
+      "наилучшие доступные технологии"
+    ]
+  },
+  {
+    "abbreviation": "НИИПТ",
+    "values": [
+      "Научно-исследовательский институт по передаче электроэнергии постоянным током высокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "НИОКР",
+    "values": [
+      "научно-исследовательские и опытно-конструкторские работы"
+    ]
+  },
+  {
+    "abbreviation": "НИП",
+    "values": [
+      "наносекундная импульсная помеха"
+    ]
+  },
+  {
+    "abbreviation": "НИР",
+    "values": [
+      "научно-исследовательская работа"
+    ]
+  },
+  {
+    "abbreviation": "НКЛ",
+    "values": [
+      "низковольтная кабельная линия"
+    ]
+  },
+  {
+    "abbreviation": "НКУ",
+    "values": [
+      "низковольтное комплектное устройство"
+    ]
+  },
+  {
+    "abbreviation": "НКЦКИ",
+    "values": [
+      "национальный координационный центр по компьютерным инцидентам"
+    ]
+  },
+  {
+    "abbreviation": "НН",
+    "values": [
+      "низкое напряжение (до 1 кВ)"
+    ]
+  },
+  {
+    "abbreviation": "ННРЭ",
+    "values": [
+      "нарушение нормального режима электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "НО",
+    "values": [
+      "наружное освещение"
+    ]
+  },
+  {
+    "abbreviation": "НОК",
+    "values": [
+      "независимая оценка квалификации"
+    ]
+  },
+  {
+    "abbreviation": "НОРЭМ",
+    "values": [
+      "новый оптовый рынок электрической энергии (мощности)"
+    ]
+  },
+  {
+    "abbreviation": "НПА",
+    "values": [
+      "нормативный правовой акт"
+    ]
+  },
+  {
+    "abbreviation": "НПК",
+    "values": [
+      "научно-практическая конференция"
+    ]
+  },
+  {
+    "abbreviation": "НПО",
+    "values": [
+      "научно-производственное объединение"
+    ]
+  },
+  {
+    "abbreviation": "НПРЧ",
+    "values": [
+      "нормированное первичное регулирование частоты НПУиЭЭ – нарушение правил устройства и эксплуатации электроустановок"
+    ]
+  },
+  {
+    "abbreviation": "НРМ",
+    "values": [
+      "нормативный резерв мощности"
+    ]
+  },
+  {
+    "abbreviation": "НСД",
+    "values": [
+      "несанкционированный доступ"
+    ]
+  },
+  {
+    "abbreviation": "НСИ",
+    "values": [
+      "нормативно-справочная информация"
+    ]
+  },
+  {
+    "abbreviation": "НСО",
+    "values": [
+      "независимый системный оператор"
+    ]
+  },
+  {
+    "abbreviation": "НТД",
+    "values": [
+      "нормативно-техническая документация"
+    ]
+  },
+  {
+    "abbreviation": "НТО",
+    "values": [
+      "научно-техническое обеспечение"
+    ]
+  },
+  {
+    "abbreviation": "НТП",
+    "values": [
+      "нормы технологического проектирования"
+    ]
+  },
+  {
+    "abbreviation": "НТС",
+    "values": [
+      "научно-технический совет 35"
+    ]
+  },
+  {
+    "abbreviation": "НТСП",
+    "values": [
+      "низкотемпературная сверхпроводимость НТЦ ФСК ЕЭС – Научно-технический центр Федеральной сетевой компании Единой энергетической системы"
+    ]
+  },
+  {
+    "abbreviation": "НЧ",
+    "values": [
+      "низкая частота"
+    ]
+  },
+  {
+    "abbreviation": "НЧК",
+    "values": [
+      "низкочастотные колебания"
+    ]
+  },
+  {
+    "abbreviation": "НЭ",
+    "values": [
+      "накопитель энергии"
+    ]
+  },
+  {
+    "abbreviation": "НЭЭ",
+    "values": [
+      "накопитель электрической энергии О"
+    ]
+  },
+  {
+    "abbreviation": "ОАО",
+    "values": [
+      "открытое акционерное общество"
+    ]
+  },
+  {
+    "abbreviation": "ОАПВ",
+    "values": [
+      "однофазное автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "ОБ",
+    "values": [
+      "оперативная блокировка"
+    ]
+  },
+  {
+    "abbreviation": "ОБР",
+    "values": [
+      "оперативная блокировка разъединителей"
+    ]
+  },
+  {
+    "abbreviation": "ОВ",
+    "values": [
+      "обмотка возбуждения",
+      "обходной выключатель"
+    ]
+  },
+  {
+    "abbreviation": "ОВБ",
+    "values": [
+      "оперативная выездная бригада"
+    ]
+  },
+  {
+    "abbreviation": "ОГК",
+    "values": [
+      "объединённая генерирующая компания",
+      "оптовая генерирующая компания"
+    ]
+  },
+  {
+    "abbreviation": "ОД",
+    "values": [
+      "отделитель"
+    ]
+  },
+  {
+    "abbreviation": "ОДГ",
+    "values": [
+      "оперативно-диспетчерская группа"
+    ]
+  },
+  {
+    "abbreviation": "ОДН",
+    "values": [
+      "общедомовые нормы расхода энергоносителей",
+      "общедомовые нужды расходов на электроэнергию"
+    ]
+  },
+  {
+    "abbreviation": "ОДПУ",
+    "values": [
+      "общедомовой прибор учета электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "ОДР",
+    "values": [
+      "область допустимых режимов"
+    ]
+  },
+  {
+    "abbreviation": "ОДС",
+    "values": [
+      "оперативно-диспетчерская служба"
+    ]
+  },
+  {
+    "abbreviation": "ОДУ",
+    "values": [
+      "объединённое диспетчерское управление"
+    ]
+  },
+  {
+    "abbreviation": "ОЗВВ",
+    "values": [
+      "орган зависимой выдержки времени"
+    ]
+  },
+  {
+    "abbreviation": "ОЗЗ",
+    "values": [
+      "однофазное замыкание на землю 36"
+    ]
+  },
+  {
+    "abbreviation": "ОЗП",
+    "values": [
+      "осенне-зимний период"
+    ]
+  },
+  {
+    "abbreviation": "ОЗУ",
+    "values": [
+      "оперативно-запоминающее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ОИК",
+    "values": [
+      "оперативно-информационный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ОИУК",
+    "values": [
+      "оперативный информационно-управляющий комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ОКБМ",
+    "values": [
+      "Опытное конструкторское бюро машиностроения им. И.И. Африкантова"
+    ]
+  },
+  {
+    "abbreviation": "ОКГТ",
+    "values": [
+      "оптический кабель, встроенный в грозозащитный трос"
+    ]
+  },
+  {
+    "abbreviation": "ОКП",
+    "values": [
+      "огнезащитное кабельное покрытие"
+    ]
+  },
+  {
+    "abbreviation": "ОКПУ",
+    "values": [
+      "оперативно календарное планирование и управление"
+    ]
+  },
+  {
+    "abbreviation": "ОКР",
+    "values": [
+      "опытно-конструкторская работа"
+    ]
+  },
+  {
+    "abbreviation": "ОКУ",
+    "values": [
+      "оператор коммерческого учета Ом – ом – единица измерения сопротивления"
+    ]
+  },
+  {
+    "abbreviation": "ОМВ",
+    "values": [
+      "ограничитель минимального возбуждения"
+    ]
+  },
+  {
+    "abbreviation": "ОМКЗ",
+    "values": [
+      "определение места короткого замыкания"
+    ]
+  },
+  {
+    "abbreviation": "ОМП",
+    "values": [
+      "определение места повреждения ОМП ПАР – определение места повреждения по параметрам аварийного режима"
+    ]
+  },
+  {
+    "abbreviation": "ОН",
+    "values": [
+      "остаточное напряжение"
+    ]
+  },
+  {
+    "abbreviation": "ООЗ",
+    "values": [
+      "область объемного заряда"
+    ]
+  },
+  {
+    "abbreviation": "ОП",
+    "values": [
+      "оперативные переключения"
+    ]
+  },
+  {
+    "abbreviation": "ОПЕК",
+    "values": [
+      "организация стран-экспортеров нефти, см. OPEC ОПЛ КА  – обнаружение, предупреждение и ликвидация компьютерных атак"
+    ]
+  },
+  {
+    "abbreviation": "ОПМ",
+    "values": [
+      "оптимизация перетоков мощности"
+    ]
+  },
+  {
+    "abbreviation": "ОПН",
+    "values": [
+      "ограничитель перенапряжения нелинейный"
+    ]
+  },
+  {
+    "abbreviation": "ОПО",
+    "values": [
+      "опасный производственный объект"
+    ]
+  },
+  {
+    "abbreviation": "ОПРТ",
+    "values": [
+      "относительный прирост расхода топлива на выработку электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "ОПРЧ",
+    "values": [
+      "общее первичное регулирование частоты"
+    ]
+  },
+  {
+    "abbreviation": "ОПУ",
+    "values": [
+      "общедомовые приборы учета",
+      "общеподстанционный пункт управления",
+      "оперативный пункт управления 37"
+    ]
+  },
+  {
+    "abbreviation": "ОПЭ",
+    "values": [
+      "опытно-промышленная эксплуатация"
+    ]
+  },
+  {
+    "abbreviation": "ОР",
+    "values": [
+      "остаточный ресурс"
+    ]
+  },
+  {
+    "abbreviation": "ОРГРЭС",
+    "values": [
+      "трест по организации и эксплуатации электрических станций и сетей"
+    ]
+  },
+  {
+    "abbreviation": "ОРД",
+    "values": [
+      "оперативно-распорядительный документ",
+      "организационно-разрешительная документация"
+    ]
+  },
+  {
+    "abbreviation": "ОРПМ",
+    "values": [
+      "объединённый (двойной) регулятор потока мощности, см. UPFC"
+    ]
+  },
+  {
+    "abbreviation": "ОРР",
+    "values": [
+      "особый режим работы"
+    ]
+  },
+  {
+    "abbreviation": "ОРС",
+    "values": [
+      "оператор распределительной сети"
+    ]
+  },
+  {
+    "abbreviation": "ОРУ",
+    "values": [
+      "открытое распределительное устройство"
+    ]
+  },
+  {
+    "abbreviation": "ОРЭ",
+    "values": [
+      "оптовый рынок электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "ОРЭМ",
+    "values": [
+      "оптовый рынок электроэнергии и мощности"
+    ]
+  },
+  {
+    "abbreviation": "ОСИ",
+    "values": [
+      "опорно-стержневая изоляция"
+    ]
+  },
+  {
+    "abbreviation": "ОСПН",
+    "values": [
+      "оперативный и суточный прогноз нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "ОСТ",
+    "values": [
+      "отраслевой стандарт"
+    ]
+  },
+  {
+    "abbreviation": "ОСШ",
+    "values": [
+      "обходная система шин"
+    ]
+  },
+  {
+    "abbreviation": "ОТ",
+    "values": [
+      "оперативный ток",
+      "охрана труда ОТиПБ – охрана труда и промышленная безопасность"
+    ]
+  },
+  {
+    "abbreviation": "ОТК",
+    "values": [
+      "отдел технического контроля"
+    ]
+  },
+  {
+    "abbreviation": "ОТКЗ",
+    "values": [
+      "ограничитель тока короткого замыкания ОТиСУ – оперативно-техническое и ситуационное управление"
+    ]
+  },
+  {
+    "abbreviation": "ОТМ",
+    "values": [
+      "организационно-технические мероприятия"
+    ]
+  },
+  {
+    "abbreviation": "ОТР",
+    "values": [
+      "опытно-технологические работы"
+    ]
+  },
+  {
+    "abbreviation": "ОТС",
+    "values": [
+      "общая теория систем"
+    ]
+  },
+  {
+    "abbreviation": "ОТУ",
+    "values": [
+      "общие технические условия",
+      "оперативно-технологическое управление ОТУ ЭСК – оперативно-технологическое управление электросетевым комплексом 38"
+    ]
+  },
+  {
+    "abbreviation": "ОУ",
+    "values": [
+      "объект управления",
+      "осветительная установка"
+    ]
+  },
+  {
+    "abbreviation": "ОФС",
+    "values": [
+      "обслуживание и ремонт по фактическому состоянию"
+    ]
+  },
+  {
+    "abbreviation": "ОФТПЭ",
+    "values": [
+      "отделение физико-технических проблем энергетики РАН"
+    ]
+  },
+  {
+    "abbreviation": "ОША",
+    "values": [
+      "обогреватели шкафов автоматики ОЭС (ОЭЭС) – объединенная электроэнергетическая система"
+    ]
+  },
+  {
+    "abbreviation": "ОЭСР",
+    "values": [
+      "организация экономического сотрудничества и развития"
+    ]
+  },
+  {
+    "abbreviation": "ОЯТ",
+    "values": [
+      "отработавшее ядерное топливо (отходы) П"
+    ]
+  },
+  {
+    "abbreviation": "ПА",
+    "values": [
+      "противоаварийная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "ПАЗ",
+    "values": [
+      "противоаварийная защита"
+    ]
+  },
+  {
+    "abbreviation": "ПАК",
+    "values": [
+      "программно-аппаратный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ПАМ",
+    "values": [
+      "противоаварийные мероприятия"
+    ]
+  },
+  {
+    "abbreviation": "ПАР",
+    "values": [
+      "параметры аварийного режима",
+      "послеаварийный режим"
+    ]
+  },
+  {
+    "abbreviation": "ПАС",
+    "values": [
+      "преобразователь аналогового сигнала"
+    ]
+  },
+  {
+    "abbreviation": "ПАТЭС",
+    "values": [
+      "плавучая атомная теплоэлектростанция"
+    ]
+  },
+  {
+    "abbreviation": "ПАУ",
+    "values": [
+      "противоаварийное управление"
+    ]
+  },
+  {
+    "abbreviation": "ПАЭС",
+    "values": [
+      "плавучая атомная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ПБ",
+    "values": [
+      "промышленная безопасность"
+    ]
+  },
+  {
+    "abbreviation": "ПБВ",
+    "values": [
+      "переключение без возбуждения (переключатель числа витков трансформатора без нагрузки)"
+    ]
+  },
+  {
+    "abbreviation": "ПБН",
+    "values": [
+      "показатель балансовой надёжности"
+    ]
+  },
+  {
+    "abbreviation": "ПБО",
+    "values": [
+      "потенциальная биологическая опасность"
+    ]
+  },
+  {
+    "abbreviation": "ПБР",
+    "values": [
+      "пускатель бесконтактный реверсивный"
+    ]
+  },
+  {
+    "abbreviation": "ПВК",
+    "values": [
+      "программно-вычислительный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ПВХ",
+    "values": [
+      "поливинилхлорид"
+    ]
+  },
+  {
+    "abbreviation": "ПГВ",
+    "values": [
+      "подстанция глубокого ввода 39"
+    ]
+  },
+  {
+    "abbreviation": "ПГУ",
+    "values": [
+      "парогазовая установка"
+    ]
+  },
+  {
+    "abbreviation": "ПГЭС",
+    "values": [
+      "парогазовая электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ПДВ",
+    "values": [
+      "предельно допустимые выбросы (вредных веществ)"
+    ]
+  },
+  {
+    "abbreviation": "ПДГ",
+    "values": [
+      "предварительный диспетчерский график"
+    ]
+  },
+  {
+    "abbreviation": "ПДК",
+    "values": [
+      "предельно допустимая концентрация"
+    ]
+  },
+  {
+    "abbreviation": "ПДУ",
+    "values": [
+      "предельно допустимый уровень"
+    ]
+  },
+  {
+    "abbreviation": "ПЗ",
+    "values": [
+      "переносное заземление"
+    ]
+  },
+  {
+    "abbreviation": "ПЗУ",
+    "values": [
+      "переносное заземляющее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ПК",
+    "values": [
+      "песональныый компьютер",
+      "программный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ПКЗ",
+    "values": [
+      "первичное короткое замыкание"
+    ]
+  },
+  {
+    "abbreviation": "ПКУ",
+    "values": [
+      "пункт коммерческого учета"
+    ]
+  },
+  {
+    "abbreviation": "ПКЭ",
+    "values": [
+      "показатели качества электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "ПМЭС",
+    "values": [
+      "предприятие магистральных электрических сетей"
+    ]
+  },
+  {
+    "abbreviation": "ПН",
+    "values": [
+      "пиковая нагрузка",
+      "показатель надёжности",
+      "преобразователь напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ПНП",
+    "values": [
+      "преобразователь напряжения питания"
+    ]
+  },
+  {
+    "abbreviation": "ПО",
+    "values": [
+      "последствия отказа",
+      "программное обеспечение ПО КМ – программное обеспечение компьютерного моделирования",
+      "производственное объединение"
+    ]
+  },
+  {
+    "abbreviation": "ПОР",
+    "values": [
+      "проект организации работ"
+    ]
+  },
+  {
+    "abbreviation": "ПОС",
+    "values": [
+      "проект организации строительства"
+    ]
+  },
+  {
+    "abbreviation": "ПОТЭЭУ",
+    "values": [
+      "правила по охране труда при эксплуатации электроустановок"
+    ]
+  },
+  {
+    "abbreviation": "ПОЭБ",
+    "values": [
+      "программа обеспечения энергетической безопасности"
+    ]
+  },
+  {
+    "abbreviation": "ПП",
+    "values": [
+      "переключатель пакетный",
+      "переключательный пункт",
+      "преобразовательная подстанция 40",
+      "промышленный потребитель"
+    ]
+  },
+  {
+    "abbreviation": "ППГ",
+    "values": [
+      "программа плавки гололеда"
+    ]
+  },
+  {
+    "abbreviation": "ППР",
+    "values": [
+      "планово-предупредительный ремонт",
+      "проект производства работ"
+    ]
+  },
+  {
+    "abbreviation": "ППРН",
+    "values": [
+      "продольно-поперечное регулирование напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ППТ",
+    "values": [
+      "передача постоянного тока",
+      "потребители постоянного тока",
+      "преобразователь постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ПР",
+    "values": [
+      "потребитель-регулятор",
+      "пункт распределительный"
+    ]
+  },
+  {
+    "abbreviation": "ПРА",
+    "values": [
+      "пускорегулирующая аппаратура"
+    ]
+  },
+  {
+    "abbreviation": "ПРМ",
+    "values": [
+      "последовательный регулятор потока мощности"
+    ]
+  },
+  {
+    "abbreviation": "ПРН",
+    "values": [
+      "продольное регулирование напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ПРПН",
+    "values": [
+      "производство ремонтных работ под напряжением"
+    ]
+  },
+  {
+    "abbreviation": "ПРРМ",
+    "values": [
+      "полупроводниковый регулятор реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ПРС",
+    "values": [
+      "производственно-ремонтная служба"
+    ]
+  },
+  {
+    "abbreviation": "ПРЧ",
+    "values": [
+      "первичное регулирование частоты"
+    ]
+  },
+  {
+    "abbreviation": "ПРЭН",
+    "values": [
+      "клуб – профессиональный энергетический клуб"
+    ]
+  },
+  {
+    "abbreviation": "ПС",
+    "values": [
+      "передающая сеть",
+      "подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ПСРН",
+    "values": [
+      "пункт секционирования и ручного регулирования напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ПССС",
+    "values": [
+      "пропускная способность системообразующей связи"
+    ]
+  },
+  {
+    "abbreviation": "ПСУ",
+    "values": [
+      "паросиловая установка"
+    ]
+  },
+  {
+    "abbreviation": "ПСЭ",
+    "values": [
+      "паросиловой энергоблок"
+    ]
+  },
+  {
+    "abbreviation": "ПТ",
+    "values": [
+      "паровая турбина"
+    ]
+  },
+  {
+    "abbreviation": "ПТБ",
+    "values": [
+      "правила техники (технической) безопасности"
+    ]
+  },
+  {
+    "abbreviation": "ПТИ",
+    "values": [
+      "производственно-техническая информация"
+    ]
+  },
+  {
+    "abbreviation": "ПТК",
+    "values": [
+      "программно-технический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ПТН",
+    "values": [
+      "промежуточный трансформатор напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ПТО",
+    "values": [
+      "плановое техническое обслуживание 41"
+    ]
+  },
+  {
+    "abbreviation": "ПТТ",
+    "values": [
+      "промежуточный трансформатор тока"
+    ]
+  },
+  {
+    "abbreviation": "ПТУ",
+    "values": [
+      "паротурбинная установка"
+    ]
+  },
+  {
+    "abbreviation": "ПТЭ",
+    "values": [
+      "правила технической эксплуатации электроустановок"
+    ]
+  },
+  {
+    "abbreviation": "ПТЭСС",
+    "values": [
+      "Правила технической эксплуатации электрических станций и сетей"
+    ]
+  },
+  {
+    "abbreviation": "ПТЭЭП",
+    "values": [
+      "Правила технической эксплуатации электроустановок потребителей"
+    ]
+  },
+  {
+    "abbreviation": "ПУ",
+    "values": [
+      "преобразовательное устройство",
+      "прибор учёта",
+      "противоаварийное управление"
+    ]
+  },
+  {
+    "abbreviation": "ПУНЦЭМ",
+    "values": [
+      "предельный уровень нерегулируемых цен на электроэнергию (мощность) гарантирующего поставщика"
+    ]
+  },
+  {
+    "abbreviation": "ПУРНТ",
+    "values": [
+      "полупроводниковое устройство регулирования напряжения трансформатора"
+    ]
+  },
+  {
+    "abbreviation": "ПУЭ",
+    "values": [
+      "правила устройства электроустановок"
+    ]
+  },
+  {
+    "abbreviation": "ПФГ",
+    "values": [
+      "пассивный фильтр гармоник"
+    ]
+  },
+  {
+    "abbreviation": "ПХГ",
+    "values": [
+      "подземное хранилище газа"
+    ]
+  },
+  {
+    "abbreviation": "ПЭД",
+    "values": [
+      "погружной электродвигатель"
+    ]
+  },
+  {
+    "abbreviation": "ПЭИПК",
+    "values": [
+      "Петербургский энергетический институт повышения квалификации"
+    ]
+  },
+  {
+    "abbreviation": "ПЭО",
+    "values": [
+      "погружное электрооборудование"
+    ]
+  },
+  {
+    "abbreviation": "ПЭП",
+    "values": [
+      "пьезоэлектрический преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "ПЭС",
+    "values": [
+      "предприятие электрических сетей",
+      "приливная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "ПЭУ",
+    "values": [
+      "погружная электроустановка"
+    ]
+  },
+  {
+    "abbreviation": "ПЭЭП",
+    "values": [
+      "правила эксплуатации электроустановок потребителей Р"
+    ]
+  },
+  {
+    "abbreviation": "РSS",
+    "values": [
+      "системный стабилизатор мощности ( Power Sestemr Stabilizer)"
+    ]
+  },
+  {
+    "abbreviation": "РАВИ",
+    "values": [
+      "Российская ассоциация ветроиндустрии"
+    ]
+  },
+  {
+    "abbreviation": "РАМЭ",
+    "values": [
+      "Российская ассоциация малой энергетики 42"
+    ]
+  },
+  {
+    "abbreviation": "РАН",
+    "values": [
+      "Российская академия наук"
+    ]
+  },
+  {
+    "abbreviation": "РАО",
+    "values": [
+      "радиоактивные отходы РАО «ЕЭС России» – Российское акционерное общество «Единая энергетическая система России"
+    ]
+  },
+  {
+    "abbreviation": "РАС",
+    "values": [
+      "регистратор аварийных событий"
+    ]
+  },
+  {
+    "abbreviation": "РАСП",
+    "values": [
+      "регистратор аварийных событий и переходных процессов"
+    ]
+  },
+  {
+    "abbreviation": "РАЭСКО",
+    "values": [
+      "Российская ассоциация энергосервисных компаний"
+    ]
+  },
+  {
+    "abbreviation": "РБМК",
+    "values": [
+      "реактор большой мощности канального типа для АЭС"
+    ]
+  },
+  {
+    "abbreviation": "РБН",
+    "values": [
+      "реактор на быстрых нейтронах"
+    ]
+  },
+  {
+    "abbreviation": "РБП",
+    "values": [
+      "реле безопасности персонала"
+    ]
+  },
+  {
+    "abbreviation": "РВЛ",
+    "values": [
+      "разомкнутая воздушная линия"
+    ]
+  },
+  {
+    "abbreviation": "РВР",
+    "values": [
+      "режим с высокими рисками"
+    ]
+  },
+  {
+    "abbreviation": "РГ",
+    "values": [
+      "распределённая генерация"
+    ]
+  },
+  {
+    "abbreviation": "РГЕ",
+    "values": [
+      "режимная генерирующая единица"
+    ]
+  },
+  {
+    "abbreviation": "РГЭ",
+    "values": [
+      "распределённая генерация энергии"
+    ]
+  },
+  {
+    "abbreviation": "РД",
+    "values": [
+      "руководящий документ"
+    ]
+  },
+  {
+    "abbreviation": "РДД",
+    "values": [
+      "регулируемый двусторонний договор (заключается на оптовом рынке)"
+    ]
+  },
+  {
+    "abbreviation": "РДМ",
+    "values": [
+      "распределение дефицита мощности"
+    ]
+  },
+  {
+    "abbreviation": "РДП",
+    "values": [
+      "районный диспетчерский пункт"
+    ]
+  },
+  {
+    "abbreviation": "РДС",
+    "values": [
+      "районная диспетчерская служба"
+    ]
+  },
+  {
+    "abbreviation": "РДСК",
+    "values": [
+      "реактор дугогасящий сухой с конденсаторным регулированием"
+    ]
+  },
+  {
+    "abbreviation": "РДУ",
+    "values": [
+      "региональное диспетчерское управление"
+    ]
+  },
+  {
+    "abbreviation": "РЕ",
+    "values": [
+      "заземляющий проводник нулевой защитный ( Protective Earthing)"
+    ]
+  },
+  {
+    "abbreviation": "РЗ",
+    "values": [
+      "релейная защита РЗА (РЗиА) – релейная защита и автоматика РЗАиТ – релейная защита, автоматика и телемеханика"
+    ]
+  },
+  {
+    "abbreviation": "РИП",
+    "values": [
+      "резервный источник питания"
+    ]
+  },
+  {
+    "abbreviation": "РИСЭ",
+    "values": [
+      "резервный источник снабжения электроэнергией"
+    ]
+  },
+  {
+    "abbreviation": "РИТЭГ",
+    "values": [
+      "радиоизотопный термоэлектрический генератор 43"
+    ]
+  },
+  {
+    "abbreviation": "РИЭ",
+    "values": [
+      "распределённые источники энергии"
+    ]
+  },
+  {
+    "abbreviation": "РКИК",
+    "values": [
+      "рамочная конвенция ООН об изменении климата"
+    ]
+  },
+  {
+    "abbreviation": "РМ",
+    "values": [
+      "реактивная мощность"
+    ]
+  },
+  {
+    "abbreviation": "РН",
+    "values": [
+      "режимная надёжность"
+    ]
+  },
+  {
+    "abbreviation": "РО",
+    "values": [
+      "регулирующий орган"
+    ]
+  },
+  {
+    "abbreviation": "РОЭР",
+    "values": [
+      "региональный оператор электроэнергетического рынка"
+    ]
+  },
+  {
+    "abbreviation": "РП",
+    "values": [
+      "распределительная подстанция",
+      "распределительный пункт"
+    ]
+  },
+  {
+    "abbreviation": "РПВ",
+    "values": [
+      "реле повторного включения",
+      "ручное повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "РПГ",
+    "values": [
+      "режим повышенной готовности"
+    ]
+  },
+  {
+    "abbreviation": "РПН",
+    "values": [
+      "регулятор напряжения трансформаторов под нагрузкой"
+    ]
+  },
+  {
+    "abbreviation": "РПП",
+    "values": [
+      "регистратор переходных процессов"
+    ]
+  },
+  {
+    "abbreviation": "РПУ",
+    "values": [
+      "расчетный прибор учета"
+    ]
+  },
+  {
+    "abbreviation": "РРS",
+    "values": [
+      "сигналы (метки) точного времени (Puls per Second)"
+    ]
+  },
+  {
+    "abbreviation": "РРЛ",
+    "values": [
+      "радио релейная линия"
+    ]
+  },
+  {
+    "abbreviation": "РРР",
+    "values": [
+      "покупная цена пула; покупная цена на электроэнергию в объединённой энергосистеме (Pool Purchase Price) 75"
+    ]
+  },
+  {
+    "abbreviation": "РРЭ",
+    "values": [
+      "розничный рынок электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "РРЭМ",
+    "values": [
+      "региональный рынок электроэнергии и мощности"
+    ]
+  },
+  {
+    "abbreviation": "РС",
+    "values": [
+      "распределительная сеть"
+    ]
+  },
+  {
+    "abbreviation": "РСБУ",
+    "values": [
+      "российский стандарт бухгалтерского учета"
+    ]
+  },
+  {
+    "abbreviation": "РСВ",
+    "values": [
+      "рынок на сутки вперёд"
+    ]
+  },
+  {
+    "abbreviation": "РСК",
+    "values": [
+      "распределительная сетевая компания",
+      "распределительный сетевой комплекс",
+      "региональная сетевая компания"
+    ]
+  },
+  {
+    "abbreviation": "РСО",
+    "values": [
+      "ресурсоснабжающая организация"
+    ]
+  },
+  {
+    "abbreviation": "РСПП",
+    "values": [
+      "Российский союз промышленников и предпринимателей"
+    ]
+  },
+  {
+    "abbreviation": "РСТ",
+    "values": [
+      "региональная служба тарифов"
+    ]
+  },
+  {
+    "abbreviation": "РСУ",
+    "values": [
+      "распределенная система управления"
+    ]
+  },
+  {
+    "abbreviation": "РСЭР",
+    "values": [
+      "региональный совет энергетического рынка"
+    ]
+  },
+  {
+    "abbreviation": "РТ",
+    "values": [
+      "регулировочный трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "РТН",
+    "values": [
+      "реактор на тепловых нейтронах"
+    ]
+  },
+  {
+    "abbreviation": "РТО",
+    "values": [
+      "российское техническое общество"
+    ]
+  },
+  {
+    "abbreviation": "РТП",
+    "values": [
+      "распределительная трансформаторная подстанция 44"
+    ]
+  },
+  {
+    "abbreviation": "РУ",
+    "values": [
+      "распределительное устройство",
+      "реакторная установка",
+      "руководящие указания"
+    ]
+  },
+  {
+    "abbreviation": "РУВН",
+    "values": [
+      "распределительное устройство высшего напряжения"
+    ]
+  },
+  {
+    "abbreviation": "РУНН",
+    "values": [
+      "распределительное устройство низшего напряжения"
+    ]
+  },
+  {
+    "abbreviation": "РЩ",
+    "values": [
+      "распределительный щит",
+      "щит релейной защиты"
+    ]
+  },
+  {
+    "abbreviation": "РЭА",
+    "values": [
+      "Российское энергетическое агентство"
+    ]
+  },
+  {
+    "abbreviation": "РЭК",
+    "values": [
+      "региональная энергетическая комиссия"
+    ]
+  },
+  {
+    "abbreviation": "РЭН",
+    "values": [
+      "регулирующий эффект нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "РЭР",
+    "values": [
+      "распределённые энергетические ресурсы"
+    ]
+  },
+  {
+    "abbreviation": "РЭС",
+    "values": [
+      "район электрических сетей",
+      "районная электроэнергетическая система",
+      "распределительная электрическая сеть"
+    ]
+  },
+  {
+    "abbreviation": "РЭУ",
+    "values": [
+      "районное энергоуправление"
+    ]
+  },
+  {
+    "abbreviation": "РЭЭС",
+    "values": [
+      "районная электроэнергетическая система С"
+    ]
+  },
+  {
+    "abbreviation": "СAIDI",
+    "values": [
+      "индекс средней продолжительности отключений в системе (Customer Average Interruption Duration Index)"
+    ]
+  },
+  {
+    "abbreviation": "СAIFI",
+    "values": [
+      "средняя частота отключения одного потребителя (Customer Average Interruption Frequency Index)"
+    ]
+  },
+  {
+    "abbreviation": "СА",
+    "values": [
+      "система автоматики"
+    ]
+  },
+  {
+    "abbreviation": "САВС",
+    "values": [
+      "система автоматического восстановления сети"
+    ]
+  },
+  {
+    "abbreviation": "САОН",
+    "values": [
+      "система автоматического ограничения нагрузки",
+      "специальная автоматика отключения нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "САПАХ",
+    "values": [
+      "селективная автоматика предотвращения асинхронного хода"
+    ]
+  },
+  {
+    "abbreviation": "САПР",
+    "values": [
+      "система автоматизированного проектирования"
+    ]
+  },
+  {
+    "abbreviation": "САР",
+    "values": [
+      "система автоматического регулирования"
+    ]
+  },
+  {
+    "abbreviation": "САРЧМ",
+    "values": [
+      "система автоматического регулирования частоты и мощности 45"
+    ]
+  },
+  {
+    "abbreviation": "САУ",
+    "values": [
+      "система автоматического управления"
+    ]
+  },
+  {
+    "abbreviation": "САУМ",
+    "values": [
+      "система автоматического управления мощностью энергоблока"
+    ]
+  },
+  {
+    "abbreviation": "САУПГ",
+    "values": [
+      "система автоматизированного управления плавкой гололёда"
+    ]
+  },
+  {
+    "abbreviation": "САЦ",
+    "values": [
+      "ситуационно-аналитический центр"
+    ]
+  },
+  {
+    "abbreviation": "САЭ",
+    "values": [
+      "система автономного электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "СБК",
+    "values": [
+      "сбытовая компания"
+    ]
+  },
+  {
+    "abbreviation": "СБП",
+    "values": [
+      "система бесперебойного питания"
+    ]
+  },
+  {
+    "abbreviation": "СБЭ",
+    "values": [
+      "система бесперебойного электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "СВ",
+    "values": [
+      "секционный выключатель"
+    ]
+  },
+  {
+    "abbreviation": "СВИ",
+    "values": [
+      "синхронизированные векторные измерения"
+    ]
+  },
+  {
+    "abbreviation": "СВЛ",
+    "values": [
+      "самовосстанавливающаяся воздушная линия"
+    ]
+  },
+  {
+    "abbreviation": "СВМ",
+    "values": [
+      "система выдачи мощности"
+    ]
+  },
+  {
+    "abbreviation": "СВН",
+    "values": [
+      "сверхвысокое напряжение"
+    ]
+  },
+  {
+    "abbreviation": "СВЭУ",
+    "values": [
+      "система возмещения экономического ущерба"
+    ]
+  },
+  {
+    "abbreviation": "СГ",
+    "values": [
+      "синхронный генератор"
+    ]
+  },
+  {
+    "abbreviation": "СГЭ",
+    "values": [
+      "система гарантированного электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "СД",
+    "values": [
+      "синхронный электродвигатель"
+    ]
+  },
+  {
+    "abbreviation": "СДД",
+    "values": [
+      "свободный двусторонний договор купли-продажи электроэнергии (заключается на оптовом рынке)"
+    ]
+  },
+  {
+    "abbreviation": "СДО",
+    "values": [
+      "система дистанционного обучения"
+    ]
+  },
+  {
+    "abbreviation": "СДСД",
+    "values": [
+      "система дистанционного сбора данных"
+    ]
+  },
+  {
+    "abbreviation": "СДТ",
+    "values": [
+      "система диагностики трансформаторов"
+    ]
+  },
+  {
+    "abbreviation": "СДТП",
+    "values": [
+      "сеть диспетчерских телефонных переговоров"
+    ]
+  },
+  {
+    "abbreviation": "СДТУ",
+    "values": [
+      "средства диспетчерского и технологического управления"
+    ]
+  },
+  {
+    "abbreviation": "СЗ",
+    "values": [
+      "система защиты"
+    ]
+  },
+  {
+    "abbreviation": "СЗЗ",
+    "values": [
+      "санитарно-защитная зона"
+    ]
+  },
+  {
+    "abbreviation": "СИ",
+    "values": [
+      "международная система единиц",
+      "средство измерений 46"
+    ]
+  },
+  {
+    "abbreviation": "СИАС",
+    "values": [
+      "сигнал индикации аварийного состояния СибНИИЭ – Сибирский научно-исследовательский институт энергетики"
+    ]
+  },
+  {
+    "abbreviation": "СИГРЭ",
+    "values": [
+      "международная конференция по большим электрическим системам высокого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "СИЗ",
+    "values": [
+      "средства индивидуальной защиты"
+    ]
+  },
+  {
+    "abbreviation": "СИЗОД",
+    "values": [
+      "средство индивидуальной защиты органов дыхания"
+    ]
+  },
+  {
+    "abbreviation": "СИП",
+    "values": [
+      "самонесущий изолированный провод СиПР ЕЭС – схема и программа развития ЕЭС СИТС и СС – служба информационно-технологических систем и систем связи (в ПМЭС)"
+    ]
+  },
+  {
+    "abbreviation": "СИУ",
+    "values": [
+      "система интеллектуального учёта электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "СК",
+    "values": [
+      "сетевая компания",
+      "синхронный компенсатор"
+    ]
+  },
+  {
+    "abbreviation": "СКЗ",
+    "values": [
+      "средства коллективной защиты"
+    ]
+  },
+  {
+    "abbreviation": "СКЗИ",
+    "values": [
+      "средства криптографической защиты информации"
+    ]
+  },
+  {
+    "abbreviation": "СКИ",
+    "values": [
+      "система контроля изоляции"
+    ]
+  },
+  {
+    "abbreviation": "СКК",
+    "values": [
+      "система контроля качества"
+    ]
+  },
+  {
+    "abbreviation": "СКЛ",
+    "values": [
+      "сервисная кабельная линия"
+    ]
+  },
+  {
+    "abbreviation": "СКПН",
+    "values": [
+      "система компенсации перепадов (искажений) напряжения"
+    ]
+  },
+  {
+    "abbreviation": "СКРМ",
+    "values": [
+      "система компенсации реактивной мощности",
+      "средства компенсации реактивной мощности",
+      "статический компенсатор реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "СМ",
+    "values": [
+      "синхронная машина"
+    ]
+  },
+  {
+    "abbreviation": "СМЗУ",
+    "values": [
+      "система мониторинга запасов устойчивости СМиД – система мониторинга и диагностики СМиУКЭ – система мониторинга и управления качеством электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "СМКЭЭ",
+    "values": [
+      "система мониторинга качества электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "СМО",
+    "values": [
+      "стальная многогранная опора 47"
+    ]
+  },
+  {
+    "abbreviation": "СМПО",
+    "values": [
+      "система мониторинга первичного оборудования"
+    ]
+  },
+  {
+    "abbreviation": "СМПР",
+    "values": [
+      "система мониторинга переходных режимов, см. WAMS"
+    ]
+  },
+  {
+    "abbreviation": "СМСТ",
+    "values": [
+      "система мониторинга силового трансформатора"
+    ]
+  },
+  {
+    "abbreviation": "СМТН",
+    "values": [
+      "система мониторинга технологических нарушений"
+    ]
+  },
+  {
+    "abbreviation": "СН",
+    "values": [
+      "собственные нужды"
+    ]
+  },
+  {
+    "abbreviation": "СН-1",
+    "values": [
+      "среднее напряжение (35 кВ)"
+    ]
+  },
+  {
+    "abbreviation": "СН-2",
+    "values": [
+      "среднее напряжение (6, 10, 20 кВ)"
+    ]
+  },
+  {
+    "abbreviation": "СНВ",
+    "values": [
+      "система независимого возбуждения"
+    ]
+  },
+  {
+    "abbreviation": "СНГ",
+    "values": [
+      "Содружество независимых государств СНиП – строительные нормы и правила"
+    ]
+  },
+  {
+    "abbreviation": "СНП",
+    "values": [
+      "стабилизатор напряжения питания"
+    ]
+  },
+  {
+    "abbreviation": "СНЭ",
+    "values": [
+      "система накопления энергии"
+    ]
+  },
+  {
+    "abbreviation": "СНЭЭ",
+    "values": [
+      "система накопления электрической энергии"
+    ]
+  },
+  {
+    "abbreviation": "СО",
+    "values": [
+      "системный оператор"
+    ]
+  },
+  {
+    "abbreviation": "СОЕВ",
+    "values": [
+      "система обеспечения единого времени"
+    ]
+  },
+  {
+    "abbreviation": "СОИ",
+    "values": [
+      "средство отображения информации"
+    ]
+  },
+  {
+    "abbreviation": "СОПТ",
+    "values": [
+      "система оперативного постоянного тока СО ЦДУ ЕЭС – системный оператор ЕЭС"
+    ]
+  },
+  {
+    "abbreviation": "СОТИАССО",
+    "values": [
+      "система обмена технологической информацией с автоматизированной системой системного оператора"
+    ]
+  },
+  {
+    "abbreviation": "СПА",
+    "values": [
+      "системная противоаварийная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "СПГ",
+    "values": [
+      "сжиженный природный газ",
+      "система плавки гололёда"
+    ]
+  },
+  {
+    "abbreviation": "СПЗ",
+    "values": [
+      "система противопожарной защиты"
+    ]
+  },
+  {
+    "abbreviation": "СПИНЭ",
+    "values": [
+      "сверхпроводниковый индуктивный накопитель энергии"
+    ]
+  },
+  {
+    "abbreviation": "СПН",
+    "values": [
+      "средства повышения надёжности"
+    ]
+  },
+  {
+    "abbreviation": "СППР",
+    "values": [
+      "система поддержки принятия решений"
+    ]
+  },
+  {
+    "abbreviation": "СПЭ",
+    "values": [
+      "сшитый полиэтилен"
+    ]
+  },
+  {
+    "abbreviation": "СРЗА",
+    "values": [
+      "служба релейной защиты и автоматики"
+    ]
+  },
+  {
+    "abbreviation": "СРН",
+    "values": [
+      "средства регулирования напряжения 48"
+    ]
+  },
+  {
+    "abbreviation": "СРО",
+    "values": [
+      "саморегулируемая организация"
+    ]
+  },
+  {
+    "abbreviation": "ССБТ",
+    "values": [
+      "система стандартов безопасности труда"
+    ]
+  },
+  {
+    "abbreviation": "ССВ",
+    "values": [
+      "система самовозбуждения"
+    ]
+  },
+  {
+    "abbreviation": "ССПИ",
+    "values": [
+      "система сбора, обработки и передачи информации"
+    ]
+  },
+  {
+    "abbreviation": "ССПК",
+    "values": [
+      "статический продольный синхронный компенсатор, см. SSSC"
+    ]
+  },
+  {
+    "abbreviation": "ССС",
+    "values": [
+      "сеть спутниковой связи",
+      "служба систем связи (в МЭС Центра) ССТ ЭЭ – сектор свободной торговли электроэнергией"
+    ]
+  },
+  {
+    "abbreviation": "ССЭСК",
+    "values": [
+      "сеть связи электросетевого комплекса"
+    ]
+  },
+  {
+    "abbreviation": "СТ",
+    "values": [
+      "силовой трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "СТАТКОМ",
+    "values": [
+      "статический синхронный компенсатор, см. STATCOM"
+    ]
+  },
+  {
+    "abbreviation": "СТАТКОН",
+    "values": [
+      "статический конденсаторный накопитель энергии"
+    ]
+  },
+  {
+    "abbreviation": "СТГ",
+    "values": [
+      "синхронный турбогенератор"
+    ]
+  },
+  {
+    "abbreviation": "СТДУ",
+    "values": [
+      "система технологического диспетчерского управления"
+    ]
+  },
+  {
+    "abbreviation": "СТК",
+    "values": [
+      "статический тиристорный компенсатор, см. SVC"
+    ]
+  },
+  {
+    "abbreviation": "СТКК",
+    "values": [
+      "статический тиристорный компенсатор с конденсаторами"
+    ]
+  },
+  {
+    "abbreviation": "СТКР",
+    "values": [
+      "статический тиристорный компенсатор с реакторами"
+    ]
+  },
+  {
+    "abbreviation": "СТО",
+    "values": [
+      "стандарт организации СТОиР – система технического обслуживания и ремонта"
+    ]
+  },
+  {
+    "abbreviation": "СТП",
+    "values": [
+      "статический тиристорный преобразователь",
+      "столбовая трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "СТС",
+    "values": [
+      "система теплоснабжения",
+      "сложная техническая система"
+    ]
+  },
+  {
+    "abbreviation": "СТСО",
+    "values": [
+      "системообразующая территориальная сетевая организация"
+    ]
+  },
+  {
+    "abbreviation": "СТТП",
+    "values": [
+      "сеть телефонных переговоров технологического персонала диспетчерских пунктов"
+    ]
+  },
+  {
+    "abbreviation": "СТЭ",
+    "values": [
+      "система тягового электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "СТЭС",
+    "values": [
+      "солнечно-топливная электростанция 49"
+    ]
+  },
+  {
+    "abbreviation": "СУ",
+    "values": [
+      "система управления",
+      "ситуационное управление"
+    ]
+  },
+  {
+    "abbreviation": "СУБД",
+    "values": [
+      "система управления базами данных"
+    ]
+  },
+  {
+    "abbreviation": "СУЗ",
+    "values": [
+      "система управления и защиты"
+    ]
+  },
+  {
+    "abbreviation": "СУИБ",
+    "values": [
+      "система управления информационной безопасностью"
+    ]
+  },
+  {
+    "abbreviation": "СУНР",
+    "values": [
+      "система управления нормальными режимами"
+    ]
+  },
+  {
+    "abbreviation": "СУОП",
+    "values": [
+      "сигнал указания об отказе на предшествующем участке"
+    ]
+  },
+  {
+    "abbreviation": "СУОТ",
+    "values": [
+      "система управления охраной труда"
+    ]
+  },
+  {
+    "abbreviation": "СУПА",
+    "values": [
+      "система управления производственными активами"
+    ]
+  },
+  {
+    "abbreviation": "СУРЗА",
+    "values": [
+      "система управления, регулирования, защиты и автоматики СУ ЭСК – ситуационное управление электросетевым комплексом"
+    ]
+  },
+  {
+    "abbreviation": "СХК",
+    "values": [
+      "специализированный хроматографический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "СХН",
+    "values": [
+      "статические характеристики нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "СЦУ",
+    "values": [
+      "ситуационный центр управления"
+    ]
+  },
+  {
+    "abbreviation": "СЦЭ",
+    "values": [
+      "система централизованного электроснабжения"
+    ]
+  },
+  {
+    "abbreviation": "СЧХ",
+    "values": [
+      "статические частотные характеристики"
+    ]
+  },
+  {
+    "abbreviation": "СШ",
+    "values": [
+      "секция шин",
+      "система шин"
+    ]
+  },
+  {
+    "abbreviation": "СЭ",
+    "values": [
+      "система энергетики"
+    ]
+  },
+  {
+    "abbreviation": "СЭВ",
+    "values": [
+      "Совет экономической взаимопомощи стран социалистического содружества"
+    ]
+  },
+  {
+    "abbreviation": "СЭЖД",
+    "values": [
+      "система электроснабжения железных дорог"
+    ]
+  },
+  {
+    "abbreviation": "СЭИ",
+    "values": [
+      "Сибирский энергетический институт АН СССР, см. ИСЭМ"
+    ]
+  },
+  {
+    "abbreviation": "СЭМ",
+    "values": [
+      "система экологического менеджмента",
+      "система экологического мониторинга СЭнМ – система энергетического менеджмента"
+    ]
+  },
+  {
+    "abbreviation": "СЭС",
+    "values": [
+      "система электроснабжения",
+      "солнечная электростанция"
+    ]
+  },
+  {
+    "abbreviation": "СЭУ",
+    "values": [
+      "судовая энергетическая установка 50 Т"
+    ]
+  },
+  {
+    "abbreviation": "ТN",
+    "values": [
+      "S – нулевой рабочий проводник (см. TN) и нулевой защитный проводник РЕ разделены (separated)",
+      "С – нулевые рабочий и защитный проводники объединены на всем протяжении (combined) (см. Т; см. N)",
+      "С–S – нулевые рабочий и защитный проводники объединены на головных участках сети, а далее разделены на проводники N и РЕ (см. TN–S)"
+    ]
+  },
+  {
+    "abbreviation": "ТАПВ",
+    "values": [
+      "трёхфазное автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "ТАЭС",
+    "values": [
+      "твёрдотельная аккумулирующая электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "ТБ",
+    "values": [
+      "техника безопасности"
+    ]
+  },
+  {
+    "abbreviation": "ТВ",
+    "values": [
+      "тиристорный выпрямитель"
+    ]
+  },
+  {
+    "abbreviation": "ТВД",
+    "values": [
+      "турбина высокого давления"
+    ]
+  },
+  {
+    "abbreviation": "ТВН",
+    "values": [
+      "техника высоких напряжений"
+    ]
+  },
+  {
+    "abbreviation": "ТВС",
+    "values": [
+      "тепловыделяющая сборка"
+    ]
+  },
+  {
+    "abbreviation": "ТВЭЛ",
+    "values": [
+      "тепловыделяющий элемент на АЭС"
+    ]
+  },
+  {
+    "abbreviation": "ТГ",
+    "values": [
+      "турбогенератор"
+    ]
+  },
+  {
+    "abbreviation": "ТГК",
+    "values": [
+      "территориальная генерирующая компания"
+    ]
+  },
+  {
+    "abbreviation": "ТГШ",
+    "values": [
+      "ток геомагнитного шторма"
+    ]
+  },
+  {
+    "abbreviation": "ТД",
+    "values": [
+      "техническая документация"
+    ]
+  },
+  {
+    "abbreviation": "ТДГК",
+    "values": [
+      "токовая дугогасящая катушка"
+    ]
+  },
+  {
+    "abbreviation": "ТДГР",
+    "values": [
+      "токовый дугогасящий реактор"
+    ]
+  },
+  {
+    "abbreviation": "ТЗ",
+    "values": [
+      "техническое задание ТЗиС – технологическая защита, блокировка и сигнализация"
+    ]
+  },
+  {
+    "abbreviation": "ТЗН",
+    "values": [
+      "трансформатор заземления нейтрали"
+    ]
+  },
+  {
+    "abbreviation": "ТЗНП",
+    "values": [
+      "токовая защита нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ТЗОП",
+    "values": [
+      "токовая защита обратной последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ТИ",
+    "values": [
+      "телеизмерение",
+      "трансформатор измерительный"
+    ]
+  },
+  {
+    "abbreviation": "ТКПГ",
+    "values": [
+      "технологическая карта плавки гололеда Тл – тесла – единица магнитной индукции"
+    ]
+  },
+  {
+    "abbreviation": "ТМ",
+    "values": [
+      "телемеханика",
+      "трансформатор масляный"
+    ]
+  },
+  {
+    "abbreviation": "ТМЗ",
+    "values": [
+      "токовая максимальная защита"
+    ]
+  },
+  {
+    "abbreviation": "ТМН",
+    "values": [
+      "точка минимального напряжения 51"
+    ]
+  },
+  {
+    "abbreviation": "ТН",
+    "values": [
+      "трансформатор напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ТНД",
+    "values": [
+      "турбина низкого давления"
+    ]
+  },
+  {
+    "abbreviation": "ТНЗ",
+    "values": [
+      "токовая направленная защита"
+    ]
+  },
+  {
+    "abbreviation": "ТНЗНП",
+    "values": [
+      "токовая направленная защита нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ТНКИ",
+    "values": [
+      "трансформатор напряжения контроля изоляции"
+    ]
+  },
+  {
+    "abbreviation": "ТННП",
+    "values": [
+      "трансформатор напряжения нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ТНП",
+    "values": [
+      "токовая защита нулевой последовательности",
+      "трансформатор нулевой последовательности ТНЭ (т н.э.) – тонна нефтяного эквивалента"
+    ]
+  },
+  {
+    "abbreviation": "ТНЭК",
+    "values": [
+      "транснациональная энергокомпания"
+    ]
+  },
+  {
+    "abbreviation": "ТО",
+    "values": [
+      "техническое обслуживание",
+      "токовая отсечка ТО НК – техническое обслуживание с непрерывным контролем ТО ПК – техническое обслуживание с периодическим контролем ТОиР – техническое обслуживание и ремонт"
+    ]
+  },
+  {
+    "abbreviation": "ТОКАМАК",
+    "values": [
+      "тороидальная камера с магнитными катушками"
+    ]
+  },
+  {
+    "abbreviation": "ТОМ",
+    "values": [
+      "трансформатор отбора мощности"
+    ]
+  },
+  {
+    "abbreviation": "ТОП",
+    "values": [
+      "точка общего присоединения",
+      "тренажер оперативных переключений ТОР, ТОиР  – техническое обслуживание и ремонт"
+    ]
+  },
+  {
+    "abbreviation": "ТОР",
+    "values": [
+      "токоограничивающий реактор"
+    ]
+  },
+  {
+    "abbreviation": "ТОТЭ",
+    "values": [
+      "твёрдооксидный топливный элемент"
+    ]
+  },
+  {
+    "abbreviation": "ТОУ",
+    "values": [
+      "технологический объект управления",
+      "токоограничивающее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ТОУТ",
+    "values": [
+      "токоограничивающее устройство трансформаторного типа"
+    ]
+  },
+  {
+    "abbreviation": "ТОЭ",
+    "values": [
+      "теоретические основы электротехники"
+    ]
+  },
+  {
+    "abbreviation": "ТП",
+    "values": [
+      "технологическая платформа",
+      "технологическое присоединение 52",
+      "токопровод",
+      "трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ТПЖ",
+    "values": [
+      "токопроводящая жила ТПиР – техническое перевооружение и реконструкция"
+    ]
+  },
+  {
+    "abbreviation": "ТПП",
+    "values": [
+      "технологическая подготовка производства"
+    ]
+  },
+  {
+    "abbreviation": "ТПТ",
+    "values": [
+      "трансформатор постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ТПЧ",
+    "values": [
+      "тиристорный преобразователь частоты"
+    ]
+  },
+  {
+    "abbreviation": "ТПЭ",
+    "values": [
+      "точка передачи электроэнергии"
+    ]
+  },
+  {
+    "abbreviation": "ТР",
+    "values": [
+      "текущий ремонт"
+    ]
+  },
+  {
+    "abbreviation": "ТРАВЭК",
+    "values": [
+      "Международная ассоциация делового сотрудничества по трансформаторам, высоковольтной аппаратуре, электротехнической керамике и другим комплектующим изделиям и материалам"
+    ]
+  },
+  {
+    "abbreviation": "ТРГ",
+    "values": [
+      "тиристорная реакторная группа"
+    ]
+  },
+  {
+    "abbreviation": "ТРМ",
+    "values": [
+      "тиристорный регулятор мощности"
+    ]
+  },
+  {
+    "abbreviation": "ТРЭС",
+    "values": [
+      "технологический расход электроэнергии в электрических сетях"
+    ]
+  },
+  {
+    "abbreviation": "ТС",
+    "values": [
+      "телесигнализация",
+      "техническое состояние"
+    ]
+  },
+  {
+    "abbreviation": "ТСН",
+    "values": [
+      "трансформатор собственных нужд"
+    ]
+  },
+  {
+    "abbreviation": "ТСО",
+    "values": [
+      "территориальная сетевая организация"
+    ]
+  },
+  {
+    "abbreviation": "ТСС",
+    "values": [
+      "теплоснабжающая система"
+    ]
+  },
+  {
+    "abbreviation": "ТСТ",
+    "values": [
+      "трёхфазный симметрирующий трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ТТ",
+    "values": [
+      "система открытых проводящих частей электроустановки, присоединённых к заземлителю, независимому от заземлителя нейтрали источника питания; нейтраль источника и корпуса электрооборудования глухо заземлены, заземления могут быть и раздельными ( System of Open Conductive Parts of an Electrical Installation Connected to a Grounding Conductor Independent of the Power Source Neutral Grounding Conductor), см. Т",
+      "трансформатор тока"
+    ]
+  },
+  {
+    "abbreviation": "ТТНП",
+    "values": [
+      "трансформатор тока нулевой последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ТТРН",
+    "values": [
+      "тиристорно-трансформаторный регулятор напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ТУ",
+    "values": [
+      "телеуправление",
+      "технические условия"
+    ]
+  },
+  {
+    "abbreviation": "ТУПК",
+    "values": [
+      "тиристорно-управляемый продольный компенсатор, см. TCSC ТУТ (т у.т.) – тонна условного топлива 53"
+    ]
+  },
+  {
+    "abbreviation": "ТУФПТ",
+    "values": [
+      "тиристорно-управляемый фазоповоротный трансформатор, см. TCPST"
+    ]
+  },
+  {
+    "abbreviation": "ТЭ",
+    "values": [
+      "топливный элемент"
+    ]
+  },
+  {
+    "abbreviation": "ТЭБ",
+    "values": [
+      "топливно-энергетический баланс"
+    ]
+  },
+  {
+    "abbreviation": "ТЭК",
+    "values": [
+      "топливно-энергетический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ТЭН",
+    "values": [
+      "трубчатый электронагреватель"
+    ]
+  },
+  {
+    "abbreviation": "ТЭО",
+    "values": [
+      "технико-экономическое обоснование"
+    ]
+  },
+  {
+    "abbreviation": "ТЭР",
+    "values": [
+      "топливно-энергетические ресурсы"
+    ]
+  },
+  {
+    "abbreviation": "ТЭС",
+    "values": [
+      "тепловая электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "ТЭЦ",
+    "values": [
+      "теплоэлектроцентраль У"
+    ]
+  },
+  {
+    "abbreviation": "УАЭ",
+    "values": [
+      "устройство аккумулирования энергии"
+    ]
+  },
+  {
+    "abbreviation": "УБП",
+    "values": [
+      "устройство бесперебойного питания"
+    ]
+  },
+  {
+    "abbreviation": "УВ",
+    "values": [
+      "управляющее воздействие"
+    ]
+  },
+  {
+    "abbreviation": "УВН",
+    "values": [
+      "указатель высокого напряжения",
+      "ультравысокое напряжение"
+    ]
+  },
+  {
+    "abbreviation": "УВЧ",
+    "values": [
+      "ультравысокая частота"
+    ]
+  },
+  {
+    "abbreviation": "УГР",
+    "values": [
+      "устройство гальванической развязки"
+    ]
+  },
+  {
+    "abbreviation": "УЗД",
+    "values": [
+      "ультразвуковая импульсная дефектометрия"
+    ]
+  },
+  {
+    "abbreviation": "УЗДП",
+    "values": [
+      "устройство защиты от дугового пробоя"
+    ]
+  },
+  {
+    "abbreviation": "УЗИП",
+    "values": [
+      "устройство защиты от импульсных перенапряжений"
+    ]
+  },
+  {
+    "abbreviation": "УЗНК",
+    "values": [
+      "ультразвуковой неразрушающий контроль"
+    ]
+  },
+  {
+    "abbreviation": "УЗО",
+    "values": [
+      "устройство защитного отключения"
+    ]
+  },
+  {
+    "abbreviation": "УЗПН",
+    "values": [
+      "устройства защиты от перенапряжений нелинейные"
+    ]
+  },
+  {
+    "abbreviation": "УЗС",
+    "values": [
+      "устройство защиты сети"
+    ]
+  },
+  {
+    "abbreviation": "УИН",
+    "values": [
+      "управляемый источник напряжения"
+    ]
+  },
+  {
+    "abbreviation": "УКВ",
+    "values": [
+      "ультракороткие волны (радиоволны)"
+    ]
+  },
+  {
+    "abbreviation": "УККЗ",
+    "values": [
+      "устройство контроля короткого замыкания 54"
+    ]
+  },
+  {
+    "abbreviation": "УКРМ",
+    "values": [
+      "установка (устройство) компенсации реактивной мощности"
+    ]
+  },
+  {
+    "abbreviation": "УН",
+    "values": [
+      "узел нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "УОН",
+    "values": [
+      "устройство отключения нагрузки"
+    ]
+  },
+  {
+    "abbreviation": "УПА",
+    "values": [
+      "управление производственными активами"
+    ]
+  },
+  {
+    "abbreviation": "УПАСК",
+    "values": [
+      "устройство передачи (приёма) аварийных сигналов и команд"
+    ]
+  },
+  {
+    "abbreviation": "УПГ",
+    "values": [
+      "установка плавки гололёда"
+    ]
+  },
+  {
+    "abbreviation": "УПК",
+    "values": [
+      "установка продольной емкостной компенсации"
+    ]
+  },
+  {
+    "abbreviation": "УПКЗ",
+    "values": [
+      "устройство поиска короткого замыкания УПКТ, УПКТУ – установка продольной компенсации с тиристорным управлением"
+    ]
+  },
+  {
+    "abbreviation": "УПНКП",
+    "values": [
+      "устройство преднамеренной неодновременной коммутации полюсов"
+    ]
+  },
+  {
+    "abbreviation": "УПП",
+    "values": [
+      "устройство плавного пуска"
+    ]
+  },
+  {
+    "abbreviation": "УПС",
+    "values": [
+      "укрупненные показатели стоимости"
+    ]
+  },
+  {
+    "abbreviation": "УПТ",
+    "values": [
+      "устройство переключения тарифов"
+    ]
+  },
+  {
+    "abbreviation": "УПУ",
+    "values": [
+      "указатель повреждённого участка"
+    ]
+  },
+  {
+    "abbreviation": "УР",
+    "values": [
+      "управляемый реактор",
+      "установившийся режим"
+    ]
+  },
+  {
+    "abbreviation": "УРЗН",
+    "values": [
+      "устройство резистивного заземления нейтрали"
+    ]
+  },
+  {
+    "abbreviation": "УРМ",
+    "values": [
+      "управляемый регулятор мощности"
+    ]
+  },
+  {
+    "abbreviation": "УРОВ",
+    "values": [
+      "устройство резервирования при отказе выключателя"
+    ]
+  },
+  {
+    "abbreviation": "УРПМ",
+    "values": [
+      "унифицированный регулятор перетоков мощности"
+    ]
+  },
+  {
+    "abbreviation": "УРУТ",
+    "values": [
+      "удельный расход условного топлива"
+    ]
+  },
+  {
+    "abbreviation": "УСВИ",
+    "values": [
+      "устройства синхронизированных векторных измерений"
+    ]
+  },
+  {
+    "abbreviation": "УСВЛ",
+    "values": [
+      "управляемая самокомпенсирующаяся воздушная линия"
+    ]
+  },
+  {
+    "abbreviation": "УСД",
+    "values": [
+      "устройство сбора данных"
+    ]
+  },
+  {
+    "abbreviation": "УСО",
+    "values": [
+      "устройство связи с объектом"
+    ]
+  },
+  {
+    "abbreviation": "УСПД",
+    "values": [
+      "устройство сбора и передачи данных"
+    ]
+  },
+  {
+    "abbreviation": "УТАПВ",
+    "values": [
+      "ускоренное трёхфазное автоматическое повторное включение 55"
+    ]
+  },
+  {
+    "abbreviation": "УТК",
+    "values": [
+      "учебно-тренировочный комплекс"
+    ]
+  },
+  {
+    "abbreviation": "УТКЗ",
+    "values": [
+      "указатель тока короткого замыкания"
+    ]
+  },
+  {
+    "abbreviation": "УТМ",
+    "values": [
+      "устройство телемеханики"
+    ]
+  },
+  {
+    "abbreviation": "УТЦ",
+    "values": [
+      "учебно-тренировочный центр"
+    ]
+  },
+  {
+    "abbreviation": "УУ",
+    "values": [
+      "устройство управления"
+    ]
+  },
+  {
+    "abbreviation": "УУН",
+    "values": [
+      "уравнения узловых напряжений"
+    ]
+  },
+  {
+    "abbreviation": "УУПГ",
+    "values": [
+      "универсальная установка плавки гололеда"
+    ]
+  },
+  {
+    "abbreviation": "УУПК",
+    "values": [
+      "управляемые устройства продольной компенсации"
+    ]
+  },
+  {
+    "abbreviation": "УФК",
+    "values": [
+      "ультрафиолетовый контроль"
+    ]
+  },
+  {
+    "abbreviation": "УЦ",
+    "values": [
+      "учебный центр"
+    ]
+  },
+  {
+    "abbreviation": "УШЗ",
+    "values": [
+      "устройство шунтирования замыкания"
+    ]
+  },
+  {
+    "abbreviation": "УШР",
+    "values": [
+      "управляемый шунтирующий реактор"
+    ]
+  },
+  {
+    "abbreviation": "УШРП",
+    "values": [
+      "управляемый шунтирующий реактор с подмагничиванием"
+    ]
+  },
+  {
+    "abbreviation": "УШРТ",
+    "values": [
+      "управляемый шунтирующий реактор трансформаторного типа"
+    ]
+  },
+  {
+    "abbreviation": "УЭБ",
+    "values": [
+      "управление экономической безопасности"
+    ]
+  },
+  {
+    "abbreviation": "УЭТМ",
+    "values": [
+      "завод «Уралэлектротяжмаш» Ф"
+    ]
+  },
+  {
+    "abbreviation": "ФАЛ",
+    "values": [
+      "функция алгебры логики"
+    ]
+  },
+  {
+    "abbreviation": "ФАС",
+    "values": [
+      "федеральная антимонопольная служба",
+      "фильтр аварийных составляющих"
+    ]
+  },
+  {
+    "abbreviation": "ФВГ",
+    "values": [
+      "фильтр высших гармоник"
+    ]
+  },
+  {
+    "abbreviation": "ФВЧ",
+    "values": [
+      "фильтр высших частот"
+    ]
+  },
+  {
+    "abbreviation": "ФИЦ",
+    "values": [
+      "Федеральный испытательный центр электротехнического оборудования"
+    ]
+  },
+  {
+    "abbreviation": "ФКУ",
+    "values": [
+      "фильтрокомпенсирующее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ФМР",
+    "values": [
+      "ферромагнитный резонанс"
+    ]
+  },
+  {
+    "abbreviation": "ФНЭБ",
+    "values": [
+      "фонд национальной энергетической безопасности 56"
+    ]
+  },
+  {
+    "abbreviation": "ФОЛ",
+    "values": [
+      "фиксация отключения линии электропередачи"
+    ]
+  },
+  {
+    "abbreviation": "ФОРЭМ",
+    "values": [
+      "федеральный оптовый рынок электроэнергии (мощности)"
+    ]
+  },
+  {
+    "abbreviation": "ФОЭР",
+    "values": [
+      "федеральный оператор электроэнергетического рынка"
+    ]
+  },
+  {
+    "abbreviation": "ФП",
+    "values": [
+      "фиксирующий прибор"
+    ]
+  },
+  {
+    "abbreviation": "ФПТ",
+    "values": [
+      "фазоповоротный трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ФПУ",
+    "values": [
+      "фазоповоротное устройство"
+    ]
+  },
+  {
+    "abbreviation": "ФР",
+    "values": [
+      "функция работоспособности ФСК ЕЭС – Федеральная сетевая компания Единой энергетической системы"
+    ]
+  },
+  {
+    "abbreviation": "ФСТ",
+    "values": [
+      "федеральная служба по тарифам"
+    ]
+  },
+  {
+    "abbreviation": "ФСУ",
+    "values": [
+      "фильтросимметрирующее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ФТОП",
+    "values": [
+      "фильтр тока обратной последовательности"
+    ]
+  },
+  {
+    "abbreviation": "ФЧХ",
+    "values": [
+      "фазочастотная характеристика"
+    ]
+  },
+  {
+    "abbreviation": "ФЭ",
+    "values": [
+      "фазосдвигающий элемент"
+    ]
+  },
+  {
+    "abbreviation": "ФЭК",
+    "values": [
+      "федеральная энергетическая комиссия"
+    ]
+  },
+  {
+    "abbreviation": "ФЭП",
+    "values": [
+      "фотоэлектрический преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "ФЭУ",
+    "values": [
+      "фотоэлектрическая установка Х"
+    ]
+  },
+  {
+    "abbreviation": "ХАРГ",
+    "values": [
+      "хроматографический анализ растворенных газов"
+    ]
+  },
+  {
+    "abbreviation": "ХОП",
+    "values": [
+      "характеристика относительных приростов расхода топлива ХХ (хх) – холостой ход Ц"
+    ]
+  },
+  {
+    "abbreviation": "ЦД",
+    "values": [
+      "цифровой двойник"
+    ]
+  },
+  {
+    "abbreviation": "ЦДП",
+    "values": [
+      "центральный диспетчерский пункт 57"
+    ]
+  },
+  {
+    "abbreviation": "ЦДС",
+    "values": [
+      "центральная диспетчерская служба ЦДУ ЕЭС России – Центральное диспетчерское управление Единой энергетической системой России"
+    ]
+  },
+  {
+    "abbreviation": "ЦКДТН",
+    "values": [
+      "цифровой комбинированный датчик тока и напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ЦКТИ",
+    "values": [
+      "Центральный котлотурбинный научноисследователь ский институт"
+    ]
+  },
+  {
+    "abbreviation": "ЦН",
+    "values": [
+      "цепи напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ЦО",
+    "values": [
+      "цифровой осциллограф"
+    ]
+  },
+  {
+    "abbreviation": "ЦП",
+    "values": [
+      "центр питания"
+    ]
+  },
+  {
+    "abbreviation": "ЦПС",
+    "values": [
+      "цифровая подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ЦРАП",
+    "values": [
+      "цифровой регистратор аварийных процессов"
+    ]
+  },
+  {
+    "abbreviation": "ЦРЗ",
+    "values": [
+      "цифровая релейная защита"
+    ]
+  },
+  {
+    "abbreviation": "ЦРП",
+    "values": [
+      "центральный распределительный пункт ЦС АРЧМ – централизованная система автоматического регулирования частоты и перетоков мощности"
+    ]
+  },
+  {
+    "abbreviation": "ЦСОИ",
+    "values": [
+      "центр сбора и обработки информации"
+    ]
+  },
+  {
+    "abbreviation": "ЦСПА",
+    "values": [
+      "централизованная система противоаварийной автоматики"
+    ]
+  },
+  {
+    "abbreviation": "ЦСПИ",
+    "values": [
+      "цифровая система передачи информации"
+    ]
+  },
+  {
+    "abbreviation": "ЦСРЗАИ",
+    "values": [
+      "центральная служба релейной защиты, автоматики и измерений"
+    ]
+  },
+  {
+    "abbreviation": "ЦТ",
+    "values": [
+      "цифровая тень"
+    ]
+  },
+  {
+    "abbreviation": "ЦТН",
+    "values": [
+      "филиал ПАО «Россети» – Центр технического надзора"
+    ]
+  },
+  {
+    "abbreviation": "ЦТП",
+    "values": [
+      "цифровая трансформаторная подстанция"
+    ]
+  },
+  {
+    "abbreviation": "ЦТТ",
+    "values": [
+      "цифровой трансформатор тока"
+    ]
+  },
+  {
+    "abbreviation": "ЦУПС",
+    "values": [
+      "центр управления цифровой подстанцией"
+    ]
+  },
+  {
+    "abbreviation": "ЦУС",
+    "values": [
+      "центр управления сетями"
+    ]
+  },
+  {
+    "abbreviation": "ЦЭС",
+    "values": [
+      "Центральный электротехнический совет",
+      "центральная электрическая станция",
+      "цифровая электрическая сеть 58 Ч"
+    ]
+  },
+  {
+    "abbreviation": "ЧАПВ",
+    "values": [
+      "частотное автоматическое повторное включение"
+    ]
+  },
+  {
+    "abbreviation": "ЧДА",
+    "values": [
+      "частотная делительная автоматика"
+    ]
+  },
+  {
+    "abbreviation": "ЧДД",
+    "values": [
+      "чистый дисконтированный доход"
+    ]
+  },
+  {
+    "abbreviation": "ЧМ",
+    "values": [
+      "частотная модуляция"
+    ]
+  },
+  {
+    "abbreviation": "ЧМИ",
+    "values": [
+      "человеко-машинный интерфейс"
+    ]
+  },
+  {
+    "abbreviation": "ЧП",
+    "values": [
+      "чрезвычайное происшествие"
+    ]
+  },
+  {
+    "abbreviation": "ЧР",
+    "values": [
+      "частичный разряд"
+    ]
+  },
+  {
+    "abbreviation": "ЧРП",
+    "values": [
+      "частотно регулируемый привод"
+    ]
+  },
+  {
+    "abbreviation": "ЧС",
+    "values": [
+      "чрезвычайная ситуация"
+    ]
+  },
+  {
+    "abbreviation": "ЧЭАЗ",
+    "values": [
+      "Чебоксарский электроаппаратный завод Ш"
+    ]
+  },
+  {
+    "abbreviation": "ША",
+    "values": [
+      "шкаф автоматики"
+    ]
+  },
+  {
+    "abbreviation": "ШАОТ",
+    "values": [
+      "шкаф автоматического управления охлаждением трансформатора"
+    ]
+  },
+  {
+    "abbreviation": "ШАУН",
+    "values": [
+      "шкаф автоматического управления напряжением"
+    ]
+  },
+  {
+    "abbreviation": "ШБМ",
+    "values": [
+      "шины бесконечной мощности"
+    ]
+  },
+  {
+    "abbreviation": "ШВ",
+    "values": [
+      "шунтирующий выключатель"
+    ]
+  },
+  {
+    "abbreviation": "ШИМ",
+    "values": [
+      "широтно-импульсная модуляция"
+    ]
+  },
+  {
+    "abbreviation": "ШК",
+    "values": [
+      "шунтирующий конденсатор"
+    ]
+  },
+  {
+    "abbreviation": "ШНН",
+    "values": [
+      "шкаф низкого напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ШОН",
+    "values": [
+      "шкаф отбора напряжения"
+    ]
+  },
+  {
+    "abbreviation": "ШОТ",
+    "values": [
+      "шкаф оперативного тока"
+    ]
+  },
+  {
+    "abbreviation": "ШР",
+    "values": [
+      "шинный разъединитель",
+      "шунтирующий реактор"
+    ]
+  },
+  {
+    "abbreviation": "ШРНН",
+    "values": [
+      "шкаф распределительный низкого напряжения 59"
+    ]
+  },
+  {
+    "abbreviation": "ШРОТ",
+    "values": [
+      "шкаф распределительный оперативного постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ШРПТ",
+    "values": [
+      "шкаф распределительный постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ШРС",
+    "values": [
+      "шкаф распределительный силовой"
+    ]
+  },
+  {
+    "abbreviation": "ШСВ",
+    "values": [
+      "шиносоединительный выключатель Щ"
+    ]
+  },
+  {
+    "abbreviation": "ШУ",
+    "values": [
+      "шкаф учета"
+    ]
+  },
+  {
+    "abbreviation": "ШУВ",
+    "values": [
+      "шкаф управления вентиляцией"
+    ]
+  },
+  {
+    "abbreviation": "ШУМС",
+    "values": [
+      "шкаф управления модулями сопротивлений"
+    ]
+  },
+  {
+    "abbreviation": "ШУОТ",
+    "values": [
+      "шкаф управления оперативным током"
+    ]
+  },
+  {
+    "abbreviation": "ЩА",
+    "values": [
+      "щит автоматики"
+    ]
+  },
+  {
+    "abbreviation": "ЩАВР",
+    "values": [
+      "щит автоматического включения резерва"
+    ]
+  },
+  {
+    "abbreviation": "ЩАО",
+    "values": [
+      "щит аварийного освещения"
+    ]
+  },
+  {
+    "abbreviation": "ЩАП",
+    "values": [
+      "щит аварийного питания"
+    ]
+  },
+  {
+    "abbreviation": "ЩВПФ",
+    "values": [
+      "щит выбора питающей фазы"
+    ]
+  },
+  {
+    "abbreviation": "ЩНО",
+    "values": [
+      "щит наружного освещения"
+    ]
+  },
+  {
+    "abbreviation": "ЩО",
+    "values": [
+      "щит освещения"
+    ]
+  },
+  {
+    "abbreviation": "ЩОС",
+    "values": [
+      "щит охранной сигнализации"
+    ]
+  },
+  {
+    "abbreviation": "ЩПД",
+    "values": [
+      "щит передачи данных"
+    ]
+  },
+  {
+    "abbreviation": "ЩПТ",
+    "values": [
+      "щит постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ЩР",
+    "values": [
+      "щит распределительный"
+    ]
+  },
+  {
+    "abbreviation": "ЩРОО",
+    "values": [
+      "щит распределительный одностороннего обслуживания"
+    ]
+  },
+  {
+    "abbreviation": "ЩС",
+    "values": [
+      "щит силовой"
+    ]
+  },
+  {
+    "abbreviation": "ЩСН",
+    "values": [
+      "щит собственных нужд"
+    ]
+  },
+  {
+    "abbreviation": "ЩТЗ",
+    "values": [
+      "щит тепловой защиты"
+    ]
+  },
+  {
+    "abbreviation": "ЩУ",
+    "values": [
+      "щит управления 60 Э"
+    ]
+  },
+  {
+    "abbreviation": "ЭА",
+    "values": [
+      "энергетический агрегат"
+    ]
+  },
+  {
+    "abbreviation": "ЭБ",
+    "values": [
+      "энергетическая безопасность",
+      "энергоблок"
+    ]
+  },
+  {
+    "abbreviation": "ЭВМ",
+    "values": [
+      "электронная вычислительная машина"
+    ]
+  },
+  {
+    "abbreviation": "ЭВПТ",
+    "values": [
+      "электромеханическая вставка постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ЭГП",
+    "values": [
+      "электрогидравлический преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "ЭГПА",
+    "values": [
+      "электрогазоперекачивающий агрегат"
+    ]
+  },
+  {
+    "abbreviation": "ЭДС",
+    "values": [
+      "электродвижущая сила"
+    ]
+  },
+  {
+    "abbreviation": "ЭЖД",
+    "values": [
+      "электрифицированные железные дороги"
+    ]
+  },
+  {
+    "abbreviation": "ЭЗС",
+    "values": [
+      "электрозаправочная станция",
+      "электрозащитные средства"
+    ]
+  },
+  {
+    "abbreviation": "ЭИС",
+    "values": [
+      "эталонный источник света"
+    ]
+  },
+  {
+    "abbreviation": "ЭКБ",
+    "values": [
+      "электронная компонентная база"
+    ]
+  },
+  {
+    "abbreviation": "ЭКУ",
+    "values": [
+      "элементарный кабельный участок"
+    ]
+  },
+  {
+    "abbreviation": "ЭМИ",
+    "values": [
+      "электромагнитное излучение"
+    ]
+  },
+  {
+    "abbreviation": "ЭМК",
+    "values": [
+      "электромонтажный комплект"
+    ]
+  },
+  {
+    "abbreviation": "ЭММ",
+    "values": [
+      "экономико-математическая модель"
+    ]
+  },
+  {
+    "abbreviation": "ЭМО",
+    "values": [
+      "электромагнитная обстановка"
+    ]
+  },
+  {
+    "abbreviation": "ЭМП",
+    "values": [
+      "электромагнитная помеха",
+      "электромагнитное поле",
+      "электромеханический преобразователь"
+    ]
+  },
+  {
+    "abbreviation": "ЭМПП",
+    "values": [
+      "электромагнитный переходный процесс",
+      "электромеханический переходный процесс"
+    ]
+  },
+  {
+    "abbreviation": "ЭМПЧ",
+    "values": [
+      "электромеханический преобразователь частоты"
+    ]
+  },
+  {
+    "abbreviation": "ЭМР",
+    "values": [
+      "электромонтажные работы"
+    ]
+  },
+  {
+    "abbreviation": "ЭМРЗ",
+    "values": [
+      "электромеханическое реле защиты"
+    ]
+  },
+  {
+    "abbreviation": "ЭМС",
+    "values": [
+      "электромагнитная совместимость 61"
+    ]
+  },
+  {
+    "abbreviation": "ЭМУ",
+    "values": [
+      "электромашинный усилитель"
+    ]
+  },
+  {
+    "abbreviation": "ЭНИН",
+    "values": [
+      "энергетический институт РАН им. Г.М. Кржижановского"
+    ]
+  },
+  {
+    "abbreviation": "ЭО",
+    "values": [
+      "электрическое оборудование",
+      "энергетическое оборудование",
+      "энергетическое объединение"
+    ]
+  },
+  {
+    "abbreviation": "ЭП",
+    "values": [
+      "электропередача",
+      "электроприёмник"
+    ]
+  },
+  {
+    "abbreviation": "ЭПА",
+    "values": [
+      "электропривод и автоматика"
+    ]
+  },
+  {
+    "abbreviation": "ЭПК",
+    "values": [
+      "электропневматический клапан"
+    ]
+  },
+  {
+    "abbreviation": "ЭППТ",
+    "values": [
+      "электропередача постоянного тока"
+    ]
+  },
+  {
+    "abbreviation": "ЭПС",
+    "values": [
+      "электроподвижной состав"
+    ]
+  },
+  {
+    "abbreviation": "ЭПТ",
+    "values": [
+      "электропечной трансформатор"
+    ]
+  },
+  {
+    "abbreviation": "ЭПУ",
+    "values": [
+      "электропусковое устройство",
+      "энергопринимающее устройство"
+    ]
+  },
+  {
+    "abbreviation": "ЭС",
+    "values": [
+      "электрическая станция"
+    ]
+  },
+  {
+    "abbreviation": "ЭСК",
+    "values": [
+      "электросетевая компания",
+      "электросетевой комплекс",
+      "энергосбытовая компания",
+      "энергосервисная компания ЭСК ГП – энергосбытовая компания – гарантирующего поставщика"
+    ]
+  },
+  {
+    "abbreviation": "ЭСО",
+    "values": [
+      "электросетевая организация",
+      "энегоснабжающая организация",
+      "энергосбытовая организация"
+    ]
+  },
+  {
+    "abbreviation": "ЭСП",
+    "values": [
+      "государственный проектно-изыскательский и научноисследовательский институт «Энергосетьпроект»"
+    ]
+  },
+  {
+    "abbreviation": "ЭССО",
+    "values": [
+      "энергоснабжающая самобалансирующаяся организация"
+    ]
+  },
+  {
+    "abbreviation": "ЭТК",
+    "values": [
+      "электротехнический комплекс"
+    ]
+  },
+  {
+    "abbreviation": "ЭТО",
+    "values": [
+      "электротехническое оборудование"
+    ]
+  },
+  {
+    "abbreviation": "ЭТУ",
+    "values": [
+      "электротехнологическая установка 62"
+    ]
+  },
+  {
+    "abbreviation": "ЭХГ",
+    "values": [
+      "электрохимический генератор"
+    ]
+  },
+  {
+    "abbreviation": "ЭХЗ",
+    "values": [
+      "электрохимическая защита"
+    ]
+  },
+  {
+    "abbreviation": "ЭХОП",
+    "values": [
+      "эквивалентные характеристики относительных приростов"
+    ]
+  },
+  {
+    "abbreviation": "ЭЦВМ",
+    "values": [
+      "электронная цифровая вычислительная машина"
+    ]
+  },
+  {
+    "abbreviation": "ЭЦК",
+    "values": [
+      "электрический центр качаний"
+    ]
+  },
+  {
+    "abbreviation": "ЭЦП",
+    "values": [
+      "электронная цифровая подпись"
+    ]
+  },
+  {
+    "abbreviation": "ЭЭ",
+    "values": [
+      "электрическая энергия"
+    ]
+  },
+  {
+    "abbreviation": "ЭЭМ",
+    "values": [
+      "энергоэффективные мероприятия"
+    ]
+  },
+  {
+    "abbreviation": "ЭЭО",
+    "values": [
+      "электроэнергетическое объединение"
+    ]
+  },
+  {
+    "abbreviation": "ЭЭР",
+    "values": [
+      "электроэнергетический рынок"
+    ]
+  },
+  {
+    "abbreviation": "ЭЭС",
+    "values": [
+      "электроэнергетическая система ЭЭС РЭР – электроэнергетическая система с распределёнными энергоресурсами ЭЭС СНГ – электроэнергетический совет содружества независимых государств ЭЭЭф – энергоэкологическая эффективность Я"
+    ]
+  },
+  {
+    "abbreviation": "ЯРВ",
+    "values": [
+      "ящик распределительный с вводным рубильником и предохранителями"
+    ]
+  },
+  {
+    "abbreviation": "ЯРП",
+    "values": [
+      "ящик распределительный подвесной"
+    ]
+  },
+  {
+    "abbreviation": "ЯСН",
+    "values": [
+      "ящик собственных нужд"
+    ]
+  },
+  {
+    "abbreviation": "ЯТЦ",
+    "values": [
+      "ядерный топливный (термодинамический) цикл"
+    ]
+  },
+  {
+    "abbreviation": "ЯЭ",
+    "values": [
+      "ядерная энергетика"
+    ]
+  },
+  {
+    "abbreviation": "ЯЭУ",
+    "values": [
+      "ядерная энергетическая установка 63 АНГЛОЯЗЫЧНЫЕ СОКРАЩЕНИЯ A"
+    ]
+  }
+]

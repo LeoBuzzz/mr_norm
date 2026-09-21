@@ -5,6 +5,10 @@ import re
 
 _ENV_DISABLE_INTENT_ROUTING = "MR_NORM_DISABLE_INTENT_ROUTING"
 _ENV_DISABLE_DOC_POINT_BOOST = "MR_NORM_DISABLE_DOC_POINT_BOOST"
+_ENV_DISABLE_RRF_WEIGHTS = "MR_NORM_DISABLE_RRF_WEIGHTS"
+_ENV_DISABLE_AUTO_REQUIRED_TOKENS = "MR_NORM_DISABLE_AUTO_REQUIRED_TOKENS"
+_ENV_DISABLE_PROFILE_RERANKER = "MR_NORM_DISABLE_PROFILE_RERANKER"
+_ENV_ENABLE_TAIL_POINT_FALLBACK = "MR_NORM_ENABLE_TAIL_POINT_FALLBACK"
 
 
 def _env_truthy(name: str) -> bool:
@@ -19,6 +23,32 @@ def intent_routing_enabled() -> bool:
 def doc_point_boost_enabled() -> bool:
     """When disabled, reranker skips doc/point reordering."""
     return not _env_truthy(_ENV_DISABLE_DOC_POINT_BOOST)
+
+
+def rrf_weights_enabled() -> bool:
+    """When disabled, hybrid fusion treats all tools as weight 1.0."""
+    return not _env_truthy(_ENV_DISABLE_RRF_WEIGHTS)
+
+
+def auto_required_tokens_enabled() -> bool:
+    """When disabled, payload must-tokens stay exact-phrase only."""
+    return not _env_truthy(_ENV_DISABLE_AUTO_REQUIRED_TOKENS)
+
+
+def tail_point_fallback_enabled() -> bool:
+    """Enable the optional fallback that searches tail point candidates."""
+    return _env_truthy(_ENV_ENABLE_TAIL_POINT_FALLBACK)
+
+
+def default_reranker_backend(profile: str) -> str:
+    """Profile-aware reranker default. Override via MR_NORM_DISABLE_PROFILE_RERANKER."""
+    if _env_truthy(_ENV_DISABLE_PROFILE_RERANKER):
+        return "passthrough"
+    if profile == "deep":
+        return "prompt"
+    if profile == "balanced":
+        return "score"
+    return "passthrough"
 
 
 REQUIREMENT_QUERY_PATTERNS = (

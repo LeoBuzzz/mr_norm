@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -10,6 +9,7 @@ from mr_norm.runtime.contracts import PreparedQueryPlan, PreparedToolQuery, Runt
 from mr_norm.runtime.pipeline_features import (
     intent_routing_enabled,
     normalize_routing_question_type,
+    tail_point_fallback_enabled,
 )
 
 RETRIEVAL_POOL_MULTIPLIER = 2
@@ -24,12 +24,6 @@ DOC_POINT_BOOST_EXACT = 0
 DOC_POINT_BOOST_DOC = 1
 DOC_POINT_BOOST_POINT = 2
 DOC_POINT_BOOST_OTHER = 3
-
-
-def tail_point_fallback_enabled() -> bool:
-    return os.environ.get("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
 
 
 @dataclass

@@ -64,6 +64,33 @@ def test_reciprocal_rank_fusion_orders_shared_chunks_first() -> None:
     assert fused[0].matched["source_ranks"] == {"point": 2, "payload": 1}
 
 
+def test_reciprocal_rank_fusion_weights_boost_point() -> None:
+    config = IndexingConfig(collection_name="test_collection")
+    request = ToolRequest(limit=2)
+    results = {
+        "point": make_result("point", ["chunk_point"], request, config),
+        "vector": make_result("vector", ["chunk_vector"], request, config),
+    }
+
+    fused = reciprocal_rank_fusion(results, limit=2)
+
+    assert [item.chunk_id for item in fused] == ["chunk_point", "chunk_vector"]
+    assert fused[0].matched["rrf_score"] > fused[1].matched["rrf_score"]
+
+
+def test_reciprocal_rank_fusion_custom_weights_override() -> None:
+    config = IndexingConfig(collection_name="test_collection")
+    request = ToolRequest(limit=2)
+    results = {
+        "point": make_result("point", ["chunk_point"], request, config),
+        "vector": make_result("vector", ["chunk_vector"], request, config),
+    }
+
+    fused = reciprocal_rank_fusion(results, limit=2, weights={"point": 1.0, "vector": 3.0})
+
+    assert [item.chunk_id for item in fused] == ["chunk_vector", "chunk_point"]
+
+
 def test_retrieval_compare_preserves_pipeline_errors() -> None:
     config = IndexingConfig(collection_name="test_collection")
     request = ToolRequest(query="заземление")

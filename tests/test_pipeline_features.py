@@ -12,10 +12,14 @@ from mr_norm.runtime.pipeline_diagnostics import (
     should_apply_doc_point_boost,
 )
 from mr_norm.runtime.pipeline_features import (
+    auto_required_tokens_enabled,
+    default_reranker_backend,
     effective_doc_confidence_threshold,
     looks_like_requirement_query,
     normalize_routing_question_type,
     query_has_explicit_doc_reference,
+    rrf_weights_enabled,
+    tail_point_fallback_enabled,
 )
 
 
@@ -106,3 +110,37 @@ def test_natural_query_uses_soft_doc_confidence_threshold():
 def test_document_lookup_natural_when_maps_to_requirement():
     query = "Когда нужно рассчитать показатели?"
     assert normalize_routing_question_type("document_lookup", query) == "requirement"
+
+
+def test_default_reranker_backend_deep_prompt():
+    assert default_reranker_backend("deep") == "prompt"
+
+
+def test_default_reranker_backend_balanced_score():
+    assert default_reranker_backend("balanced") == "score"
+
+
+def test_default_reranker_backend_fast_passthrough():
+    assert default_reranker_backend("fast") == "passthrough"
+
+
+def test_default_reranker_backend_disabled_by_flag(monkeypatch):
+    monkeypatch.setenv("MR_NORM_DISABLE_PROFILE_RERANKER", "1")
+    assert default_reranker_backend("deep") == "passthrough"
+    assert default_reranker_backend("balanced") == "passthrough"
+
+
+def test_rrf_weights_and_auto_tokens_flags(monkeypatch):
+    assert rrf_weights_enabled() is True
+    assert auto_required_tokens_enabled() is True
+    monkeypatch.setenv("MR_NORM_DISABLE_RRF_WEIGHTS", "1")
+    monkeypatch.setenv("MR_NORM_DISABLE_AUTO_REQUIRED_TOKENS", "1")
+    assert rrf_weights_enabled() is False
+    assert auto_required_tokens_enabled() is False
+
+
+def test_tail_point_fallback_is_off_by_default_and_opt_in(monkeypatch):
+    monkeypatch.delenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", raising=False)
+    assert tail_point_fallback_enabled() is False
+    monkeypatch.setenv("MR_NORM_ENABLE_TAIL_POINT_FALLBACK", "1")
+    assert tail_point_fallback_enabled() is True

@@ -15,6 +15,7 @@ from mr_norm.runtime.contracts import (
     RuntimeResult,
     RuntimeTrace,
 )
+from mr_norm.runtime.reranker import PassthroughReranker
 from mr_norm.skills.norm_lookup import NormLookupRequest, run_norm_lookup
 
 
@@ -96,3 +97,24 @@ def test_norm_lookup_golden_fixture_shape() -> None:
     assert request.planner_backend == "deterministic"
     assert request.llm_provider == "none"
     assert len(result.evidence) == 1
+
+
+def test_norm_lookup_resolves_empty_reranker_by_profile() -> None:
+    request = NormLookupRequest(
+        query="заземление",
+        profile="deep",
+        reranker_backend="",
+        understand_query_mode="off",
+    )
+
+    with (
+        patch("mr_norm.skills.norm_lookup.prefetch_gost_snippets", return_value=[]),
+        patch("mr_norm.skills.norm_lookup.run_pipeline", return_value=make_pipeline_result()),
+        patch(
+            "mr_norm.skills.norm_lookup.build_reranker",
+            return_value=PassthroughReranker(),
+        ) as mock_build,
+    ):
+        run_norm_lookup(request, IndexingConfig(collection_name="test_collection"))
+
+    assert mock_build.call_args.args[0] == "prompt"

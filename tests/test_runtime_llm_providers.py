@@ -124,6 +124,64 @@ def test_polza_failure_falls_back_to_local_ollama(monkeypatch) -> None:
     assert calls == [("polza", "deepseek/deepseek-v3.2"), ("ollama", "qwen3:30b")]
 
 
+def test_polza_reranker_tries_all_polza_models_before_local_ollama(monkeypatch) -> None:
+    monkeypatch.setenv("POLZA_AI_API_KEY", "test-polza-key")
+    calls: list[tuple[str, str]] = []
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        payload = json.loads(body.decode("utf-8"))
+        model = payload["model"]
+        provider = "polza" if "polza.ai" in url else "ollama"
+        calls.append((provider, model))
+        if provider == "polza":
+            raise RuntimeError("connection reset")
+        return {"choices": [{"message": {"content": '{"status":"ok"}'}}]}
+
+    payload = chat_json_with_model_fallback(
+        "polza",
+        [
+            "qwen/qwen3.5-flash-02-23",
+            "qwen/qwen3.8-flash",
+            "deepseek/deepseek-v3.2",
+        ],
+        http_post=fake_http_post,
+        system_prompt="test",
+        user_payload={"query": "test"},
+        temperature=0.1,
+        max_tokens=64,
+    )
+
+    assert payload["status"] == "ok"
+    assert calls == [
+        ("polza", "qwen/qwen3.5-flash-02-23"),
+        ("polza", "qwen/qwen3.8-flash"),
+        ("polza", "deepseek/deepseek-v3.2"),
+        ("ollama", "qwen3:30b"),
+    ]
+
+
+def test_model_fallback_stops_at_first_success() -> None:
+    calls: list[str] = []
+
+    def fake_http_post(url: str, headers: dict[str, str], body: bytes, timeout_sec: float) -> dict:
+        model = json.loads(body.decode("utf-8"))["model"]
+        calls.append(model)
+        return {"choices": [{"message": {"content": '{"status":"ok"}'}}]}
+
+    payload = chat_json_with_model_fallback(
+        "polza",
+        ["primary-model", "first-fallback", "second-fallback"],
+        http_post=fake_http_post,
+        system_prompt="test",
+        user_payload={"query": "test"},
+        temperature=0.1,
+        max_tokens=64,
+    )
+
+    assert payload["status"] == "ok"
+    assert calls == ["primary-model"]
+
+
 def test_build_reranker_llm_provider_includes_plan_context() -> None:
     captured: list[dict] = []
 

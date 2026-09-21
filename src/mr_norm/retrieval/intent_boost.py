@@ -37,6 +37,23 @@ SUBORDINATE_ACT_MARKERS = (
     "об утверждении правил",
 )
 
+FREQUENCY_POSITIVE_MARKERS = (
+    "периодическ",
+    "периодичн",
+    "не реже",
+    "раз в ",
+    "ежегодн",
+    "ежемесяч",
+    "ежекварт",
+)
+
+FREQUENCY_NEGATIVE_MARKERS = (
+    "не менее двух работников",
+    "группу ii",
+    "темное время суток",
+    "диспетчером",
+)
+
 
 def _item_blob(item: RetrievedItem) -> str:
     return normalize_catalog_text(
@@ -64,7 +81,12 @@ def _query_focus_tokens(query_norm: str) -> list[str]:
 def _intent_rank_key(item: RetrievedItem, intent: str, query_norm: str) -> tuple[int, int, float]:
     blob = _item_blob(item)
     priority = 1
-    if intent in {"document_lookup", "regulation_scope", "requirement", "procedure"}:
+    if intent == "frequency":
+        if any(marker in blob for marker in FREQUENCY_POSITIVE_MARKERS):
+            priority = 0
+        elif any(marker in blob for marker in FREQUENCY_NEGATIVE_MARKERS):
+            priority = 2
+    elif intent in {"document_lookup", "regulation_scope", "requirement", "procedure"}:
         if any(marker in blob for marker in LEGAL_ACT_MARKERS):
             priority = 0
         elif any(marker in blob for marker in LOW_PRIORITY_FOR_DOC_LOOKUP) and "гост" not in query_norm:

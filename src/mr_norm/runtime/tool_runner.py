@@ -17,6 +17,7 @@ from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import is_point_lookup_filters, run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace, ToolCallPlan
+from mr_norm.runtime.pipeline_features import rrf_weights_enabled
 from mr_norm.runtime.profiles import get_profile_config
 from mr_norm.runtime.router import route_runtime
 from mr_norm.tools.rtf_processor import atomic_write_json, atomic_write_text
@@ -234,7 +235,8 @@ def run_runtime(
     fusion = ""
     retrieval_limit = request.retrieval_limit if request.retrieval_limit is not None else request.limit
     if profile.use_hybrid and len(tool_results) > 1:
-        fused = reciprocal_rank_fusion(tool_results, limit=retrieval_limit)
+        fusion_weights = None if rrf_weights_enabled() else {}
+        fused = reciprocal_rank_fusion(tool_results, limit=retrieval_limit, weights=fusion_weights)
         items = fused
         fusion = "hybrid_rrf"
         tool_results["hybrid"] = ToolResult(

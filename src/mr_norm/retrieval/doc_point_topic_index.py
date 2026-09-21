@@ -14,6 +14,7 @@ from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.document_catalog import normalize_catalog_text
 from mr_norm.retrieval.document_knowledge import load_document_knowledge
+from mr_norm.retrieval.text_normalize import russian_term_stem
 from mr_norm.runtime.pipeline_diagnostics import doc_names_match, normalize_doc_key
 
 TopicEvidencePolicy = Literal["topic_plus_baseline", "topic_only"]
@@ -124,6 +125,7 @@ class TopicEntry:
     point_topic: str = ""
     natural_aliases: tuple[str, ...] = ()
     tokens: tuple[str, ...] = ()
+    token_forms: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -152,11 +154,95 @@ def numeric_markers(text: str) -> list[str]:
 
 
 def topic_tokens(text: str) -> tuple[str, ...]:
-    return tuple(
-        token
-        for token in normalize_catalog_text(text).split()
-        if len(token) >= 4 and token not in STOP_WORDS
+    tokens: list[str] = []
+    for raw_token in re.findall(r"[\w-]+", text or "", flags=re.UNICODE):
+        token = normalize_catalog_text(raw_token)
+        if token in STOP_WORDS:
+            continue
+        # Preserve short uppercase terms such as ВЛ: they are meaningful
+        # abbreviations and were previously discarded by the length filter.
+        if len(token) < 4 and not raw_token.isupper():
+            continue
+        tokens.append(token)
+    return tuple(dict.fromkeys(tokens))
+
+
+@lru_cache(maxsize=100_000)
+def _topic_forms_for_tokens(tokens: tuple[str, ...]) -> frozenset[str]:
+    forms = set(tokens)
+    forms.update(russian_term_stem(token) for token in tokens if token)
+    return frozenset(forms)
+
+
+def _topic_entry_forms(entry: TopicEntry) -> frozenset[str]:
+    return entry.token_forms or _topic_forms_for_tokens(tuple(entry.tokens))
+
+
+def _topic_query_concepts(query: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    context_words = frozenset(
+        {
+            "после", "перед", "при", "для", "в", "во", "на", "из", "с", "со", "по",
+            "как", "часто", "надо", "нужно", "можно", "аварийный", "аварийного",
+            "отключение", "отключения", "отключений",
+        }
     )
+    action_prefixes = (
+        "осмотр", "осматрив", "провер", "разработ", "установ", "назнач",
+        "определ", "осуществ", "допуск", "выполн", "расчет", "обеспеч", "проведен",
+    )
+    actions: list[str] = []
+    objects: list[str] = []
+    for token in topic_tokens(query):
+        stem = russian_term_stem(token)
+        if any(stem.startswith(prefix) or token.startswith(prefix) for prefix in action_prefixes):
+            actions.append(token)
+        elif token not in context_words and len(token) >= 2:
+            objects.append(token)
+    return tuple(actions), tuple(objects)
+
+
+def _topic_entry_matches_query(
+    query: str,
+    entry: TopicEntry,
+    *,
+    concepts: tuple[tuple[str, ...], tuple[str, ...]] | None = None,
+) -> bool:
+    actions, objects = concepts or _topic_query_concepts(query)
+    if not actions and not objects:
+        return True
+    forms = _topic_entry_forms(entry)
+
+    lexical_families = (
+        ("осмотр", "осматрив"),
+        ("провер", "проверк"),
+        ("разработ", "разрабатыва"),
+        ("назнач", "назнача"),
+        ("определ", "определя"),
+        ("осуществ", "осуществля"),
+        ("выполн", "выполня"),
+        ("обеспеч", "обеспечива"),
+        ("проведен", "проводим"),
+    )
+
+    def matches(token: str) -> bool:
+        stem = russian_term_stem(token)
+        if token in forms or stem in forms:
+            return True
+        if any(
+            any(stem.startswith(prefix) for prefix in family)
+            and any(candidate.startswith(prefix) for prefix in family for candidate in forms)
+            for family in lexical_families
+        ):
+            return True
+        return False
+
+    # Context words alone must not promote a hit. Keep an object anchor and,
+    # when the query has an action, an action anchor as well.
+    if objects and not any(matches(token) for token in objects):
+        return False
+    if actions and not any(matches(token) for token in actions):
+        return False
+    return True
 
 
 def expanded_query(query: str, *, profile: TopicSearchProfile) -> str:
@@ -258,6 +344,7 @@ def build_doc_point_topic_index(chunks_path: Path) -> DocPointTopicIndex:
                 point_topic=topic,
                 natural_aliases=aliases,
                 tokens=tokens,
+                token_forms=_topic_forms_for_tokens(tokens),
             )
         )
 
@@ -269,6 +356,7 @@ def compute_idf(entries: list[TopicEntry] | tuple[TopicEntry, ...]) -> dict[str,
     df: Counter[str] = Counter()
     for entry in entries:
         df.update(set(entry.tokens))
+        df.update(russian_term_stem(token) for token in set(entry.tokens) if token)
     total = len(entries)
     return {token: math.log((total + 1) / (count + 0.5)) for token, count in df.items()}
 
@@ -546,13 +634,32 @@ def search_doc_point_topics(
         return []
     query_counter = Counter(query_tokens)
     query_numbers = set(numeric_markers(query))
+    query_concepts = _topic_query_concepts(query)
     scored: list[TopicHit] = []
     for entry in index.entries:
-        entry_token_set = set(entry.tokens)
-        hits = tuple(token for token in query_counter if token in entry_token_set)
+        if not _topic_entry_matches_query(query, entry, concepts=query_concepts):
+            continue
+        entry_token_set = _topic_entry_forms(entry)
+        hits = tuple(
+            token
+            for token in query_counter
+            if token in entry_token_set
+            or russian_term_stem(token) in entry_token_set
+            or (
+                token.startswith("осматрив")
+                and "осмотр" in entry_token_set
+            )
+            or (
+                token.startswith("осмотр")
+                and "осматрив" in entry_token_set
+            )
+        )
         if not hits:
             continue
-        score = sum(index.idf.get(token, 0.0) * query_counter[token] for token in hits)
+        score = sum(
+            index.idf.get(token, index.idf.get(russian_term_stem(token), 0.0)) * query_counter[token]
+            for token in hits
+        )
         text_norm = normalize_catalog_text(entry.text)
         alias_norm = normalize_catalog_text(" ".join(entry.natural_aliases))
         doc_norm = normalize_catalog_text(entry.doc_name)
@@ -610,6 +717,8 @@ def should_attempt_topic_retry(
         return True, "topic_retry:no_valid_citations"
     if "anti_refusal_guard" in warning_text or "final answer returned no valid citations" in warning_text:
         return True, "topic_retry:weak_final_answer"
+    if has_citations:
+        return False, "topic_retry:baseline_citations_satisfied"
     norm = normalize_catalog_text(query)
     if not resolved_doc_names and any(marker in norm for marker in ("запрещ", "интернет", "городах миллионниках")):
         return True, "topic_retry:unresolved_natural_marker"

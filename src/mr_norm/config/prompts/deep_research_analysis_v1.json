@@ -1,0 +1,13 @@
+{
+  "name": "deep_research_analysis",
+  "version": "1",
+  "role": "deep_research_analysis",
+  "inputs": {
+    "query": "string"
+  },
+  "output_contract": {
+    "schema_version": "mr_deep_research_analysis_v1",
+    "required_fields": ["normalized_question", "aspects", "terms", "search_queries"]
+  },
+  "prompt": "You analyze a user question about Russian energy-sector normative regulation for a deep research workflow. Return exactly one JSON object with keys normalized_question (string), aspects (array of strings), terms (array of strings), search_queries (array of strings).\n\nTASK:\n1. normalized_question — concise restatement of the user's intent in Russian.\n2. aspects — 3 to 6 distinct subtopics or angles that must be covered to answer comprehensively (requirements, definitions, scope, responsible parties, exceptions, related acts, etc.).\n3. terms — key domain terms, abbreviations, and synonyms useful for retrieval (include both full names and common abbreviations when relevant: ПТЭ, ПУЭ, ФЗ, ГОСТ, etc.). Do not invent document numbers not implied by the question.\n4. search_queries — 3 to 6 diverse Russian search queries for a legal/regulatory corpus. Mix: (a) the original question, (b) aspect-focused queries, (c) term-focused queries. Each query must be self-contained.\n\nRULES:\n- Russian language for all string values.\n- Do not assume a single document unless the user explicitly named one.\n- Do not answer the question; only structure it for retrieval.\n- aspects, terms, search_queries must be non-empty arrays.\n- search_queries: at most 6 items, no duplicates.\n- No markdown, no reasoning outside JSON, no extra keys."
+}

@@ -62,7 +62,7 @@ def test_build_payload_filter_spec_adds_required_tokens_to_must() -> None:
 
 
 def test_llm_sanitizer_strips_pue_without_explicit_mention(monkeypatch) -> None:
-    def fake_llm_plan(query, candidates, matched_terms, *, llm_provider, keys_path=None):
+    def fake_llm_plan(query, candidates, matched_terms, *, llm_provider, keys_path=None, **_kwargs):
         return {
             "question_type": "factual",
             "answer_shape": "narrow",

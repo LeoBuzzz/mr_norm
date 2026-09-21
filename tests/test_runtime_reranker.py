@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace
+from mr_norm.runtime.pipeline_features import default_reranker_backend
 from mr_norm.runtime.reranker import PassthroughReranker, PromptPackReranker, ScoreReranker, build_reranker
 
 
@@ -69,3 +70,9 @@ def test_build_reranker_rejects_unknown_backend() -> None:
 
     with pytest.raises(ValueError, match="unsupported reranker backend"):
         build_reranker("unknown")
+
+
+def test_default_reranker_backend_by_profile() -> None:
+    assert default_reranker_backend("deep") == "prompt"
+    assert default_reranker_backend("balanced") == "score"
+    assert default_reranker_backend("fast") == "passthrough"

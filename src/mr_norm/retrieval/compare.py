@@ -19,6 +19,9 @@ ToolRunner = Callable[[ToolRequest, IndexingConfig], ToolResult]
 DEFAULT_PIPELINES = ["point", "payload", "vector", "hybrid"]
 BASE_PIPELINES = {"point", "payload", "vector"}
 
+# Exact tools outrank noisy semantic hits in reciprocal-rank fusion.
+RRF_TOOL_WEIGHTS: dict[str, float] = {"point": 1.5, "payload": 1.2, "vector": 1.0}
+
 
 def default_tool_runners() -> dict[str, ToolRunner]:
     return {
@@ -279,9 +282,10 @@ def build_hybrid_rrf_result(
     results: dict[str, ToolResult],
     *,
     k: int = 60,
+    weights: dict[str, float] | None = None,
 ) -> ToolResult:
     started_at = time.perf_counter()
-    fused_items = reciprocal_rank_fusion(results, limit=request.limit, k=k)
+    fused_items = reciprocal_rank_fusion(results, limit=request.limit, k=k, weights=weights)
     return ToolResult(
         items=fused_items,
         trace=ToolTrace(
@@ -303,18 +307,26 @@ def build_hybrid_rrf_result(
     )
 
 
-def reciprocal_rank_fusion(results: dict[str, ToolResult], *, limit: int, k: int = 60) -> list[RetrievedItem]:
+def reciprocal_rank_fusion(
+    results: dict[str, ToolResult],
+    *,
+    limit: int,
+    k: int = 60,
+    weights: dict[str, float] | None = None,
+) -> list[RetrievedItem]:
     by_chunk: dict[str, RetrievedItem] = {}
     scores: dict[str, float] = {}
     source_ranks: dict[str, dict[str, int]] = {}
+    tool_weights = RRF_TOOL_WEIGHTS if weights is None else weights
     for pipeline_name, result in results.items():
         if pipeline_name == "hybrid":
             continue
+        weight = float(tool_weights.get(pipeline_name, 1.0))
         for rank, item in enumerate(result.items, start=1):
             if not item.chunk_id:
                 continue
             by_chunk.setdefault(item.chunk_id, item)
-            scores[item.chunk_id] = scores.get(item.chunk_id, 0.0) + 1.0 / (k + rank)
+            scores[item.chunk_id] = scores.get(item.chunk_id, 0.0) + weight / (k + rank)
             source_ranks.setdefault(item.chunk_id, {})[pipeline_name] = rank
     ordered_chunk_ids = sorted(scores, key=lambda chunk_id: (-scores[chunk_id], chunk_id))[:limit]
     return [

@@ -31,6 +31,7 @@ from mr_norm.retrieval.document_knowledge import (
     match_query_terms,
     phrase_required_tokens,
     primary_exact_phrase,
+    query_required_tokens,
 )
 from mr_norm.retrieval.knowledge_catalog_mapping import (
     KnowledgeCatalogLink,
@@ -46,14 +47,14 @@ from mr_norm.runtime.contracts import (
 )
 from mr_norm.runtime.llm_providers import chat_json_with_model_fallback
 from mr_norm.runtime.llm_profiles import resolve_role_models, resolve_role_profile
-from mr_norm.runtime.pipeline_features import effective_doc_confidence_threshold
+from mr_norm.runtime.pipeline_features import auto_required_tokens_enabled, effective_doc_confidence_threshold
 from mr_norm.runtime.pipeline_diagnostics import apply_intent_tool_routing, try_early_deterministic_doc_resolution
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
 
 MIN_DOC_CONFIDENCE = 0.55
 AMBIGUITY_SCORE_GAP = 0.08
 ALLOWED_TOOLS = frozenset({"point", "payload", "vector"})
-MAX_QUERIES_PER_TOOL = 4
+MAX_QUERIES_PER_TOOL = 8
 
 LOOSE_SINGLE_WORDS = frozenset(
     {
@@ -457,6 +458,62 @@ def _phrase_context_queries(original_query: str, phrase: str) -> list[str]:
     return queries
 
 
+def _frequency_alias_queries(
+    term_matches: QueryTermMatches,
+    *,
+    question_type: str,
+) -> list[str]:
+    if question_type != "frequency" or not term_matches.abbreviation_expansions:
+        return []
+    subject = next(
+        (
+            term
+            for term in term_matches.abbreviation_expansions
+            if len(normalize_catalog_text(term).split()) > 1
+        ),
+        "",
+    )
+    if not subject:
+        return []
+    abbreviation = next(
+        (
+            term
+            for term in term_matches.abbreviation_expansions
+            if len(normalize_catalog_text(term).split()) == 1
+        ),
+        "",
+    )
+    queries = [
+        f"как часто надо осматривать {subject}",
+        f"периодичность осмотров {subject}",
+    ]
+    if abbreviation:
+        # Keep the short form in the same frequency context. A bare short
+        # token is too broad and pulls unrelated requirements.
+        queries.append(f"\u043a\u0430\u043a \u0447\u0430\u0441\u0442\u043e \u043d\u0430\u0434\u043e \u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c {abbreviation}")
+    if "линия" in normalize_catalog_text(subject):
+        queries.append("как часто надо осматривать воздушные линии")
+        queries.append(f"верховой осмотр {subject}")
+    return queries
+
+
+def _search_abbreviation_variants(
+    term_matches: QueryTermMatches,
+    *,
+    question_type: str,
+) -> list[str]:
+    variants = list(term_matches.abbreviation_expansions)
+    if question_type == "frequency":
+        # The short form is searched in the original/contextual query, but a
+        # standalone short token is too ambiguous for frequency lookup.
+        variants = [
+            variant
+            for variant in variants
+            if len(normalize_catalog_text(variant).split()) > 1
+        ]
+    return variants
+
+
 def _build_default_tool_queries(
     original_query: str,
     term_matches: QueryTermMatches,
@@ -471,12 +528,26 @@ def _build_default_tool_queries(
             [
                 *exact_phrases,
                 *term_matches.morphology_terms,
-                *term_matches.abbreviation_expansions,
+                *_search_abbreviation_variants(
+                    term_matches,
+                    question_type=question_type,
+                ),
                 *significant_words,
                 *term_matches.loose_terms,
             ]
         )
     )
+    if question_type == "frequency":
+        short_aliases = {
+            normalize_catalog_text(variant)
+            for variant in term_matches.abbreviation_expansions
+            if len(normalize_catalog_text(variant).split()) == 1
+        }
+        support = [
+            term
+            for term in support
+            if normalize_catalog_text(term) not in short_aliases
+        ]
 
     payload_queries: list[str] = []
     vector_queries: list[str] = []
@@ -511,6 +582,16 @@ def _build_default_tool_queries(
                 payload_queries.insert(1 if payload_queries else 0, term)
             if term not in vector_queries:
                 vector_queries.insert(1 if vector_queries else 0, term)
+
+    frequency_queries = _frequency_alias_queries(
+        term_matches,
+        question_type=intent,
+    )
+    for tool_queries in (payload_queries, vector_queries):
+        insert_at = 0 if intent == "frequency" else 1
+        tool_queries[insert_at:insert_at] = [
+            query for query in frequency_queries if query not in tool_queries
+        ]
 
     return {
         "point": [],
@@ -548,16 +629,61 @@ def _normalize_tool_queries(
             text = re.sub(r"\s+", " ", str(value).strip())
             if text and text not in cleaned:
                 cleaned.append(text)
+        if question_type == "frequency" and cleaned:
+            short_aliases = {
+                normalize_catalog_text(variant)
+                for variant in term_matches.abbreviation_expansions
+                if len(normalize_catalog_text(variant).split()) == 1
+            }
+            cleaned = [
+                value
+                for value in cleaned
+                if normalize_catalog_text(value) not in short_aliases
+            ]
         if cleaned:
-            merged = [*queries[tool_name], *cleaned]
+            if question_type == "frequency":
+                merged = [*queries[tool_name], *cleaned]
+            else:
+                merged = [*cleaned, *queries[tool_name]]
             queries[tool_name] = list(dict.fromkeys(merged))[:MAX_QUERIES_PER_TOOL]
 
     if term_matches.exact_phrase_terms:
         primary = primary_exact_phrase(term_matches.exact_phrase_terms)
+        prioritized = _phrase_context_queries(original_query, primary)
+        queries["payload"] = list(dict.fromkeys([*prioritized, *queries["payload"]]))[
+            :MAX_QUERIES_PER_TOOL
+        ]
+        original_norm = normalize_catalog_text(original_query)
+        has_original = any(
+            normalize_catalog_text(query) == original_norm or original_query in query
+            for query in queries["vector"]
+        )
+        if not has_original and original_query.strip():
+            queries["vector"] = list(dict.fromkeys([original_query.strip(), *queries["vector"]]))[
+                :MAX_QUERIES_PER_TOOL
+            ]
+
+    if term_matches.abbreviation_expansions:
+        # LLM-provided queries may otherwise crowd out one spelling. Keep both
+        # abbreviation and expansion near the front for payload and vector.
+        variants = _search_abbreviation_variants(
+            term_matches,
+            question_type=question_type,
+        )
+        frequency_queries = _frequency_alias_queries(
+            term_matches,
+            question_type=question_type,
+        )
+        prefix = [
+            *(frequency_queries if question_type == "frequency" else []),
+            original_query.strip(),
+            *(frequency_queries if question_type != "frequency" else []),
+            *variants,
+        ]
         for tool_name in ("payload", "vector"):
-            prioritized = _phrase_context_queries(original_query, primary)
-            merged = [*prioritized, *queries[tool_name]]
-            queries[tool_name] = list(dict.fromkeys(merged))[:MAX_QUERIES_PER_TOOL]
+            queries[tool_name] = list(
+                dict.fromkeys([*prefix, *queries[tool_name]])
+            )[:MAX_QUERIES_PER_TOOL]
 
     return queries
 
@@ -649,11 +775,23 @@ def _sanitize_llm_plan_fields(
     return payload, warnings
 
 
-def _payload_required_tokens(term_matches: QueryTermMatches) -> tuple[str, ...]:
+def _payload_required_tokens(
+    term_matches: QueryTermMatches,
+    *,
+    original_query: str = "",
+    significant_words: list[str] | None = None,
+    question_type: str = "factual",
+) -> tuple[str, ...]:
     primary = primary_exact_phrase(term_matches.exact_phrase_terms)
-    if not primary:
+    if primary:
+        return phrase_required_tokens(primary)
+    if not auto_required_tokens_enabled():
         return ()
-    return phrase_required_tokens(primary)
+    return query_required_tokens(
+        original_query,
+        list(significant_words or []),
+        question_type=question_type,
+    )
 
 
 def _build_tool_query_objects(
@@ -663,10 +801,17 @@ def _build_tool_query_objects(
     resolved_doc_names: list[str],
     term_matches: QueryTermMatches,
     question_type: str = "factual",
+    original_query: str = "",
+    significant_words: list[str] | None = None,
 ) -> tuple[tuple[str, ...], tuple[PreparedToolQuery, ...]]:
     selected: list[str] = []
     prepared: list[PreparedToolQuery] = []
-    required_tokens = _payload_required_tokens(term_matches)
+    required_tokens = _payload_required_tokens(
+        term_matches,
+        original_query=original_query,
+        significant_words=significant_words,
+        question_type=question_type,
+    )
 
     if point_number_hints:
         selected.append("point")
@@ -1158,6 +1303,8 @@ def prepare_query(
         resolved_doc_names=resolved_doc_names,
         term_matches=term_matches,
         question_type=question_type,
+        original_query=search_query,
+        significant_words=significant_words,
     )
     doc_scoped = bool(resolved_doc_names) and not ambiguous and len(resolved_doc_names) == 1
     selected_tools, prepared_tool_queries, intent_routing_mode = apply_intent_tool_routing(

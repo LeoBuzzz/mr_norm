@@ -20,25 +20,25 @@ from mr_norm.runtime.dialog_memory import (
 from mr_norm.retrieval.contracts import RetrievedItem
 
 
-def test_parse_dialog_input_new_dialog() -> None:
+def test_parse_dialog_input_continues_dialog_with_leading_dot() -> None:
     assert parse_dialog_input(".какие виды тренировок проводят оперативному персоналу?") == (
         "какие виды тренировок проводят оперативному персоналу?",
-        True,
+        False,
         False,
     )
     assert parse_dialog_input(". какие виды тренировок") == (
         "какие виды тренировок",
-        True,
+        False,
         False,
     )
 
 
 def test_parse_dialog_input_reset_only() -> None:
-    assert parse_dialog_input(".") == ("", True, True)
+    assert parse_dialog_input(".") == ("", False, True)
 
 
-def test_parse_dialog_input_continue_dialog() -> None:
-    assert parse_dialog_input("как часто?") == ("как часто?", False, False)
+def test_parse_dialog_input_new_dialog_without_leading_dot() -> None:
+    assert parse_dialog_input("как часто?") == ("как часто?", True, False)
 
 
 def test_build_session_key_isolates_users_in_peer() -> None:

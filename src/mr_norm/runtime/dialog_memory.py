@@ -186,17 +186,17 @@ def parse_dialog_input(raw: str) -> tuple[str, bool, bool]:
     """Parse user text.
 
     Returns:
-        query: text to send to norm lookup (without leading reset dot)
-        is_new_dialog: True when leading dot starts a fresh dialog
+        query: text to send to norm lookup (without leading continuation dot)
+        is_new_dialog: True when no leading dot starts a fresh dialog
         reset_only: True when message is only "." (clear session, no search)
     """
     text = (raw or "").strip()
-    if not text.startswith("."):
-        return text, False, False
-    rest = text[1:].strip()
-    if not rest:
-        return "", True, True
-    return rest, True, False
+    if text.startswith("."):
+        rest = text[1:].strip()
+        if not rest:
+            return "", False, True
+        return rest, False, False
+    return text, True, False
 
 
 def build_session_key(*, peer_id: int | str, from_id: int | str) -> str:

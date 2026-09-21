@@ -19,6 +19,40 @@ from mr_norm.retrieval.text_normalize import (
 
 KNOWLEDGE_DIR = Path(__file__).resolve().parents[1] / "config" / "knowledge"
 DEFAULT_KNOWLEDGE_PATH = KNOWLEDGE_DIR / "document_knowledge_index.json"
+DEFAULT_ABBREVIATIONS_PATH = Path(__file__).resolve().parents[1] / "config" / "abbreviations.json"
+
+# Same quality guard as rag_norm's knowledge-graph importer. The source list
+# contains a few bibliography/reference rows that are not domain abbreviations.
+_ABBR_BIBLIO_EXPANSION = re.compile(
+    r"(Изд-во|ISBN|https?://|библиографическ|Шульц\s+Ю|с\.\s*\d+\s*\.|г\.\s*\d+\s*с\.)",
+    re.IGNORECASE,
+)
+_ABBR_MORPH_MAX_CHARS = 100
+_ABBR_MORPH_MAX_TOKENS = 5
+_ABBR_COMMON_WORDS = frozenset(
+    {
+        "по",
+        "на",
+        "от",
+        "из",
+        "до",
+        "за",
+        "for",
+        "and",
+        "the",
+        "of",
+        "to",
+        "in",
+        "on",
+        "or",
+        "as",
+        "an",
+        "at",
+        "is",
+        "be",
+        "by",
+    }
+)
 
 # Tokens that alone must not activate a multi-word topic alias.
 LOOSE_TOPIC_TOKENS = frozenset(
@@ -115,6 +149,71 @@ class DocumentKnowledgeIndex:
         return {doc.doc_name: doc for doc in self.documents if doc.doc_name}
 
 
+def _load_external_abbreviations(path: Path = DEFAULT_ABBREVIATIONS_PATH) -> list[dict[str, str]]:
+    """Load the copied rag_norm list and convert it to mr_norm's schema."""
+    if not path.is_file():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        return []
+
+    result: list[dict[str, str]] = []
+    for row in payload:
+        if not isinstance(row, dict):
+            continue
+        abbreviation = str(row.get("abbreviation") or "").strip()
+        if len(abbreviation) <= 1 or len(abbreviation) > 64:
+            continue
+        if re.fullmatch(r"[\d.]+", abbreviation) or abbreviation.upper() == "ABB":
+            continue
+        values = row.get("values") or []
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            expansion = str(value or "").strip()[:400]
+            if not expansion or _ABBR_BIBLIO_EXPANSION.search(expansion):
+                continue
+            result.append({"abbreviation": abbreviation, "expansion": expansion})
+    return result
+
+
+def _merge_abbreviations(
+    base: list[dict[str, Any]],
+    external: list[dict[str, str]],
+) -> list[dict[str, Any]]:
+    """Keep document-specific metadata while adding unique imported pairs."""
+    merged = list(base)
+    seen = {
+        (
+            normalize_catalog_text(str(item.get("abbreviation") or "")),
+            normalize_catalog_text(str(item.get("expansion") or "")),
+        )
+        for item in merged
+    }
+    for item in external:
+        key = (
+            normalize_catalog_text(item["abbreviation"]),
+            normalize_catalog_text(item["expansion"]),
+        )
+        if not key[0] or not key[1] or key in seen:
+            continue
+        seen.add(key)
+        merged.append(item)
+    return merged
+
+
+def _abbreviation_expansion_matches(expansion: str, query_norm: str) -> bool:
+    """Match a full form exactly, with a bounded fallback for short phrases."""
+    if not expansion or expansion in query_norm:
+        return bool(expansion)
+    if (
+        len(expansion) <= _ABBR_MORPH_MAX_CHARS
+        and len(expansion.split()) <= _ABBR_MORPH_MAX_TOKENS
+    ):
+        return morphology_phrase_matches_query(expansion, query_norm)
+    return False
+
+
 def load_document_knowledge(path: Path | None = None) -> DocumentKnowledgeIndex:
     knowledge_path = path or DEFAULT_KNOWLEDGE_PATH
     if not knowledge_path.is_file():
@@ -131,9 +230,14 @@ def load_document_knowledge(path: Path | None = None) -> DocumentKnowledgeIndex:
         for item in payload.get("documents") or []
         if item.get("doc_id")
     ]
+    abbreviations = list(payload.get("abbreviations") or [])
+    # Explicit fixture/index paths remain self-contained for tests and tools;
+    # the copied project-wide list is added only to the default runtime index.
+    if path is None:
+        abbreviations = _merge_abbreviations(abbreviations, _load_external_abbreviations())
     return DocumentKnowledgeIndex(
         documents=documents,
-        abbreviations=list(payload.get("abbreviations") or []),
+        abbreviations=abbreviations,
         terms=list(payload.get("terms") or []),
         topic_aliases=list(payload.get("topic_aliases") or []),
         source_path=str(knowledge_path),
@@ -206,6 +310,9 @@ COMMON_PHRASE_FILLERS = frozenset(
 )
 
 MAX_REQUIRED_TOKENS = 3
+MAX_AUTO_REQUIRED_TOKENS = 2
+AUTO_REQUIRED_TOKEN_MIN_LEN = 5
+SKIP_AUTO_REQUIRED_QUESTION_TYPES = frozenset({"point_lookup", "document_lookup"})
 
 
 def phrase_required_tokens(phrase: str) -> tuple[str, ...]:
@@ -230,6 +337,38 @@ def phrase_required_tokens(phrase: str) -> tuple[str, ...]:
     if phrase_norm and len(phrase_norm) >= 8:
         return (phrase_norm,)
     return ()
+
+
+def query_required_tokens(
+    query: str,
+    significant_words: list[str],
+    *,
+    question_type: str = "factual",
+) -> tuple[str, ...]:
+    """Pick up to 2 distinctive tokens for payload `must` when no exact phrase."""
+    if (question_type or "").strip() in SKIP_AUTO_REQUIRED_QUESTION_TYPES:
+        return ()
+    query_norm = normalize_catalog_text(query)
+    if not query_norm:
+        return ()
+
+    distinctive: list[str] = []
+    seen: set[str] = set()
+    for word in significant_words or []:
+        for token in normalize_catalog_text(str(word)).split():
+            if len(token) < AUTO_REQUIRED_TOKEN_MIN_LEN:
+                continue
+            if token in COMMON_PHRASE_FILLERS:
+                continue
+            if token not in query_norm:
+                continue
+            if token in seen:
+                continue
+            seen.add(token)
+            distinctive.append(token)
+    if len(distinctive) < 2:
+        return ()
+    return tuple(distinctive[:MAX_AUTO_REQUIRED_TOKENS])
 
 
 def is_pue_document_name(doc_name: str) -> bool:
@@ -342,9 +481,15 @@ def find_knowledge_candidates(
         if not enable_pue_aliases and is_pue_abbreviation_entry(abbr):
             continue
         abbreviation = normalize_catalog_text(str(abbr.get("abbreviation") or ""))
-        if len(abbreviation) < 2 or abbreviation not in query_norm:
-            continue
         expansion = normalize_catalog_text(str(abbr.get("expansion") or ""))
+        if abbreviation in _ABBR_COMMON_WORDS:
+            continue
+        abbreviation_match = bool(
+            abbreviation and re.search(rf"\b{re.escape(abbreviation)}\b", query_norm)
+        )
+        expansion_match = _abbreviation_expansion_matches(expansion, query_norm)
+        if len(abbreviation) < 2 or not (abbreviation_match or expansion_match):
+            continue
         if not expansion:
             continue
         for document in knowledge.documents:
@@ -410,6 +555,8 @@ def match_query_terms(
     abbreviations: list[str] = []
     loose: list[str] = []
     doc_hints: list[str] = []
+    abbreviation_groups: dict[str, tuple[str, list[str]]] = {}
+    matched_abbreviation_keys: list[str] = []
 
     def _append_unique(bucket: list[str], value: str) -> None:
         if value and value not in bucket:
@@ -454,12 +601,51 @@ def match_query_terms(
             continue
         abbreviation = str(abbr.get("abbreviation") or "").strip()
         abbr_norm = normalize_catalog_text(abbreviation)
-        if not abbr_norm or abbr_norm not in query_norm:
+        expansion = str(abbr.get("expansion") or "").strip()
+        expansion_norm = normalize_catalog_text(expansion)
+        if abbr_norm and expansion:
+            group = abbreviation_groups.setdefault(abbr_norm, (abbreviation, []))
+            if expansion not in group[1]:
+                group[1].append(expansion)
+        if abbr_norm in _ABBR_COMMON_WORDS:
+            continue
+        abbreviation_match = bool(
+            abbr_norm and re.search(rf"\b{re.escape(abbr_norm)}\b", query_norm)
+        )
+        expansion_match = _abbreviation_expansion_matches(expansion_norm, query_norm)
+        if not abbr_norm or not (abbreviation_match or expansion_match):
             continue
         _append_unique(doc_hints, abbreviation)
-        expansion = str(abbr.get("expansion") or "").strip()
-        if expansion:
+        if abbr_norm not in matched_abbreviation_keys:
+            matched_abbreviation_keys.append(abbr_norm)
+        # Retrieval gets both spellings regardless of which spelling the user
+        # used. The original question is retained separately by the planner.
+        if abbreviation_match:
             _append_unique(abbreviations, expansion)
+            _append_unique(abbreviations, abbreviation)
+        else:
+            _append_unique(abbreviations, abbreviation)
+            _append_unique(abbreviations, expansion)
+
+    # Several values may belong to one abbreviation (for example, the common
+    # short form and the formal full name of ВЛ). Once any value matches, keep
+    # the complete group so equivalent phrasings produce the same search set.
+    for abbr_norm in matched_abbreviation_keys:
+        abbreviation, expansions = abbreviation_groups[abbr_norm]
+        if len(expansions) <= 1:
+            continue
+        variants_norm = {
+            normalize_catalog_text(item)
+            for item in (*expansions, abbreviation)
+        }
+        abbreviations[:] = [
+            item
+            for item in abbreviations
+            if normalize_catalog_text(item) not in variants_norm
+        ]
+        for expansion in expansions:
+            _append_unique(abbreviations, expansion)
+        _append_unique(abbreviations, abbreviation)
 
     exact_phrases = prune_exact_phrases(exact_phrases)[:limit]
     morphology = [
@@ -576,9 +762,13 @@ def find_abbreviation_document_candidates(
         abbreviation = normalize_catalog_text(str(abbr.get("abbreviation") or ""))
         if len(abbreviation) < 2:
             continue
-        if not re.search(rf"\b{re.escape(abbreviation)}\b", query_norm):
+        if abbreviation in _ABBR_COMMON_WORDS:
             continue
         expansion = normalize_catalog_text(str(abbr.get("expansion") or ""))
+        abbreviation_match = bool(re.search(rf"\b{re.escape(abbreviation)}\b", query_norm))
+        expansion_match = _abbreviation_expansion_matches(expansion, query_norm)
+        if not (abbreviation_match or expansion_match):
+            continue
         positive = [
             normalize_catalog_text(item)
             for item in abbr.get("doc_name_substrings") or ([expansion] if expansion else [])

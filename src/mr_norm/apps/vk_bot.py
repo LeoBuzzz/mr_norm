@@ -467,8 +467,8 @@ class MRNormVKBot:
             "  Пример: /как оформляются диспетчерские заявки?\n"
             "  Пример: / требования к хранению проектной документации\n\n"
             "Диалог:\n"
-            "• сообщение без точки продолжает текущий диалог\n"
-            "• .вопрос — начать новый диалог\n"
+            "• .вопрос — продолжить текущий диалог\n"
+            "• сообщение без точки — начать новый диалог\n"
             "• . — очистить диалог\n\n"
             "Пример: Какие требования к хранению проектной документации?"
         )
@@ -689,16 +689,15 @@ class MRNormVKBot:
                 await self._vk_answer(message, _plain("Новый диалог. Задайте вопрос."))
             return
 
-        if is_new_dialog and research_sessions is not None:
-            research_sessions.clear(session_key)
-
         if (
             research_sessions is not None
             and research_sessions.has_pending(session_key)
-            and not is_new_dialog
         ):
-            await self._process_research_selection(message, raw)
+            await self._process_research_selection(message, query)
             return
+
+        if is_new_dialog and research_sessions is not None:
+            research_sessions.clear(session_key)
 
         lock = self._dialog_sessions.lock_for(session_key)
         async with lock:

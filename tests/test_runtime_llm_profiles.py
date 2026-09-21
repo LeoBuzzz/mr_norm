@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import mr_norm.runtime.llm_profiles as llm_profiles
 from mr_norm.runtime.llm_profiles import (
+    LLMRoleProfile,
     OLLAMA_FINAL_ANSWER_FALLBACK_MODEL,
     OLLAMA_FINAL_ANSWER_MODEL,
     OLLAMA_PLANNER_FALLBACK_MODEL,
@@ -9,6 +11,8 @@ from mr_norm.runtime.llm_profiles import (
     POLZA_FINAL_ANSWER_MODEL,
     POLZA_PLANNER_FALLBACK_MODEL,
     POLZA_PLANNER_MODEL,
+    POLZA_RERANKER_FALLBACK_MODELS,
+    POLZA_RERANKER_MODEL,
     format_role_model_chain,
     resolve_role_model,
     resolve_role_models,
@@ -16,9 +20,10 @@ from mr_norm.runtime.llm_profiles import (
 )
 
 
-def test_resolve_role_models_keeps_ollama_fallback_but_polza_is_single_model() -> None:
+def test_resolve_role_models_keeps_ollama_fallback_and_polza_reranker_chain() -> None:
     assert resolve_role_models("ollama", "planner") == [OLLAMA_PLANNER_MODEL, OLLAMA_PLANNER_FALLBACK_MODEL]
     assert resolve_role_models("polza", "final_answer") == [POLZA_FINAL_ANSWER_MODEL]
+    assert resolve_role_models("polza", "reranker") == [POLZA_RERANKER_MODEL, *POLZA_RERANKER_FALLBACK_MODELS]
 
 
 def test_resolve_role_models_explicit_override_disables_fallback() -> None:
@@ -35,7 +40,29 @@ def test_resolve_role_profile_keeps_provider_temperature_and_max_tokens() -> Non
 
     assert profile.model == OLLAMA_FINAL_ANSWER_MODEL
     assert profile.fallback_model == OLLAMA_FINAL_ANSWER_FALLBACK_MODEL
+    assert profile.fallback_models == ()
     assert profile.max_tokens == 4096
+
+
+def test_resolve_role_profile_carries_multiple_fallbacks() -> None:
+    profile = resolve_role_profile("polza", "reranker")
+
+    assert profile.fallback_model == ""
+    assert profile.fallback_models == POLZA_RERANKER_FALLBACK_MODELS
+
+
+def test_resolve_role_models_skips_empty_and_deduplicates_fallbacks(monkeypatch) -> None:
+    monkeypatch.setattr(
+        llm_profiles,
+        "get_role_profile",
+        lambda provider, role: LLMRoleProfile(
+            model=" primary ",
+            fallback_model="primary",
+            fallback_models=("", " second ", "primary", "second", "  "),
+        ),
+    )
+
+    assert resolve_role_models("polza", "reranker") == ["primary", "second"]
 
 
 def test_format_role_model_chain() -> None:

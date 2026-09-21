@@ -128,6 +128,44 @@ def test_search_doc_point_topics_prefers_specific_point() -> None:
     assert hits[0].entry.point_number == "9"
 
 
+def test_search_doc_point_topics_keeps_abbreviation_action_and_context() -> None:
+    target = TopicEntry(
+        topic_id="topic_target",
+        doc_id="doc_target",
+        doc_name="Правила технической эксплуатации",
+        point_number="552",
+        heading_path_text="Осмотр ВЛ",
+        chunk_ids=("chunk_target",),
+        text="552. Внеочередной осмотр ВЛ после отключения ВЛ.",
+        tokens=("осмотр", "вл", "после", "отключения"),
+    )
+    context_only = TopicEntry(
+        topic_id="topic_context",
+        doc_id="doc_context",
+        doc_name="Графики ограничений",
+        point_number="10",
+        heading_path_text="Аварийное отключение",
+        chunk_ids=("chunk_context",),
+        text="10. После аварийного отключения составляются графики.",
+        tokens=("после", "аварийного", "отключения"),
+    )
+    index = DocPointTopicIndex(
+        entries=(target, context_only),
+        idf=compute_idf((target, context_only)),
+        source_path="test",
+    )
+
+    hits = search_doc_point_topics(
+        "надо осматривать ВЛ после аварийного отключения?",
+        index,
+        top_k=8,
+    )
+
+    assert hits
+    assert hits[0].entry.point_number == "552"
+    assert all(hit.entry.point_number != "10" for hit in hits)
+
+
 def test_topic_hit_to_retrieved_item_keeps_source_details() -> None:
     hit = search_doc_point_topics("интернет дистанционное управление", make_index(), profile="tuned")[0]
 
@@ -170,6 +208,17 @@ def test_should_attempt_topic_retry_for_weak_answer() -> None:
 
     assert do_retry is True
     assert reason == "topic_retry:no_valid_citations"
+
+
+def test_should_attempt_topic_retry_keeps_satisfied_baseline() -> None:
+    do_retry, reason = should_attempt_topic_retry(
+        query="Как часто надо осматривать ВЛ?",
+        final_warnings=[],
+        has_citations=True,
+    )
+
+    assert do_retry is False
+    assert reason == "topic_retry:baseline_citations_satisfied"
 
 
 def test_should_apply_topic_rerank_for_obligation_marker() -> None:

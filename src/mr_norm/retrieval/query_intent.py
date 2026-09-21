@@ -21,6 +21,13 @@ DOCUMENT_LOOKUP_PATTERNS = (
     "как регулируются",
 )
 
+FREQUENCY_PATTERNS = (
+    "как часто",
+    "периодичност",
+    "с какой периодичност",
+    "частота осмотр",
+)
+
 DOMAIN_TERM_HINTS: dict[str, tuple[str, ...]] = {
     "электроэнергет": (
         "об электроэнергетике",
@@ -64,6 +71,8 @@ def detect_query_intent(query: str) -> str:
         return "point_lookup"
     if any(pattern in norm for pattern in REGULATION_SCOPE_PATTERNS):
         return "regulation_scope"
+    if any(pattern in norm for pattern in FREQUENCY_PATTERNS):
+        return "frequency"
     if any(pattern in norm for pattern in DOCUMENT_LOOKUP_PATTERNS):
         return "document_lookup"
     return "factual"

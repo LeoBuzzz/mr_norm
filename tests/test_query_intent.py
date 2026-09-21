@@ -10,6 +10,11 @@ def test_detect_document_lookup_intent() -> None:
     assert detect_query_intent("требования пункта 1.7.1") == "point_lookup"
 
 
+def test_detect_frequency_intent() -> None:
+    assert detect_query_intent("как часто надо осматривать ВЛ") == "frequency"
+    assert detect_query_intent("как часто надо осматривать воздушные линии") == "frequency"
+
+
 def test_intent_search_terms_for_energy_law() -> None:
     terms = intent_search_terms(
         "Какой документ устанавливает общие правила работы электроэнергетической системы РФ?",
@@ -50,3 +55,30 @@ def test_intent_boost_prefers_legal_act_over_gost() -> None:
         limit=2,
     )
     assert ranked[0].chunk_id == "law"
+
+
+def test_frequency_intent_prefers_periodicity_over_worker_requirements() -> None:
+    items = [
+        RetrievedItem(
+            chunk_id="workers",
+            doc_name="Правила по охране труда",
+            point_number="38.74",
+            text="осмотр ВЛ должны выполнять не менее двух работников, имеющих группу II; при обходах должна быть связь с диспетчером",
+            score=0.95,
+        ),
+        RetrievedItem(
+            chunk_id="frequency",
+            doc_name="Правила технической эксплуатации",
+            point_number="549",
+            text="При эксплуатации ВЛ должны быть организованы их периодические и внеочередные осмотры",
+            score=0.40,
+        ),
+    ]
+
+    ranked = rerank_items_for_intent(
+        items,
+        "как часто надо осматривать ВЛ",
+        limit=2,
+    )
+
+    assert [item.chunk_id for item in ranked] == ["frequency", "workers"]

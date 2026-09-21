@@ -1,0 +1,25 @@
+---
+description: Mandatory preflight and acceptance gate for large live RAG runs
+alwaysApply: true
+---
+
+# Large live-run preflight
+
+Never start a full or large live corpus run without first running a representative preflight on the same corpus, provider, profile, models, prompts, and candidate limits.
+
+The preflight is not a two-case smoke test. It has two mandatory parts: (1) a full-corpus structural budget pass covering every query-dependent retrieval branch, and (2) a representative real-LLM pass exercising planner, reranker, final LLM, citations, fallback path where applicable, progress/checkpoint writing, and all budget counters. Before the full run, Astra must read both raw traces and record an explicit acceptance artifact.
+
+The preflight must fail acceptance if any of these are unknown or wrong:
+
+- the reranker receives the configured evidence limit (currently 20) for every applicable case;
+- the upstream wide pool is an internal diagnostic only; it may be larger than 20, and an exact value of 80 is not a user-facing candidate contract;
+- final evidence is at most 40 and downstream payload is at most 25;
+- planner, reranker, and final LLM calls are observed, with the configured fallback chain recorded;
+- stage metrics, citation metrics, warnings, errors, and latency are present;
+- corpus/provider/profile/model/prompt hashes match the planned full run;
+- the corpus gold schema contains the fields required by the declared metrics (`doc_id`, `point_number`, `point_identity_key`, `chunk_id`, and `answer_excerpt`) for every quality case; missing gold fields block acceptance rather than becoming silent zero metrics;
+- the metric definition distinguishes strict point identity, chunk, document, answer span, and citation.
+
+The structural pass must cover the entire planned corpus and show zero configured reranker-input shortfalls. A wide-pool value below the internal diagnostic target of 80 is recorded, but is not a gate failure when at least 20 items reach the reranker. A representative LLM pass cannot substitute for this full-corpus check, because retrieval budget failures below the contractual 20 are query-dependent.
+
+Never silently replace a configured limit with a larger one to make the gate pass. If a preflight invariant fails, do not launch the full run. Fix the harness or record the run as invalid for comparison. After a full run, audit misses against the canonical document text before changing retrieval, reranking, parsing, prompts, or models.

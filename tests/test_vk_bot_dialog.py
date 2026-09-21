@@ -50,10 +50,11 @@ def test_vk_answer_retries_connection_reset() -> None:
     assert message.answer.await_count == 2
 
 
-def test_process_dialog_message_starts_new_dialog_on_leading_dot() -> None:
+def test_process_dialog_message_continues_dialog_on_leading_dot() -> None:
     bot = MRNormVKBot.__new__(MRNormVKBot)
     bot._dialog_sessions = DialogSessionStore()
     bot._research_sessions = DeepResearchSessionStore()
+    bot._dialog_sessions.append_turn("100:200", user_text="первый", answer="a1")
     bot._vk_answer = AsyncMock()
     bot._process_search = AsyncMock()
 
@@ -63,8 +64,8 @@ def test_process_dialog_message_starts_new_dialog_on_leading_dot() -> None:
     bot._process_search.assert_awaited_once()
     args, kwargs = bot._process_search.await_args
     assert args[1] == "новый вопрос"
-    assert kwargs["dialog_context"] is None
-    assert bot._dialog_sessions.get("100:200").turns == ()
+    assert kwargs["dialog_context"] is not None
+    assert len(kwargs["dialog_context"].turns) == 1
 
 
 def test_process_dialog_message_reset_only() -> None:
@@ -83,7 +84,7 @@ def test_process_dialog_message_reset_only() -> None:
     bot._vk_answer.assert_awaited()
 
 
-def test_process_dialog_message_continues_existing_dialog() -> None:
+def test_process_dialog_message_starts_new_dialog_without_leading_dot() -> None:
     bot = MRNormVKBot.__new__(MRNormVKBot)
     bot._dialog_sessions = DialogSessionStore()
     bot._research_sessions = DeepResearchSessionStore()
@@ -95,8 +96,8 @@ def test_process_dialog_message_continues_existing_dialog() -> None:
     asyncio.run(bot._process_dialog_message(message, "как часто?"))
 
     _, kwargs = bot._process_search.await_args
-    assert kwargs["dialog_context"] is not None
-    assert len(kwargs["dialog_context"].turns) == 1
+    assert kwargs["dialog_context"] is None
+    assert bot._dialog_sessions.get("100:200").turns == ()
 
 
 def test_process_search_records_source_references() -> None:
