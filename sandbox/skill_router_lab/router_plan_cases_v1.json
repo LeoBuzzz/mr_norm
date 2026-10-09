@@ -1,0 +1,2736 @@
+{
+  "schema_version": "router_plan_cases.v1",
+  "catalog_documents": [
+    {
+      "doc_id": "doc_1e4a178aa5114b30",
+      "doc_name": "ПУЭ",
+      "aliases": [
+        "ПУЭ",
+        "правила устройства электроустановок"
+      ]
+    },
+    {
+      "doc_id": "doc_ad116a1f6b41adb1",
+      "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+      "aliases": [
+        "правила по охране труда"
+      ]
+    },
+    {
+      "doc_id": "doc_b935a1da25b7a70e",
+      "doc_name": "Об утверждении Правил по охране труда при работе на высоте",
+      "aliases": [
+        "работа на высоте"
+      ]
+    },
+    {
+      "doc_id": "doc_eae0520bf60a818d",
+      "doc_name": "Правила технической эксплуатации электрических станций и сетей Российской Федерации",
+      "aliases": [
+        "ПТЭ"
+      ]
+    },
+    {
+      "doc_id": "doc_20b522f004092f10",
+      "doc_name": "Об утверждении требований к перегрузочной способности трансформаторов",
+      "aliases": []
+    },
+    {
+      "doc_id": "doc_fda367c87f1251e3",
+      "doc_name": "Об утверждении Правил недискриминационного доступа",
+      "aliases": [
+        "постановление 861",
+        "861"
+      ]
+    },
+    {
+      "doc_id": "doc_691ad88b0e765823",
+      "doc_name": "Об утверждении Правил технической эксплуатации электроустановок потребителей электрической энергии",
+      "aliases": [
+        "ПТЭ"
+      ]
+    },
+    {
+      "doc_id": "doc_525834551f223c6d",
+      "doc_name": "Об утверждении Правил оптового рынка электрической энергии и мощности",
+      "aliases": [
+        "постановление 1172",
+        "правила оптового рынка электрической энергии и мощности"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "S01",
+      "split": "tuning",
+      "group": "simple_single",
+      "provenance": "existing_fixture",
+      "source_case_id": "105237",
+      "question": "Как звучит пункт 6.25 из правил по охране труда",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": [
+              "правила по охране труда"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "point_ref": "6.25",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "Как звучит пункт 6.25 из правил по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "6.25",
+                "variants": [
+                  "6.25"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S02",
+      "split": "tuning",
+      "group": "simple_single",
+      "provenance": "synthetic",
+      "question": "Найди пункты о заземлении",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Найди пункты о заземлении"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземление",
+                  "заземления",
+                  "заземлению",
+                  "заземлении"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S03",
+      "split": "tuning",
+      "group": "simple_single",
+      "provenance": "existing_fixture",
+      "source_case_id": "105383",
+      "question": "вытащи все про допускающего из правил по охране труда",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": [
+              "правила по охране труда"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [],
+            "evidence": [
+              "вытащи все про допускающего из правил по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "допускающий",
+                "variants": [
+                  "допускающий",
+                  "допускающего",
+                  "допускающему"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S04",
+      "split": "tuning",
+      "group": "simple_single",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 2.3 ПУЭ",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "2.3",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "Покажи пункт 2.3 ПУЭ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "2.3",
+                "variants": [
+                  "2.3"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S05",
+      "split": "holdout",
+      "group": "simple_single",
+      "provenance": "existing_fixture",
+      "source_case_id": "105613",
+      "question": "Чем регулируется ремонт линий электропередач?",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Чем регулируется ремонт линий электропередач?"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "ремонт",
+                "variants": [
+                  "ремонт",
+                  "ремонта",
+                  "ремонту"
+                ]
+              },
+              {
+                "kind": "topic",
+                "label": "линия электропередачи",
+                "variants": [
+                  "линий электропередач",
+                  "линии электропередачи",
+                  "линия электропередачи"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S06",
+      "split": "holdout",
+      "group": "simple_single",
+      "provenance": "existing_fixture",
+      "source_case_id": "111954",
+      "question": "Дай текст пункта 108_2 постановления 1172",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_525834551f223c6d",
+            "doc_name": "Об утверждении Правил оптового рынка электрической энергии и мощности",
+            "aliases": [
+              "постановление 1172"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_525834551f223c6d",
+            "point_ref": "108_2",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "Дай текст пункта 108_2 постановления 1172"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "108_2",
+                "variants": [
+                  "108_2"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S07",
+      "split": "holdout",
+      "group": "simple_single",
+      "provenance": "synthetic",
+      "question": "Найди пункты о допуске персонала",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "пункты о допуске персонала"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "допуск",
+                "variants": [
+                  "допуска",
+                  "допуску",
+                  "допуске"
+                ]
+              },
+              {
+                "kind": "topic",
+                "label": "персонал",
+                "variants": [
+                  "персонала",
+                  "персоналу",
+                  "персонал"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "S08",
+      "split": "holdout",
+      "group": "simple_single",
+      "provenance": "existing_fixture",
+      "source_case_id": "113332",
+      "question": "Дай все пункты из постановления 861, касаемые требований к содержанию договоров на передачу электрической энергии",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_fda367c87f1251e3",
+            "doc_name": "Об утверждении Правил недискриминационного доступа",
+            "aliases": [
+              "постановление 861"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": "doc_fda367c87f1251e3",
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [],
+            "evidence": [
+              "Дай все пункты из постановления 861, касаемые требований к содержанию договоров на передачу электрической энергии"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "договор",
+                "variants": [
+                  "договоров",
+                  "договоры",
+                  "договора"
+                ]
+              },
+              {
+                "kind": "topic",
+                "label": "передача электрической энергии",
+                "variants": [
+                  "передачу электрической энергии",
+                  "передаче электрической энергии",
+                  "передачи электрической энергии"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C01",
+      "split": "tuning",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Что такое ВЛ и покажи пункт 1.1 ПУЭ",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": [
+          "воздушная линия"
+        ]
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Что такое ВЛ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "concept",
+                "label": "воздушная линия",
+                "variants": [
+                  "ВЛ",
+                  "воздушная линия",
+                  "воздушные линии"
+                ],
+                "require_concept": true
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "1.1",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "покажи пункт 1.1 ПУЭ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "1.1",
+                "variants": [
+                  "1.1"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "split": "tuning",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Покажи пункты 6.25 и 6.26 правил по охране труда",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": []
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "point_ref": "6.25",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункты 6.25 и 6.26 правил по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "6.25",
+                "variants": [
+                  "6.25"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "point_ref": "6.26",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункты 6.25 и 6.26 правил по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "6.26",
+                "variants": [
+                  "6.26"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "split": "tuning",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Найди требования к заземлению и покажи пункт 2.1 ПУЭ",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "требования к заземлению"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземлению",
+                  "заземление",
+                  "заземления"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "2.1",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункт 2.1 ПУЭ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "2.1",
+                "variants": [
+                  "2.1"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C04",
+      "split": "holdout",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Найди пункты о допуске и все пункты об инструктажах",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "пункты о допуске"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "допуск",
+                "variants": [
+                  "допуску",
+                  "допуска",
+                  "допуске"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [],
+            "evidence": [
+              "все пункты об инструктажах"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "инструктаж",
+                "variants": [
+                  "инструктажах",
+                  "инструктажи",
+                  "инструктаж"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C05",
+      "split": "holdout",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 3.1 ПУЭ и найди все требования к защитному заземлению",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "3.1",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункт 3.1 ПУЭ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "3.1",
+                "variants": [
+                  "3.1"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [],
+            "evidence": [
+              "все требования к защитному заземлению"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "защитное заземление",
+                "variants": [
+                  "защитному заземлению",
+                  "защитное заземление",
+                  "защитного заземления"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "C06",
+      "split": "holdout",
+      "group": "compound_independent",
+      "provenance": "synthetic",
+      "question": "Найди требования к работе на высоте и требования к электроустановкам",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_b935a1da25b7a70e",
+            "doc_name": "Правила по охране труда при работе на высоте",
+            "aliases": []
+          },
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": []
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "требования к работе на высоте"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "работа на высоте",
+                "variants": [
+                  "работе на высоте",
+                  "работа на высоте",
+                  "работы на высоте"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "требования к электроустановкам"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "электроустановка",
+                "variants": [
+                  "электроустановкам",
+                  "электроустановки",
+                  "электроустановок"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "V01",
+      "split": "tuning",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "question": "Найди все пункты про работу под наведённым напряжением на ЛЭП",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "ЛЭП",
+          "линия электропередачи"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "ЛЭП",
+                "polarity": "include"
+              }
+            ],
+            "evidence": [
+              "работу под наведённым напряжением на ЛЭП"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "наведённое напряжение",
+                "variants": [
+                  "наведённым напряжением",
+                  "наведённое напряжение",
+                  "наведенного напряжения"
+                ]
+              },
+              {
+                "kind": "topic",
+                "label": "линия электропередачи",
+                "variants": [
+                  "ЛЭП",
+                  "линии электропередачи",
+                  "линия электропередачи"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ],
+        "forbidden_substitutions": [
+          "ВЛ"
+        ]
+      }
+    },
+    {
+      "id": "V02",
+      "split": "holdout",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "question": "Найди требования по ПТЭ к переключениям",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_eae0520bf60a818d",
+            "doc_name": "Правила технической эксплуатации электрических станций и сетей Российской Федерации",
+            "aliases": [
+              "птэ"
+            ]
+          }
+        ],
+        "terms": [
+          "ПТЭ",
+          "переключения"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": "doc_eae0520bf60a818d",
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "ПТЭ к переключениям"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "переключение",
+                "variants": [
+                  "переключениям",
+                  "переключения",
+                  "переключение"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "V03",
+      "split": "tuning",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "metamorphic_pair": "M01",
+      "question": "Найди все требования к заземлению воздушных линий 110 кВ, не для кабельных линий",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "воздушная линия",
+          "ВЛ"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземлению",
+                  "заземление",
+                  "заземления"
+                ]
+              },
+              {
+                "kind": "object",
+                "label": "воздушные линии",
+                "variants": [
+                  "воздушных линий",
+                  "воздушные линии",
+                  "ВЛ"
+                ],
+                "require_concept": true
+              },
+              {
+                "kind": "quantity",
+                "label": "110 кВ",
+                "variants": [
+                  "110 кВ"
+                ]
+              },
+              {
+                "kind": "exclusion",
+                "label": "кабельные линии",
+                "variants": [
+                  "кабельных линий",
+                  "кабельные линии"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ],
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "воздушных линий",
+                "polarity": "include"
+              },
+              {
+                "kind": "quantity",
+                "text": "110 кВ",
+                "polarity": "include"
+              },
+              {
+                "kind": "exclusion",
+                "text": "кабельных линий",
+                "polarity": "exclude"
+              }
+            ],
+            "evidence": [
+              "к заземлению воздушных линий 110 кВ",
+              "не для кабельных линий"
+            ],
+            "depends_on": [],
+            "scope": "corpus"
+          }
+        ]
+      }
+    },
+    {
+      "id": "V04",
+      "split": "holdout",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "question": "Найди пункты о ЛЭП 35 кВ",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "ЛЭП",
+          "линия электропередачи"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "ЛЭП",
+                "polarity": "include"
+              },
+              {
+                "kind": "quantity",
+                "text": "35 кВ",
+                "polarity": "include"
+              }
+            ],
+            "evidence": [
+              "ЛЭП 35 кВ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "линия электропередачи",
+                "variants": [
+                  "ЛЭП",
+                  "линии электропередач",
+                  "линия электропередачи"
+                ]
+              },
+              {
+                "kind": "quantity",
+                "label": "35 кВ",
+                "variants": [
+                  "35 кВ"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "V05",
+      "split": "holdout",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 1.1 правил устройства электроустановок",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "правила устройства электроустановок"
+            ]
+          }
+        ],
+        "terms": [
+          "ПУЭ"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "1.1",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункт 1.1 правил устройства электроустановок"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "1.1",
+                "variants": [
+                  "1.1"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "V06",
+      "split": "tuning",
+      "group": "vocabulary",
+      "provenance": "synthetic",
+      "metamorphic_pair": "M01",
+      "question": "Найди все требования к заземлению ВЛ 110 кВ, не для кабельных линий",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "ВЛ",
+          "воздушная линия"
+        ]
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземлению",
+                  "заземление",
+                  "заземления"
+                ]
+              },
+              {
+                "kind": "object",
+                "label": "воздушные линии",
+                "variants": [
+                  "ВЛ",
+                  "воздушных линий",
+                  "воздушные линии"
+                ],
+                "require_concept": true
+              },
+              {
+                "kind": "quantity",
+                "label": "110 кВ",
+                "variants": [
+                  "110 кВ"
+                ]
+              },
+              {
+                "kind": "exclusion",
+                "label": "кабельные линии",
+                "variants": [
+                  "кабельных линий",
+                  "кабельные линии"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ],
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "ВЛ",
+                "polarity": "include"
+              },
+              {
+                "kind": "quantity",
+                "text": "110 кВ",
+                "polarity": "include"
+              },
+              {
+                "kind": "exclusion",
+                "text": "кабельных линий",
+                "polarity": "exclude"
+              }
+            ],
+            "evidence": [
+              "к заземлению ВЛ 110 кВ",
+              "не для кабельных линий"
+            ],
+            "depends_on": [],
+            "scope": "corpus"
+          }
+        ]
+      }
+    },
+    {
+      "id": "D01",
+      "split": "tuning",
+      "group": "dialog",
+      "provenance": "existing_fixture",
+      "source_case_id": "105249",
+      "question": "А пункт 2.1?",
+      "context": {
+        "turns": [
+          {
+            "turn_id": "turn_1",
+            "user_text": "Как звучит пункт 6.25 из правил по охране труда",
+            "resolved_doc_id": "doc_ad116a1f6b41adb1"
+          }
+        ]
+      },
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": [
+              "правила по охране труда"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "point_ref": "2.1",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "А пункт 2.1?",
+              "правил по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "2.1",
+                "variants": [
+                  "2.1"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D02",
+      "split": "tuning",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Не электростанции, а подстанции",
+      "context": {
+        "turns": [
+          {
+            "turn_id": "turn_1",
+            "user_text": "Найди все требования к электростанциям",
+            "confirmed_conditions": [
+              {
+                "id": "turn_1:c1",
+                "text": "электростанции",
+                "quote": "электростанциям",
+                "confirmed": true
+              }
+            ]
+          }
+        ]
+      },
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "dialog_action": "correct",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "подстанции",
+                "polarity": "include"
+              }
+            ],
+            "evidence": [
+              "Не электростанции, а подстанции"
+            ],
+            "depends_on": [],
+            "replaces": [
+              "turn_1:c1"
+            ],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "подстанция",
+                "variants": [
+                  "подстанции",
+                  "подстанция",
+                  "подстанций"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D03",
+      "split": "tuning",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Теперь только по ПУЭ",
+      "context": {
+        "turns": [
+          {
+            "turn_id": "turn_1",
+            "user_text": "Найди все требования к защитному заземлению"
+          }
+        ]
+      },
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [
+              {
+                "kind": "condition",
+                "text": "только по ПУЭ",
+                "polarity": "include"
+              }
+            ],
+            "evidence": [
+              "только по ПУЭ",
+              "защитному заземлению"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "защитное заземление",
+                "variants": [
+                  "защитному заземлению",
+                  "защитное заземление",
+                  "защитного заземления"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D04",
+      "split": "tuning",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 3.2",
+      "context": {
+        "turns": [
+          {
+            "turn_id": "turn_1",
+            "user_text": "Покажи пункт 1.1 ПУЭ",
+            "resolved_doc_id": "doc_1e4a178aa5114b30"
+          }
+        ]
+      },
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "skill": "exact_point",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "point_ref": "3.2",
+            "coverage": "exact",
+            "constraints": [],
+            "evidence": [
+              "пункт 3.2",
+              "ПУЭ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "point",
+                "label": "3.2",
+                "variants": [
+                  "3.2"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "покажи текст пункта",
+                "variants": [
+                  "покажи текст пункта",
+                  "дай текст пункта",
+                  "как звучит пункт",
+                  "покажи пункт",
+                  "дай текст"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D05",
+      "split": "holdout",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Найди пункты о заземлении",
+      "context": {
+        "turns": [
+          {
+            "turn_id": "turn_1",
+            "user_text": "Найди требования по ПУЭ к заземлению",
+            "resolved_doc_id": "doc_1e4a178aa5114b30"
+          }
+        ]
+      },
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "пуэ"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "пункты о заземлении"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземлении",
+                  "заземление",
+                  "заземления"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D06",
+      "split": "holdout",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Уточняю: 861",
+      "context": {},
+      "pending_clarification": {
+        "question": "Какой номер постановления вы имеете в виду?",
+        "field": "document",
+        "options": [
+          {
+            "id": "doc_fda367c87f1251e3",
+            "label": "постановление 861"
+          }
+        ],
+        "original_query": "Найди требования постановления 86",
+        "original_task": {
+          "intent_text": "Найди требования постановления 86",
+          "skill": "corpus_point_search",
+          "coverage": "ranked",
+          "semantic_elements": [
+            {
+              "label": "требования постановления",
+              "variants": [
+                "требования постановления"
+              ]
+            }
+          ]
+        }
+      },
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_fda367c87f1251e3",
+            "doc_name": "Об утверждении Правил недискриминационного доступа",
+            "aliases": [
+              "постановление 861",
+              "861"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "ready",
+        "dialog_action": "clarify",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": "doc_fda367c87f1251e3",
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "861"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "номер документа 861",
+                "variants": [
+                  "861",
+                  "постановление 861"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D07",
+      "split": "holdout",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Эти пункты",
+      "context": {
+        "turns": []
+      },
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "point",
+        "clarification_subject": {
+          "label": "эти пункты",
+          "variants": [
+            "эти пункты",
+            "какие именно пункты"
+          ]
+        }
+      }
+    },
+    {
+      "id": "D08",
+      "split": "holdout",
+      "group": "dialog",
+      "provenance": "synthetic",
+      "question": "Найди требования для всех работников",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "simple",
+        "status": "ready",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [
+              {
+                "kind": "object",
+                "text": "всех работников",
+                "polarity": "include"
+              }
+            ],
+            "evidence": [
+              "требования для всех работников"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "работник",
+                "variants": [
+                  "работников",
+                  "работникам",
+                  "работники"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "A01",
+      "split": "tuning",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Пункт 33 постановления 86",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_fda367c87f1251e3",
+            "doc_name": "Об утверждении Правил недискриминационного доступа",
+            "aliases": [
+              "постановление 861",
+              "861"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "document",
+        "clarification_subject": {
+          "label": "постановления 86",
+          "variants": [
+            "постановление 86",
+            "номер 86"
+          ]
+        },
+        "forbidden_substitutions": [
+          "86 → 861"
+        ]
+      }
+    },
+    {
+      "id": "A02",
+      "split": "tuning",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Найди требования к ПТЭ",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_eae0520bf60a818d",
+            "doc_name": "Правила технической эксплуатации электрических станций и сетей Российской Федерации",
+            "aliases": [
+              "ПТЭ"
+            ]
+          },
+          {
+            "doc_id": "doc_691ad88b0e765823",
+            "doc_name": "Об утверждении Правил технической эксплуатации электроустановок потребителей электрической энергии",
+            "aliases": [
+              "ПТЭ"
+            ]
+          }
+        ],
+        "terms": [
+          "ПТЭ"
+        ]
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "document",
+        "clarification_subject": {
+          "label": "ПТЭ",
+          "variants": [
+            "ПТЭ",
+            "правила технической эксплуатации"
+          ]
+        }
+      }
+    },
+    {
+      "id": "A03",
+      "split": "tuning",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Найди требования к АВР",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "АВР",
+          "аварийно-восстановительные работы",
+          "автоматический ввод резерва"
+        ]
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "term",
+        "clarification_subject": {
+          "label": "АВР",
+          "variants": [
+            "АВР",
+            "автоматический ввод резерва",
+            "аварийно-восстановительные работы"
+          ]
+        }
+      }
+    },
+    {
+      "id": "A04",
+      "split": "holdout",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 5.1",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "document",
+        "clarification_subject": {
+          "label": "документ",
+          "variants": [
+            "документ",
+            "источник",
+            "какому документу"
+          ]
+        }
+      }
+    },
+    {
+      "id": "A05",
+      "split": "holdout",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Найди нормы по ВН",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "ВН",
+          "выключатель нагрузки",
+          "высокое напряжение (110 кВ и выше)"
+        ]
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "term",
+        "clarification_subject": {
+          "label": "ВН",
+          "variants": [
+            "ВН",
+            "выключатель нагрузки",
+            "высокое напряжение"
+          ]
+        }
+      }
+    },
+    {
+      "id": "A06",
+      "split": "holdout",
+      "group": "ambiguous",
+      "provenance": "synthetic",
+      "question": "Покажи пункт 1.1 приказа 86",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_fda367c87f1251e3",
+            "doc_name": "Об утверждении Правил недискриминационного доступа",
+            "aliases": [
+              "постановление 861",
+              "861"
+            ]
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "needs_clarification",
+        "tasks": [],
+        "clarification_field": "document",
+        "clarification_subject": {
+          "label": "постановления 86",
+          "variants": [
+            "постановление 86",
+            "номер 86"
+          ]
+        },
+        "forbidden_substitutions": [
+          "86 → 861"
+        ]
+      }
+    },
+    {
+      "id": "U01",
+      "split": "tuning",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Найди пункты о заземлении и затем сравни требования",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "пункты о заземлении"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "заземление",
+                "variants": [
+                  "заземлении",
+                  "заземление",
+                  "заземления"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "сравни требования"
+            ],
+            "depends_on": [
+              "t1"
+            ],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "требование",
+                "variants": [
+                  "требования",
+                  "требованию",
+                  "требований"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "U02",
+      "split": "tuning",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Найди пункты о допуске, затем составь заключение о соответствии",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "пункты о допуске"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "допуск",
+                "variants": [
+                  "допуску",
+                  "допуска",
+                  "допуске"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "составь заключение о соответствии"
+            ],
+            "depends_on": [
+              "t1"
+            ],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "соответствие",
+                "variants": [
+                  "соответствия",
+                  "соответствии",
+                  "соответствие"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "U03",
+      "split": "tuning",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Дай определение ВЛ",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": [
+          "ВЛ",
+          "воздушная линия"
+        ]
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Дай определение ВЛ"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "concept",
+                "label": "воздушная линия",
+                "variants": [
+                  "ВЛ",
+                  "воздушная линия",
+                  "воздушные линии"
+                ],
+                "require_concept": true
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "U04",
+      "split": "holdout",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Найди все пункты и подготовь сравнение документов",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": "find_all",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "constraints": [],
+            "evidence": [
+              "Найди все пункты"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "пункт",
+                "variants": [
+                  "пункты",
+                  "пунктов",
+                  "пункт"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди все",
+                "variants": [
+                  "найди все",
+                  "вытащи все",
+                  "дай все пункты",
+                  "все требования",
+                  "полный перечень"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "сравнение документов"
+            ],
+            "depends_on": [
+              "t1"
+            ],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "документ",
+                "variants": [
+                  "документов",
+                  "документы",
+                  "документа"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "U05",
+      "split": "holdout",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Найди требования и объясни, кто нарушил правила",
+      "context": {},
+      "candidates": {
+        "documents": [],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": "corpus_point_search",
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Найди требования"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "требование",
+                "variants": [
+                  "требования",
+                  "требований",
+                  "требованию"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "найди",
+                "variants": [
+                  "найди",
+                  "найти",
+                  "поискать",
+                  "найти требования",
+                  "покажи пункты"
+                ]
+              }
+            ]
+          },
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "объясни, кто нарушил правила"
+            ],
+            "depends_on": [
+              "t1"
+            ],
+            "required_semantic_elements": [
+              {
+                "kind": "topic",
+                "label": "нарушение правил",
+                "variants": [
+                  "нарушил правила",
+                  "нарушение правил",
+                  "нарушил"
+                ]
+              },
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "U06",
+      "split": "holdout",
+      "group": "dependent_unsupported",
+      "provenance": "synthetic",
+      "question": "Сравни ПУЭ и правила по охране труда",
+      "context": {},
+      "candidates": {
+        "documents": [
+          {
+            "doc_id": "doc_1e4a178aa5114b30",
+            "doc_name": "ПУЭ",
+            "aliases": [
+              "ПУЭ"
+            ]
+          },
+          {
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "doc_name": "Правила по охране труда при эксплуатации электроустановок",
+            "aliases": []
+          }
+        ],
+        "terms": []
+      },
+      "expected": {
+        "complexity": "complex",
+        "status": "deferred",
+        "tasks": [
+          {
+            "skill": null,
+            "doc_id": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "constraints": [],
+            "evidence": [
+              "Сравни ПУЭ и правила по охране труда"
+            ],
+            "depends_on": [],
+            "required_semantic_elements": [
+              {
+                "kind": "intent",
+                "label": "сравни",
+                "variants": [
+                  "сравни",
+                  "сопоставь",
+                  "дай определение",
+                  "что такое",
+                  "подготовь заключение",
+                  "объясни"
+                ]
+              }
+            ],
+            "required_document_mentions": [
+              {
+                "variants": [
+                  "ПУЭ",
+                  "правила устройства электроустановок"
+                ]
+              },
+              {
+                "variants": [
+                  "правила по охране труда",
+                  "правил по охране труда"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

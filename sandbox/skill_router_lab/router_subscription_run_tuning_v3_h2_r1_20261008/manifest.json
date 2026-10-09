@@ -1,0 +1,87 @@
+{
+  "schema_version": "codex_subscription_file_replay.v1",
+  "experiment_mode": "codex_subscription_file_replay",
+  "run_id": "router-v3-h2-tuning-20261008-r1",
+  "lineage": {
+    "parent_run_id": "router-v3-h2-tuning-20261008",
+    "parent_manifest_sha256": "c85aef34f6fd558d939e8924a8b56748c96af01a7d197f4ea03b1799de59fc4d",
+    "reason": "receipt lifecycle now uses inherited immutable receipts and resume guard"
+  },
+  "split": "tuning",
+  "case_count": 20,
+  "case_order": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "C01",
+    "C02",
+    "C03",
+    "V01",
+    "V03",
+    "V06",
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "A01",
+    "A02",
+    "A03",
+    "U01",
+    "U02",
+    "U03"
+  ],
+  "tokenizer_version": "source_tokens.v1",
+  "locale": "ru-RU",
+  "requested_effort": "medium",
+  "requested_models": {
+    "classifier": "gpt-6-luna",
+    "complex_parser": "gpt-6-sol",
+    "simple_parser": "gpt-6-luna"
+  },
+  "supports_json_schema": false,
+  "transport": "Codex subscription workers; no sampling in H2 implementation",
+  "files_sha256": {
+    "inputs/input_manifest.jsonl": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+    "source_manifests.json": "0668beebfae1879abb93988cdffef181ce1e1b9741f8fa3a08edf1b3bb5fc5be",
+    "schema.json": "daf2033dd8c47f3764c824d6832a4d5e32d6e029a15acbb2ff83ccb469c1b035",
+    "prompts/classifier.txt": "8ce5a284ade616c8a713ef7f96c1f8234253d0ef638575a936fa639b6910405a",
+    "prompts/parser.txt": "317c3c5039bfe79acc898dcad42d0e78817f002bcfbbf547e8a2c8127325c3d6",
+    "prompts/repair.txt": "fdc2e90018fb0e09ce75205ca4bb1f7e8ea271e4c0b72a94ee012c463d9ee27c"
+  },
+  "code_files_sha256": {
+    "generate_router_v2_tuning.py": "70a1ec2bde9fbbe45b720cb85cbf438c9e6b7eb415cfe9c483a8e0127cb464c1",
+    "router_contracts.py": "7332ff433956d69b097e3f11a06a7ba56c68120b2f71c04db1f3221152b53c53",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_planning.py": "6e96eb0756e4e0a5728e535191406ecdaa4e19779b4d53708c00d1fc874c07e8",
+    "router_prompts_v2.py": "f230e76a70d85093a6ee0c4d2f5ab82f936e8abcf6b20dfde883700e91d73126",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "router_v2_runtime.py": "08728e908d91536c24b7d7895faa6777ad5d5db996478d46fb73194377bbaebc",
+    "run_router_v2_offline_gate.py": "699df07fc82878034a63f7deffd6862288994866cc923dcef8c1b29cd9851753",
+    "evaluate_router_v2_tuning.py": "e22e447076c98bd3758b6b53f21df52dc3128e76c130b2cf27367ed8c44053fe",
+    "router_prompts_v3.py": "5d7845b570f62059f78ebd13d935899f7125ac78bd01b788e27bb6acd7e2c017",
+    "router_subscription_eval_v3.py": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+    "router_request_envelope_v3.py": "8b32696fc3547d86e4f719e47cab86b39bbab204fb08185dc2f943950b5ff24a",
+    "router_subscription_lifecycle_v3.py": "9788702a021d20d52964558229d3cb95f82ad12363310203efdf02163f590b14",
+    "evaluate_router_v3_file_replay.py": "c4f69c18bf9f5ee457f8cbd9cfb9e93472c35414a9666fcafd8d38ccccb80cbd",
+    "freeze_router_v3_run.py": "a11a7769c4f6e4f89aefdbfa8ecca9d4c72ede27e1ca3310906f30271b765fe3"
+  },
+  "inherited_v2_code_files_sha256": {
+    "generate_router_v2_tuning.py": "70a1ec2bde9fbbe45b720cb85cbf438c9e6b7eb415cfe9c483a8e0127cb464c1",
+    "router_contracts.py": "7332ff433956d69b097e3f11a06a7ba56c68120b2f71c04db1f3221152b53c53",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_planning.py": "6e96eb0756e4e0a5728e535191406ecdaa4e19779b4d53708c00d1fc874c07e8",
+    "router_prompts_v2.py": "f230e76a70d85093a6ee0c4d2f5ab82f936e8abcf6b20dfde883700e91d73126",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "router_v2_runtime.py": "08728e908d91536c24b7d7895faa6777ad5d5db996478d46fb73194377bbaebc",
+    "run_router_v2_offline_gate.py": "699df07fc82878034a63f7deffd6862288994866cc923dcef8c1b29cd9851753"
+  },
+  "parity": {
+    "source_run_id": "router-v2-tuning-20261007",
+    "input_manifest_sha256_same": true,
+    "schema_sha256_same": true,
+    "case_order_same": true
+  },
+  "gold_included": false,
+  "receipts_included": false
+}

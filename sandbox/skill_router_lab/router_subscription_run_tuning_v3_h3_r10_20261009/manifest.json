@@ -1,0 +1,161 @@
+{
+  "schema_version": "codex_subscription_file_replay.v1",
+  "experiment_mode": "codex_subscription_file_replay",
+  "run_id": "router-v3-h3-tuning-20261009-r10",
+  "supersedes_unreceipted_run_ids": [
+    "router-v3-h3-tuning-20261008-r1",
+    "router-v3-h3-tuning-20261008-r2",
+    "router-v3-h3-tuning-20261008-r3",
+    "router-v3-h3-tuning-20261008-r4",
+    "router-v3-h3-tuning-20261009-r5",
+    "router-v3-h3-tuning-20261009-r6",
+    "router-v3-h3-tuning-20261009-r7",
+    "router-v3-h3-tuning-20261009-r8",
+    "router-v3-h3-tuning-20261009-r9"
+  ],
+  "lineage": {
+    "parent_run_id": "router-v3-h3-tuning-20261009-r9",
+    "parent_manifest_sha256": "6e1974825cd52512fd66c4eb297d43e7c65f52312e3ce7ecdea4c8f8c9ed1826",
+    "h2_parent_run_id": "router-v3-h2-tuning-20261008-r2",
+    "h2_parent_manifest_sha256": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+    "reason": "r10 compares canonical critical omission records against validated R9 references"
+  },
+  "split": "tuning",
+  "case_count": 20,
+  "case_order": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "C01",
+    "C02",
+    "C03",
+    "V01",
+    "V03",
+    "V06",
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "A01",
+    "A02",
+    "A03",
+    "U01",
+    "U02",
+    "U03"
+  ],
+  "tokenizer_version": "source_tokens.v1",
+  "locale": "ru-RU",
+  "requested_effort": "medium",
+  "requested_models": {
+    "classifier": "gpt-6-luna",
+    "complex_parser": "gpt-6-sol",
+    "simple_parser": "gpt-6-luna"
+  },
+  "supports_json_schema": false,
+  "transport": "Codex subscription file replay; r10 implementation freeze only, no sampling",
+  "validation_policy": "topic_literal_guard.v1",
+  "files_sha256": {
+    "inputs/input_manifest.jsonl": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+    "source_manifests.json": "0668beebfae1879abb93988cdffef181ce1e1b9741f8fa3a08edf1b3bb5fc5be",
+    "schema.json": "daf2033dd8c47f3764c824d6832a4d5e32d6e029a15acbb2ff83ccb469c1b035",
+    "prompts/classifier.txt": "8ce5a284ade616c8a713ef7f96c1f8234253d0ef638575a936fa639b6910405a",
+    "prompts/parser.txt": "0c6cc788cea3034a45eab010b417a7025aabdcba42453916a56dd78b949c374f",
+    "prompts/repair.txt": "dcad9e073d6acb27ea9db4d314be10ac321dc46e547e4c29380bfa8b815aed63",
+    "evaluation/router_plan_cases_tuning_v2.json": "386e7d682cf5153dd9e5bba266e348eb621fc6cfd6378b2af51c62e4609c14fe",
+    "evaluation/baseline_reconciled_v3_20261008.json": "48cff410dfc9fc61f1cf4b4e4c39285f66a796188239711c44833a8487253929",
+    "evaluation/h2_manifest.json": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+    "evaluation/h2_parent_manifest.json": "1d4a4840ccabec4779558c37cea2a5fd35a1ef3d6f2fdd83d1a9d9b3f0af2a4f",
+    "evaluation/v2_manifest.json": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad"
+  },
+  "code_files_sha256": {
+    "router_prompts_v3_h3.py": "b9e6a0969989bf6148ca7c9bb35f385a1e9ef90023d5540d97c20ec26af5662f",
+    "router_draft_h3.py": "2e9600d6214d111762fcb4a70e4dada7c08c9712c56d548b22ddf456cccc8f60",
+    "router_validation_policy.py": "3a9f5817bb63a89805648aaeed43ddcca4d9af169bd57de2d526ab2fc7ad4320",
+    "router_subscription_lifecycle_h3_r10.py": "bb1af41929498959c61a71af2d8014f3cccf9d83548ae1487867d70e5947e6c8",
+    "evaluate_router_v3_h3_replay_r10.py": "67845753aa95cc11e33ffe7470c2ce1ccd21bd3821d7c606884ef7f5202eea06",
+    "evaluate_router_v3_h3_semantic_replay_r10.py": "cc7daff56d693ba654d18b2f646764a68612b13304429d414d678e2fe967f66d",
+    "router_subscription_lifecycle_v3.py": "69b42f95a3785d76dbbfdfd9dc1c789c406ab355b3dec50fd9605ab7266a6830",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_subscription_eval_v3.py": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+    "freeze_router_v3_h3_r10.py": "725dd9a5533d65b8c51078f06a019f4f050096dd33ef5a8d5d3edb698e08b6bb",
+    "replay_router_h2_snapshot_r10.py": "e0b665ab8abc71f6dcd37fdb53f6cdeb1da1f9af2d0c0adc4f456fb2b18fd846",
+    "evaluate_router_v3_semantic_replay.py": "a6df171be6df6245212b4846d23f3887f8fc67181612921e5c185f079a050651",
+    "evaluate_router_v2_tuning.py": "e22e447076c98bd3758b6b53f21df52dc3128e76c130b2cf27367ed8c44053fe",
+    "router_request_envelope_v3.py": "8b32696fc3547d86e4f719e47cab86b39bbab204fb08185dc2f943950b5ff24a",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "freeze_router_v3_h3_r9.py": "c91e9a02648ae55b1894e80fef0b91d5eaae443d543e859269aed70eaff46bad",
+    "replay_router_h2_snapshot_r9.py": "942572e70338cc3c89a97033cf580fcac9ebebd44b4fbbd481aeb47bcf453302",
+    "evaluate_router_v3_h3_replay_r9.py": "7b386be65b02c697247540f7b877cb23e115078fc7c58deb0b0eeda5edde1205",
+    "evaluate_router_v3_h3_semantic_replay_r9.py": "b9e602be81af6d8cf314f8b8d2ccf45a7a0364c934f15ee8cbd0d331622c506c",
+    "router_subscription_lifecycle_h3_r9.py": "a9c18191fe3d0ac367dd621da89b2e2e51b878ad2c6019e6bfe6ebd229413ed3",
+    "freeze_router_v3_h3_r8.py": "7fea6e2197fbac6b056f6e1f108ffc20c1d67a94ada150480fcc018d903a9bc4",
+    "replay_router_h2_snapshot_r8.py": "e89c73fab6511b03ae675d3c17ecedb0c980a066bc754d159fb50210667daaf5",
+    "evaluate_router_v3_h3_replay_r8.py": "3a6fe6965ff24f28a9a63be73b27bc77015ef8cc7127dbc21adc259b6556506c",
+    "evaluate_router_v3_h3_semantic_replay_r8.py": "eaa8490860744df2e28f7f01c6a578dff8f765b75de8745779dadf82df1da19c",
+    "router_subscription_lifecycle_h3_r8.py": "13e0ac81743d3544c6ad473a810d971825f59a3679ab3820d5fa2004d922ec99"
+  },
+  "historical_h2_runtime_sha256": {
+    "generate_router_v2_tuning.py": "70a1ec2bde9fbbe45b720cb85cbf438c9e6b7eb415cfe9c483a8e0127cb464c1",
+    "router_contracts.py": "7332ff433956d69b097e3f11a06a7ba56c68120b2f71c04db1f3221152b53c53",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_planning.py": "6e96eb0756e4e0a5728e535191406ecdaa4e19779b4d53708c00d1fc874c07e8",
+    "router_prompts_v2.py": "f230e76a70d85093a6ee0c4d2f5ab82f936e8abcf6b20dfde883700e91d73126",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "router_v2_runtime.py": "08728e908d91536c24b7d7895faa6777ad5d5db996478d46fb73194377bbaebc",
+    "run_router_v2_offline_gate.py": "699df07fc82878034a63f7deffd6862288994866cc923dcef8c1b29cd9851753",
+    "evaluate_router_v2_tuning.py": "e22e447076c98bd3758b6b53f21df52dc3128e76c130b2cf27367ed8c44053fe",
+    "router_prompts_v3.py": "5d7845b570f62059f78ebd13d935899f7125ac78bd01b788e27bb6acd7e2c017",
+    "router_subscription_eval_v3.py": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+    "router_request_envelope_v3.py": "8b32696fc3547d86e4f719e47cab86b39bbab204fb08185dc2f943950b5ff24a",
+    "router_subscription_lifecycle_v3.py": "b06b3933820c909d64ad5ec563ca0ccb6d72635b5b9954883eaf104b4a144817",
+    "evaluate_router_v3_file_replay.py": "c02f5520a71a98cb960cbd8a4c928299b4d40dae796f6e6012f291adf8fae893",
+    "freeze_router_v3_run.py": "0f0d5e98cd6f76e44b58fa6091a5e64a4c286b68f2bf51726154db7417a71ba1",
+    "evaluate_router_v3_semantic_replay.py": "a6df171be6df6245212b4846d23f3887f8fc67181612921e5c185f079a050651"
+  },
+  "historical_h2_manifest_sha256": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+  "r9_parent_manifest_sha256": "6e1974825cd52512fd66c4eb297d43e7c65f52312e3ce7ecdea4c8f8c9ed1826",
+  "evaluation_data_sha256": {
+    "evaluation/router_plan_cases_tuning_v2.json": "386e7d682cf5153dd9e5bba266e348eb621fc6cfd6378b2af51c62e4609c14fe",
+    "evaluation/baseline_reconciled_v3_20261008.json": "48cff410dfc9fc61f1cf4b4e4c39285f66a796188239711c44833a8487253929",
+    "evaluation/h2_manifest.json": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+    "evaluation/h2_parent_manifest.json": "1d4a4840ccabec4779558c37cea2a5fd35a1ef3d6f2fdd83d1a9d9b3f0af2a4f",
+    "evaluation/v2_manifest.json": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad"
+  },
+  "external_resources": {
+    "r9_parent": {
+      "run_id": "router-v3-h3-tuning-20261009-r9",
+      "manifest_sha256": "6e1974825cd52512fd66c4eb297d43e7c65f52312e3ce7ecdea4c8f8c9ed1826"
+    },
+    "h2_run": {
+      "run_id": "router-v3-h2-tuning-20261008-r2",
+      "manifest_sha256": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+      "receipts_sha256": "184b7516277df17e9c9098ba86239c6f9fddb32c0e921625a6a65a45967d7160",
+      "files_sha256": {
+        "inputs/input_manifest.jsonl": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+        "source_manifests.json": "0668beebfae1879abb93988cdffef181ce1e1b9741f8fa3a08edf1b3bb5fc5be",
+        "schema.json": "daf2033dd8c47f3764c824d6832a4d5e32d6e029a15acbb2ff83ccb469c1b035",
+        "prompts/classifier.txt": "8ce5a284ade616c8a713ef7f96c1f8234253d0ef638575a936fa639b6910405a",
+        "prompts/parser.txt": "317c3c5039bfe79acc898dcad42d0e78817f002bcfbbf547e8a2c8127325c3d6",
+        "prompts/repair.txt": "fdc2e90018fb0e09ce75205ca4bb1f7e8ea271e4c0b72a94ee012c463d9ee27c"
+      }
+    },
+    "h2_parent": {
+      "run_id": "router-v3-h2-tuning-20261008-r1",
+      "manifest_sha256": "1d4a4840ccabec4779558c37cea2a5fd35a1ef3d6f2fdd83d1a9d9b3f0af2a4f"
+    },
+    "v2_source": {
+      "run_id": "router-v2-tuning-20261007",
+      "manifest_sha256": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad",
+      "files_sha256": {
+        "inputs/input_manifest.jsonl": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+        "prompts/classifier.txt": "ef788f3b60f999915c7bd5261d800e32ce32ff38d286f482e8180db0b6e8ea8a",
+        "prompts/parser.txt": "71c9a3aae7fb72bc2110d1aed0cebe4f1013ece3e5aea33a32cef612c2b3e83a",
+        "schema.json": "daf2033dd8c47f3764c824d6832a4d5e32d6e029a15acbb2ff83ccb469c1b035",
+        "source_manifests.json": "0668beebfae1879abb93988cdffef181ce1e1b9741f8fa3a08edf1b3bb5fc5be"
+      }
+    }
+  },
+  "gold_included": false,
+  "receipts_included": false
+}

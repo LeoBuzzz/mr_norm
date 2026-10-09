@@ -1,0 +1,22 @@
+{
+  "S01": "{\"complexity\":\"complex\"}",
+  "S02": "{\"complexity\":\"complex\"}",
+  "S03": "{\"complexity\":\"complex\"}",
+  "S04": "{\"complexity\":\"simple\"}",
+  "C01": "{\"complexity\":\"complex\"}",
+  "C02": "{\"complexity\":\"complex\"}",
+  "C03": "{\"complexity\":\"complex\"}",
+  "V01": "{\"complexity\":\"complex\"}",
+  "V03": "{\"complexity\":\"simple\"}",
+  "V06": "{\"complexity\":\"simple\"}",
+  "D01": "{\"complexity\":\"simple\"}",
+  "D02": "{\"complexity\":\"complex\"}",
+  "D03": "{\"complexity\":\"simple\"}",
+  "D04": "{\"complexity\":\"simple\"}",
+  "A01": "{\"complexity\":\"complex\"}",
+  "A02": "{\"complexity\":\"complex\"}",
+  "A03": "{\"complexity\":\"complex\"}",
+  "U01": "{\"complexity\":\"complex\"}",
+  "U02": "{\"complexity\":\"complex\"}",
+  "U03": "{\"complexity\":\"complex\"}"
+}

@@ -1,0 +1,3810 @@
+{
+  "schema_version": "router_subscription_eval_report.v1",
+  "run_id": "router-v2-tuning-20261007",
+  "run_manifest_sha256": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad",
+  "gold_sha256": "386e7d682cf5153dd9e5bba266e348eb621fc6cfd6378b2af51c62e4609c14fe",
+  "case_order": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "C01",
+    "C02",
+    "C03",
+    "V01",
+    "V03",
+    "V06",
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "A01",
+    "A02",
+    "A03",
+    "U01",
+    "U02",
+    "U03"
+  ],
+  "metrics": {
+    "classification": {
+      "correct": 17,
+      "total": 20,
+      "accuracy": 0.85
+    },
+    "required_complex_classification": {
+      "correct": 8,
+      "total": 11,
+      "case_ids": [
+        "C01",
+        "C02",
+        "C03",
+        "D02",
+        "D03",
+        "A01",
+        "A02",
+        "A03",
+        "U01",
+        "U02",
+        "U03"
+      ],
+      "all_marked_complex_classified_complex": false
+    },
+    "first_draft_wire_validity": {
+      "valid": 20,
+      "total": 20,
+      "case_ids_invalid": []
+    },
+    "first_draft_technical_validity": {
+      "valid": 16,
+      "total": 20,
+      "case_ids_invalid": [
+        "S01",
+        "S02",
+        "C01",
+        "C02"
+      ]
+    },
+    "repair_success": {
+      "needed": 4,
+      "succeeded": 3,
+      "case_ids_failed": [
+        "C02"
+      ]
+    },
+    "final_technical_validity": {
+      "valid": 19,
+      "total": 20,
+      "case_ids_invalid": [
+        "C02"
+      ]
+    },
+    "assembler_errors": {
+      "count": 0,
+      "case_ids": []
+    },
+    "semantic_plan": {
+      "matched": 7,
+      "total": 20,
+      "status_matched": 18,
+      "source_evidence_coverage_cases": 8,
+      "dependency_edges_matched_cases": 10
+    },
+    "critical_omissions": {
+      "count": 8,
+      "by_case": {
+        "S01": [],
+        "S02": [
+          {
+            "code": "lost_or_wrong_operation",
+            "detail": "search"
+          }
+        ],
+        "S03": [],
+        "S04": [],
+        "C01": [],
+        "C02": [
+          {
+            "code": "no_final_plan",
+            "detail": "classifier/parser/assembler did not produce a technical plan"
+          }
+        ],
+        "C03": [],
+        "V01": [
+          {
+            "code": "lost_topic_or_intent",
+            "detail": "линия электропередачи"
+          },
+          {
+            "code": "lost_required_constraint",
+            "detail": "ЛЭП"
+          }
+        ],
+        "V03": [
+          {
+            "code": "lost_required_constraint",
+            "detail": "воздушных линий"
+          }
+        ],
+        "V06": [
+          {
+            "code": "lost_required_constraint",
+            "detail": "ВЛ"
+          }
+        ],
+        "D01": [],
+        "D02": [
+          {
+            "code": "lost_topic_or_intent",
+            "detail": "подстанция"
+          }
+        ],
+        "D03": [
+          {
+            "code": "lost_required_constraint",
+            "detail": "только по ПУЭ"
+          }
+        ],
+        "D04": [],
+        "A01": [],
+        "A02": [],
+        "A03": [],
+        "U01": [],
+        "U02": [],
+        "U03": []
+      },
+      "rows": [
+        {
+          "case_id": "S02",
+          "code": "lost_or_wrong_operation",
+          "detail": "search"
+        },
+        {
+          "case_id": "C02",
+          "code": "no_final_plan",
+          "detail": "classifier/parser/assembler did not produce a technical plan"
+        },
+        {
+          "case_id": "V01",
+          "code": "lost_topic_or_intent",
+          "detail": "линия электропередачи"
+        },
+        {
+          "case_id": "V01",
+          "code": "lost_required_constraint",
+          "detail": "ЛЭП"
+        },
+        {
+          "case_id": "V03",
+          "code": "lost_required_constraint",
+          "detail": "воздушных линий"
+        },
+        {
+          "case_id": "V06",
+          "code": "lost_required_constraint",
+          "detail": "ВЛ"
+        },
+        {
+          "case_id": "D02",
+          "code": "lost_topic_or_intent",
+          "detail": "подстанция"
+        },
+        {
+          "case_id": "D03",
+          "code": "lost_required_constraint",
+          "detail": "только по ПУЭ"
+        }
+      ]
+    },
+    "clarification": {
+      "ambiguous_cases": 3,
+      "field_matched": 2,
+      "subject_matched": 1,
+      "options_matched": 2,
+      "unnecessary_case_ids": []
+    },
+    "paired_V03_V06": {
+      "task_count_match": true,
+      "skill_scope_match": true,
+      "concepts_compatible": true,
+      "passed": true
+    },
+    "receipt_coverage": {
+      "total": 44,
+      "by_role": {
+        "classifier": 20,
+        "simple_parser": 15,
+        "complex_parser": 9
+      },
+      "classifier_cases": 20,
+      "parser_cases": 20,
+      "expected_cases": 20,
+      "complete": true
+    },
+    "unknown_metadata": {
+      "receipt_count": 44,
+      "actual_model_unknown": 44,
+      "usage_unknown": 44,
+      "physical_request_count_unknown": 44,
+      "event_id_unknown": 44,
+      "per_message_timestamps_unavailable": 44,
+      "worker_transcript_hashes_unknown": 2,
+      "verification_states": {
+        "host_verified": 0,
+        "requested_by_host_only": 44,
+        "unknown": 0
+      },
+      "note": "Workers used the requested subscription models; host exposed no server actual_model, event IDs, message timestamps, usage, or physical-request counts. Receipt timestamps are explicit host-unavailable markers."
+    },
+    "tuning_gate": {
+      "first_draft_threshold": true,
+      "repair_final_technical_threshold": false,
+      "classification_threshold": false,
+      "all_expected_complex_classified_complex": false,
+      "semantic_plan_threshold": false,
+      "no_critical_omissions": false,
+      "all_ambiguous_clarified": false,
+      "unnecessary_clarification_limit": true,
+      "paired_metamorphic_pass": true,
+      "status": "tuning_failed"
+    }
+  },
+  "case_scores": [
+    {
+      "case_id": "S01",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "S02",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "S03",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "S04",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "C01",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "C02",
+      "plan_match": false,
+      "status_match": false,
+      "clarification_match": false,
+      "clarification_subject_match": false,
+      "clarification_options_match": false,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "C03",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "V01",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "V03",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "V06",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "D01",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "D02",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "D03",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "D04",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "A01",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": false,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "A02",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "A03",
+      "plan_match": false,
+      "status_match": false,
+      "clarification_match": false,
+      "clarification_subject_match": false,
+      "clarification_options_match": false,
+      "task_semantics_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false
+    },
+    {
+      "case_id": "U01",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "U02",
+      "plan_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    },
+    {
+      "case_id": "U03",
+      "plan_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "task_semantics_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true
+    }
+  ],
+  "case_results": [
+    {
+      "case_id": "S01",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": false,
+          "error": "DraftValidationError: task 1 document ID is not in candidates"
+        },
+        {
+          "attempt": 2,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": false,
+      "repair_succeeded": true,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Как звучит пункт 6.25 из правил по охране труда",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "text: пункт 6.25",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Как звучит пункт 6.25"
+              },
+              {
+                "turn_id": "current",
+                "quote": "правил по охране труда"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "пункт 6.25",
+            "scope": "document",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "document_mention": "Правила по охране труда при эксплуатации электроустановок",
+            "point_ref": "6.25",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "text",
+                "source": [
+                  "current@1:4",
+                  "current@6:9"
+                ],
+                "topic": "пункт 6.25",
+                "document": "doc_ad116a1f6b41adb1",
+                "point": "current@4:4",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Как звучит пункт 6.25"
+                  },
+                  {
+                    "turn_id": "current",
+                    "quote": "правил по охране труда"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "6.25"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Как звучит пункт 6.25 из правил по охране труда"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 3,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Как"
+                },
+                {
+                  "end": 10,
+                  "ordinal": 2,
+                  "start": 4,
+                  "text": "звучит"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 11,
+                  "text": "пункт"
+                },
+                {
+                  "end": 21,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "6.25"
+                },
+                {
+                  "end": 24,
+                  "ordinal": 5,
+                  "start": 22,
+                  "text": "из"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 6,
+                  "start": 25,
+                  "text": "правил"
+                },
+                {
+                  "end": 34,
+                  "ordinal": 7,
+                  "start": 32,
+                  "text": "по"
+                },
+                {
+                  "end": 41,
+                  "ordinal": 8,
+                  "start": 35,
+                  "text": "охране"
+                },
+                {
+                  "end": 47,
+                  "ordinal": 9,
+                  "start": 42,
+                  "text": "труда"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "S02",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": false,
+          "error": "DraftValidationError: term meaning ID is not in prepared vocabulary"
+        },
+        {
+          "attempt": 2,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": false,
+      "repair_succeeded": true,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди пункты о заземлении",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: заземление",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди пункты о заземлении"
+              }
+            ],
+            "skill": "find_all",
+            "query": "заземление",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "заземление",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди пункты о заземлении"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди пункты о заземлении"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "пункты"
+                },
+                {
+                  "end": 14,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "о"
+                },
+                {
+                  "end": 25,
+                  "ordinal": 4,
+                  "start": 15,
+                  "text": "заземлении"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "S03",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "вытащи все про допускающего из правил по охране труда",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: допускающий",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "вытащи все про допускающего из правил по охране труда"
+              }
+            ],
+            "skill": "find_all",
+            "query": "допускающий",
+            "scope": "document",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "document_mention": "Правила по охране труда при эксплуатации электроустановок",
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "current@1:9"
+                ],
+                "topic": "допускающий",
+                "document": "doc_ad116a1f6b41adb1",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "вытащи все про допускающего из правил по охране труда"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "вытащи все про допускающего из правил по охране труда"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 6,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "вытащи"
+                },
+                {
+                  "end": 10,
+                  "ordinal": 2,
+                  "start": 7,
+                  "text": "все"
+                },
+                {
+                  "end": 14,
+                  "ordinal": 3,
+                  "start": 11,
+                  "text": "про"
+                },
+                {
+                  "end": 27,
+                  "ordinal": 4,
+                  "start": 15,
+                  "text": "допускающего"
+                },
+                {
+                  "end": 30,
+                  "ordinal": 5,
+                  "start": 28,
+                  "text": "из"
+                },
+                {
+                  "end": 37,
+                  "ordinal": 6,
+                  "start": 31,
+                  "text": "правил"
+                },
+                {
+                  "end": 40,
+                  "ordinal": 7,
+                  "start": 38,
+                  "text": "по"
+                },
+                {
+                  "end": 47,
+                  "ordinal": 8,
+                  "start": 41,
+                  "text": "охране"
+                },
+                {
+                  "end": 53,
+                  "ordinal": 9,
+                  "start": 48,
+                  "text": "труда"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "S04",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Покажи пункт 2.3 ПУЭ",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "text: пункт 2.3",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Покажи пункт 2.3 ПУЭ"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "пункт 2.3",
+            "scope": "document",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "document_mention": "ПУЭ",
+            "point_ref": "2.3",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "text",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "пункт 2.3",
+                "document": "doc_1e4a178aa5114b30",
+                "point": "current@3:3",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Покажи пункт 2.3 ПУЭ"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "2.3"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Покажи пункт 2.3 ПУЭ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 6,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Покажи"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 7,
+                  "text": "пункт"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "2.3"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "ПУЭ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "C01",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": false,
+          "error": "DraftValidationError: malformed SourceRef: '1.1'"
+        },
+        {
+          "attempt": 2,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": false,
+      "repair_succeeded": true,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Что такое ВЛ и покажи пункт 1.1 ПУЭ",
+        "status": "deferred",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "define: Что такое ВЛ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Что такое ВЛ"
+              }
+            ],
+            "skill": null,
+            "query": "Что такое ВЛ",
+            "scope": "unresolved",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [
+              {
+                "surface": "ВЛ",
+                "variants": [],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "ВЛ"
+                  }
+                ]
+              }
+            ],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          },
+          {
+            "task_id": "t2",
+            "intent_text": "text: покажи пункт 1.1 ПУЭ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "покажи пункт 1.1 ПУЭ"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "покажи пункт 1.1 ПУЭ",
+            "scope": "document",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "document_mention": "ПУЭ",
+            "point_ref": "1.1",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [
+          {
+            "code": "unsupported_intent",
+            "task_ids": [
+              "t1"
+            ],
+            "message": "operation define requires unsupported_intent"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "define",
+                "source": [
+                  "current@1:3"
+                ],
+                "terms": [
+                  {
+                    "source": "current@3:3",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "ВЛ"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Что такое ВЛ"
+                  }
+                ]
+              },
+              {
+                "operation": "text",
+                "source": [
+                  "current@5:8"
+                ],
+                "document": "doc_1e4a178aa5114b30",
+                "point": "current@7:7",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "покажи пункт 1.1 ПУЭ"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "1.1"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Что такое ВЛ и покажи пункт 1.1 ПУЭ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 3,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Что"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 4,
+                  "text": "такое"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "ВЛ"
+                },
+                {
+                  "end": 14,
+                  "ordinal": 4,
+                  "start": 13,
+                  "text": "и"
+                },
+                {
+                  "end": 21,
+                  "ordinal": 5,
+                  "start": 15,
+                  "text": "покажи"
+                },
+                {
+                  "end": 27,
+                  "ordinal": 6,
+                  "start": 22,
+                  "text": "пункт"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 7,
+                  "start": 28,
+                  "text": "1.1"
+                },
+                {
+                  "end": 35,
+                  "ordinal": 8,
+                  "start": 32,
+                  "text": "ПУЭ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "C02",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "complex",
+        "correct": false,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": false,
+          "error": "DraftValidationError: point SourceRef must identify one point number, not a measured quantity"
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": false,
+      "repair_succeeded": false,
+      "final_technical_valid": false,
+      "final_validation_error": "DraftValidationError: point SourceRef must identify one point number, not a measured quantity",
+      "assembler_error": null,
+      "actual_plan": null
+    },
+    {
+      "case_id": "C03",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди требования к заземлению и покажи пункт 2.1 ПУЭ",
+        "status": "ready",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "search: требования к заземлению",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди требования к заземлению"
+              }
+            ],
+            "skill": "corpus_point_search",
+            "query": "требования к заземлению",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          },
+          {
+            "task_id": "t2",
+            "intent_text": "text: покажи пункт 2.1 ПУЭ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "покажи пункт 2.1 ПУЭ"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "покажи пункт 2.1 ПУЭ",
+            "scope": "document",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "document_mention": "ПУЭ",
+            "point_ref": "2.1",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "search",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "требования к заземлению",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди требования к заземлению"
+                  }
+                ]
+              },
+              {
+                "operation": "text",
+                "source": [
+                  "current@6:9"
+                ],
+                "document": "doc_1e4a178aa5114b30",
+                "point": "current@8:8",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "покажи пункт 2.1 ПУЭ"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "2.1"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди требования к заземлению и покажи пункт 2.1 ПУЭ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "требования"
+                },
+                {
+                  "end": 18,
+                  "ordinal": 3,
+                  "start": 17,
+                  "text": "к"
+                },
+                {
+                  "end": 29,
+                  "ordinal": 4,
+                  "start": 19,
+                  "text": "заземлению"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 5,
+                  "start": 30,
+                  "text": "и"
+                },
+                {
+                  "end": 38,
+                  "ordinal": 6,
+                  "start": 32,
+                  "text": "покажи"
+                },
+                {
+                  "end": 44,
+                  "ordinal": 7,
+                  "start": 39,
+                  "text": "пункт"
+                },
+                {
+                  "end": 48,
+                  "ordinal": 8,
+                  "start": 45,
+                  "text": "2.1"
+                },
+                {
+                  "end": 52,
+                  "ordinal": 9,
+                  "start": 49,
+                  "text": "ПУЭ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "V01",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди все пункты про работу под наведённым напряжением на ЛЭП",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: работа под наведённым напряжением",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди все пункты про работу под наведённым напряжением на ЛЭП"
+              }
+            ],
+            "skill": "find_all",
+            "query": "работа под наведённым напряжением",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [
+              {
+                "surface": "ЛЭП",
+                "variants": [
+                  "ЛЭП"
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "ЛЭП"
+                  }
+                ]
+              }
+            ],
+            "constraints": [
+              {
+                "id": "t1:c1",
+                "kind": "action",
+                "text": "работу под наведённым напряжением",
+                "polarity": "include",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "работу под наведённым напряжением"
+                  }
+                ]
+              }
+            ],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "current@1:10"
+                ],
+                "topic": "работа под наведённым напряжением",
+                "terms": [
+                  {
+                    "source": "current@10:10",
+                    "meaning": "ЛЭП",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "ЛЭП"
+                    }
+                  }
+                ],
+                "conditions": [
+                  {
+                    "source": "current@5:8",
+                    "kind": "action",
+                    "polarity": "include",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "работу под наведённым напряжением"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди все пункты про работу под наведённым напряжением на ЛЭП"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди все пункты про работу под наведённым напряжением на ЛЭП"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "все"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "пункты"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "про"
+                },
+                {
+                  "end": 27,
+                  "ordinal": 5,
+                  "start": 21,
+                  "text": "работу"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 6,
+                  "start": 28,
+                  "text": "под"
+                },
+                {
+                  "end": 42,
+                  "ordinal": 7,
+                  "start": 32,
+                  "text": "наведённым"
+                },
+                {
+                  "end": 54,
+                  "ordinal": 8,
+                  "start": 43,
+                  "text": "напряжением"
+                },
+                {
+                  "end": 57,
+                  "ordinal": 9,
+                  "start": 55,
+                  "text": "на"
+                },
+                {
+                  "end": 61,
+                  "ordinal": 10,
+                  "start": 58,
+                  "text": "ЛЭП"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "V03",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди все требования к заземлению воздушных линий 110 кВ, не для кабельных линий",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: заземление воздушных линий",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди все требования к заземлению воздушных линий 110 кВ, не для кабельных линий"
+              }
+            ],
+            "skill": "find_all",
+            "query": "заземление воздушных линий",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [
+              {
+                "surface": "воздушных линий",
+                "variants": [],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "воздушных линий"
+                  }
+                ]
+              }
+            ],
+            "constraints": [
+              {
+                "id": "t1:c1",
+                "kind": "quantity",
+                "text": "110 кВ",
+                "polarity": "include",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "110 кВ"
+                  }
+                ]
+              },
+              {
+                "id": "t1:c2",
+                "kind": "exclusion",
+                "text": "не для кабельных линий",
+                "polarity": "exclude",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "не для кабельных линий"
+                  }
+                ]
+              }
+            ],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "current@1:14"
+                ],
+                "topic": "заземление воздушных линий",
+                "terms": [
+                  {
+                    "source": "current@6:7",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "воздушных линий"
+                    }
+                  }
+                ],
+                "conditions": [
+                  {
+                    "source": "current@8:9",
+                    "kind": "quantity",
+                    "polarity": "include",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "110 кВ"
+                    }
+                  },
+                  {
+                    "source": "current@11:14",
+                    "kind": "exclusion",
+                    "polarity": "exclude",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "не для кабельных линий"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди все требования к заземлению воздушных линий 110 кВ, не для кабельных линий"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди все требования к заземлению воздушных линий 110 кВ, не для кабельных линий"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "все"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "требования"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 21,
+                  "text": "к"
+                },
+                {
+                  "end": 33,
+                  "ordinal": 5,
+                  "start": 23,
+                  "text": "заземлению"
+                },
+                {
+                  "end": 43,
+                  "ordinal": 6,
+                  "start": 34,
+                  "text": "воздушных"
+                },
+                {
+                  "end": 49,
+                  "ordinal": 7,
+                  "start": 44,
+                  "text": "линий"
+                },
+                {
+                  "end": 53,
+                  "ordinal": 8,
+                  "start": 50,
+                  "text": "110"
+                },
+                {
+                  "end": 56,
+                  "ordinal": 9,
+                  "start": 54,
+                  "text": "кВ"
+                },
+                {
+                  "end": 57,
+                  "ordinal": 10,
+                  "start": 56,
+                  "text": ","
+                },
+                {
+                  "end": 60,
+                  "ordinal": 11,
+                  "start": 58,
+                  "text": "не"
+                },
+                {
+                  "end": 64,
+                  "ordinal": 12,
+                  "start": 61,
+                  "text": "для"
+                },
+                {
+                  "end": 74,
+                  "ordinal": 13,
+                  "start": 65,
+                  "text": "кабельных"
+                },
+                {
+                  "end": 80,
+                  "ordinal": 14,
+                  "start": 75,
+                  "text": "линий"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "V06",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди все требования к заземлению ВЛ 110 кВ, не для кабельных линий",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: заземление ВЛ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди все требования к заземлению ВЛ 110 кВ, не для кабельных линий"
+              }
+            ],
+            "skill": "find_all",
+            "query": "заземление ВЛ",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [
+              {
+                "surface": "ВЛ",
+                "variants": [],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "ВЛ"
+                  }
+                ]
+              }
+            ],
+            "constraints": [
+              {
+                "id": "t1:c1",
+                "kind": "quantity",
+                "text": "110 кВ",
+                "polarity": "include",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "110 кВ"
+                  }
+                ]
+              },
+              {
+                "id": "t1:c2",
+                "kind": "exclusion",
+                "text": "не для кабельных линий",
+                "polarity": "exclude",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "не для кабельных линий"
+                  }
+                ]
+              }
+            ],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "current@1:13"
+                ],
+                "topic": "заземление ВЛ",
+                "terms": [
+                  {
+                    "source": "current@6:6",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "ВЛ"
+                    }
+                  }
+                ],
+                "conditions": [
+                  {
+                    "source": "current@7:8",
+                    "kind": "quantity",
+                    "polarity": "include",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "110 кВ"
+                    }
+                  },
+                  {
+                    "source": "current@10:13",
+                    "kind": "exclusion",
+                    "polarity": "exclude",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "не для кабельных линий"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди все требования к заземлению ВЛ 110 кВ, не для кабельных линий"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди все требования к заземлению ВЛ 110 кВ, не для кабельных линий"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "все"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "требования"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 21,
+                  "text": "к"
+                },
+                {
+                  "end": 33,
+                  "ordinal": 5,
+                  "start": 23,
+                  "text": "заземлению"
+                },
+                {
+                  "end": 36,
+                  "ordinal": 6,
+                  "start": 34,
+                  "text": "ВЛ"
+                },
+                {
+                  "end": 40,
+                  "ordinal": 7,
+                  "start": 37,
+                  "text": "110"
+                },
+                {
+                  "end": 43,
+                  "ordinal": 8,
+                  "start": 41,
+                  "text": "кВ"
+                },
+                {
+                  "end": 44,
+                  "ordinal": 9,
+                  "start": 43,
+                  "text": ","
+                },
+                {
+                  "end": 47,
+                  "ordinal": 10,
+                  "start": 45,
+                  "text": "не"
+                },
+                {
+                  "end": 51,
+                  "ordinal": 11,
+                  "start": 48,
+                  "text": "для"
+                },
+                {
+                  "end": 61,
+                  "ordinal": 12,
+                  "start": 52,
+                  "text": "кабельных"
+                },
+                {
+                  "end": 67,
+                  "ordinal": 13,
+                  "start": 62,
+                  "text": "линий"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "D01",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "А пункт 2.1?",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "text: пункт 2.1",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "А пункт 2.1"
+              },
+              {
+                "turn_id": "turn_1",
+                "quote": "правил по охране труда"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "пункт 2.1",
+            "scope": "document",
+            "doc_id": "doc_ad116a1f6b41adb1",
+            "document_mention": "Правила по охране труда при эксплуатации электроустановок",
+            "point_ref": "2.1",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "continue",
+            "tasks": [
+              {
+                "operation": "text",
+                "source": [
+                  "current@1:3",
+                  "turn_1@6:9"
+                ],
+                "topic": "пункт 2.1",
+                "document": "doc_ad116a1f6b41adb1",
+                "point": "current@3:3",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "А пункт 2.1"
+                  },
+                  {
+                    "turn_id": "turn_1",
+                    "quote": "правил по охране труда"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "2.1"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "А пункт 2.1?",
+              "turn_1": "Как звучит пункт 6.25 из правил по охране труда"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 1,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "А"
+                },
+                {
+                  "end": 7,
+                  "ordinal": 2,
+                  "start": 2,
+                  "text": "пункт"
+                },
+                {
+                  "end": 11,
+                  "ordinal": 3,
+                  "start": 8,
+                  "text": "2.1"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 4,
+                  "start": 11,
+                  "text": "?"
+                }
+              ],
+              "turn_1": [
+                {
+                  "end": 3,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Как"
+                },
+                {
+                  "end": 10,
+                  "ordinal": 2,
+                  "start": 4,
+                  "text": "звучит"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 11,
+                  "text": "пункт"
+                },
+                {
+                  "end": 21,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "6.25"
+                },
+                {
+                  "end": 24,
+                  "ordinal": 5,
+                  "start": 22,
+                  "text": "из"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 6,
+                  "start": 25,
+                  "text": "правил"
+                },
+                {
+                  "end": 34,
+                  "ordinal": 7,
+                  "start": 32,
+                  "text": "по"
+                },
+                {
+                  "end": 41,
+                  "ordinal": 8,
+                  "start": 35,
+                  "text": "охране"
+                },
+                {
+                  "end": 47,
+                  "ordinal": 9,
+                  "start": 42,
+                  "text": "труда"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "D02",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Не электростанции, а подстанции",
+        "status": "ready",
+        "complexity": "complex",
+        "dialog_action": "correct",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: требования к подстанциям",
+            "evidence": [
+              {
+                "turn_id": "turn_1",
+                "quote": "Найди все требования к электростанциям"
+              },
+              {
+                "turn_id": "current",
+                "quote": "Не электростанции, а подстанции"
+              }
+            ],
+            "skill": "find_all",
+            "query": "требования к подстанциям",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [],
+            "constraints": [
+              {
+                "id": "t1:c1",
+                "kind": "object",
+                "text": "Не электростанции",
+                "polarity": "exclude",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Не электростанции"
+                  }
+                ]
+              },
+              {
+                "id": "t1:c2",
+                "kind": "object",
+                "text": "подстанции",
+                "polarity": "include",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "подстанции"
+                  }
+                ]
+              }
+            ],
+            "depends_on": [],
+            "replaces": [
+              "turn_1:c1"
+            ]
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "correct",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "turn_1@1:5",
+                  "current@1:5"
+                ],
+                "topic": "требования к подстанциям",
+                "conditions": [
+                  {
+                    "source": "current@1:2",
+                    "kind": "object",
+                    "polarity": "exclude",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "Не электростанции"
+                    }
+                  },
+                  {
+                    "source": "current@5:5",
+                    "kind": "object",
+                    "polarity": "include",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "подстанции"
+                    }
+                  }
+                ],
+                "replace": [
+                  "turn_1:c1"
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "turn_1",
+                    "quote": "Найди все требования к электростанциям"
+                  },
+                  {
+                    "turn_id": "current",
+                    "quote": "Не электростанции, а подстанции"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Не электростанции, а подстанции",
+              "turn_1": "Найди все требования к электростанциям"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 2,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Не"
+                },
+                {
+                  "end": 17,
+                  "ordinal": 2,
+                  "start": 3,
+                  "text": "электростанции"
+                },
+                {
+                  "end": 18,
+                  "ordinal": 3,
+                  "start": 17,
+                  "text": ","
+                },
+                {
+                  "end": 20,
+                  "ordinal": 4,
+                  "start": 19,
+                  "text": "а"
+                },
+                {
+                  "end": 31,
+                  "ordinal": 5,
+                  "start": 21,
+                  "text": "подстанции"
+                }
+              ],
+              "turn_1": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "все"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "требования"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 21,
+                  "text": "к"
+                },
+                {
+                  "end": 38,
+                  "ordinal": 5,
+                  "start": 23,
+                  "text": "электростанциям"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "D03",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Теперь только по ПУЭ",
+        "status": "ready",
+        "complexity": "complex",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "all: требования к защитному заземлению",
+            "evidence": [
+              {
+                "turn_id": "turn_1",
+                "quote": "Найди все требования к защитному заземлению"
+              },
+              {
+                "turn_id": "current",
+                "quote": "Теперь только по ПУЭ"
+              }
+            ],
+            "skill": "find_all",
+            "query": "требования к защитному заземлению",
+            "scope": "document",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "document_mention": "ПУЭ",
+            "point_ref": null,
+            "coverage": "comprehensive",
+            "concepts": [],
+            "constraints": [
+              {
+                "id": "t1:c1",
+                "kind": "exclusion",
+                "text": "только по ПУЭ",
+                "polarity": "exclude",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "только по ПУЭ"
+                  }
+                ]
+              }
+            ],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "continue",
+            "tasks": [
+              {
+                "operation": "all",
+                "source": [
+                  "turn_1@1:6",
+                  "current@1:4"
+                ],
+                "topic": "требования к защитному заземлению",
+                "document": "doc_1e4a178aa5114b30",
+                "conditions": [
+                  {
+                    "source": "current@2:4",
+                    "kind": "exclusion",
+                    "polarity": "exclude",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "только по ПУЭ"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "turn_1",
+                    "quote": "Найди все требования к защитному заземлению"
+                  },
+                  {
+                    "turn_id": "current",
+                    "quote": "Теперь только по ПУЭ"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Теперь только по ПУЭ",
+              "turn_1": "Найди все требования к защитному заземлению"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 6,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Теперь"
+                },
+                {
+                  "end": 13,
+                  "ordinal": 2,
+                  "start": 7,
+                  "text": "только"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 14,
+                  "text": "по"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "ПУЭ"
+                }
+              ],
+              "turn_1": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 9,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "все"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 3,
+                  "start": 10,
+                  "text": "требования"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 21,
+                  "text": "к"
+                },
+                {
+                  "end": 32,
+                  "ordinal": 5,
+                  "start": 23,
+                  "text": "защитному"
+                },
+                {
+                  "end": 43,
+                  "ordinal": 6,
+                  "start": 33,
+                  "text": "заземлению"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "D04",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "simple",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Покажи пункт 3.2",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "continue",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "text: пункт 3.2",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Покажи пункт 3.2"
+              },
+              {
+                "turn_id": "turn_1",
+                "quote": "Покажи пункт 1.1 ПУЭ"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "пункт 3.2",
+            "scope": "document",
+            "doc_id": "doc_1e4a178aa5114b30",
+            "document_mention": "ПУЭ",
+            "point_ref": "3.2",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "continue",
+            "tasks": [
+              {
+                "operation": "text",
+                "source": [
+                  "current@1:3",
+                  "turn_1@1:4"
+                ],
+                "topic": "пункт 3.2",
+                "document": "doc_1e4a178aa5114b30",
+                "point": "current@3:3",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Покажи пункт 3.2"
+                  },
+                  {
+                    "turn_id": "turn_1",
+                    "quote": "Покажи пункт 1.1 ПУЭ"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "3.2"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Покажи пункт 3.2",
+              "turn_1": "Покажи пункт 1.1 ПУЭ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 6,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Покажи"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 7,
+                  "text": "пункт"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "3.2"
+                }
+              ],
+              "turn_1": [
+                {
+                  "end": 6,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Покажи"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 7,
+                  "text": "пункт"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "1.1"
+                },
+                {
+                  "end": 20,
+                  "ordinal": 4,
+                  "start": 17,
+                  "text": "ПУЭ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "A01",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Пункт 33 постановления 86",
+        "status": "needs_clarification",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "text: Пункт 33 постановления 86",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Пункт 33 постановления 86"
+              }
+            ],
+            "skill": "exact_point",
+            "query": "Пункт 33 постановления 86",
+            "scope": "unresolved",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": "33",
+            "coverage": "exact",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": {
+          "question": "Какой документ вы имеете в виду под «постановления 86»?",
+          "target_task_ids": [
+            "t1"
+          ],
+          "field": "document",
+          "options": [
+            {
+              "id": "doc_fda367c87f1251e3",
+              "label": "Об утверждении Правил недискриминационного доступа"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "code": "ambiguous_document",
+            "task_ids": [
+              "t1"
+            ],
+            "message": "operation text requires ambiguous_document"
+          },
+          {
+            "code": "ambiguous_document",
+            "task_ids": [
+              "t1"
+            ],
+            "message": "semantic draft marks document as uncertain"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "text",
+                "source": [
+                  "current@1:4"
+                ],
+                "point": "current@2:2",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Пункт 33 постановления 86"
+                  }
+                ],
+                "point_evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "33"
+                  }
+                ]
+              }
+            ],
+            "uncertain": [
+              {
+                "field": "document",
+                "source": "current@3:4",
+                "task": 1,
+                "candidates": [
+                  "doc_fda367c87f1251e3"
+                ]
+              }
+            ]
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Пункт 33 постановления 86"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Пункт"
+                },
+                {
+                  "end": 8,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "33"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 3,
+                  "start": 9,
+                  "text": "постановления"
+                },
+                {
+                  "end": 25,
+                  "ordinal": 4,
+                  "start": 23,
+                  "text": "86"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "A02",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди требования к ПТЭ",
+        "status": "needs_clarification",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "search: требования к ПТЭ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди требования к ПТЭ"
+              }
+            ],
+            "skill": "corpus_point_search",
+            "query": "требования к ПТЭ",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": {
+          "question": "Какой документ вы имеете в виду под «ПТЭ»?",
+          "target_task_ids": [
+            "t1"
+          ],
+          "field": "document",
+          "options": [
+            {
+              "id": "doc_eae0520bf60a818d",
+              "label": "Правила технической эксплуатации электрических станций и сетей Российской Федерации"
+            },
+            {
+              "id": "doc_691ad88b0e765823",
+              "label": "Об утверждении Правил технической эксплуатации электроустановок потребителей электрической энергии"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "code": "ambiguous_document",
+            "task_ids": [
+              "t1"
+            ],
+            "message": "semantic draft marks document as uncertain"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "search",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "требования к ПТЭ",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди требования к ПТЭ"
+                  }
+                ]
+              }
+            ],
+            "uncertain": [
+              {
+                "field": "document",
+                "source": "current@4:4",
+                "task": 1,
+                "candidates": [
+                  "doc_eae0520bf60a818d",
+                  "doc_691ad88b0e765823"
+                ]
+              }
+            ]
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди требования к ПТЭ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "требования"
+                },
+                {
+                  "end": 18,
+                  "ordinal": 3,
+                  "start": 17,
+                  "text": "к"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 19,
+                  "text": "ПТЭ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "A03",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "complex",
+        "correct": false,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди требования к АВР",
+        "status": "ready",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "search: требования к АВР",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди требования к АВР"
+              }
+            ],
+            "skill": "corpus_point_search",
+            "query": "требования к АВР",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [
+              {
+                "surface": "АВР",
+                "variants": [],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "АВР"
+                  }
+                ]
+              }
+            ],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "search",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "требования к АВР",
+                "terms": [
+                  {
+                    "source": "current@4:4",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "АВР"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди требования к АВР"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди требования к АВР"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 16,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "требования"
+                },
+                {
+                  "end": 18,
+                  "ordinal": 3,
+                  "start": 17,
+                  "text": "к"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 19,
+                  "text": "АВР"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "U01",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди пункты о заземлении и затем сравни требования",
+        "status": "deferred",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "search: пункты о заземлении",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди пункты о заземлении"
+              }
+            ],
+            "skill": "corpus_point_search",
+            "query": "пункты о заземлении",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          },
+          {
+            "task_id": "t2",
+            "intent_text": "compare: требования",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "затем сравни требования"
+              }
+            ],
+            "skill": null,
+            "query": "требования",
+            "scope": "unresolved",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [
+              "t1"
+            ],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [
+          {
+            "code": "unsupported_intent",
+            "task_ids": [
+              "t2"
+            ],
+            "message": "operation compare requires unsupported_intent"
+          },
+          {
+            "code": "dependency_execution_not_in_stage1",
+            "task_ids": [
+              "t2"
+            ],
+            "message": "dependent execution is deferred in stage 1"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "search",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "пункты о заземлении",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди пункты о заземлении"
+                  }
+                ]
+              },
+              {
+                "operation": "compare",
+                "source": [
+                  "current@6:8"
+                ],
+                "topic": "требования",
+                "after": [
+                  1
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "затем сравни требования"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди пункты о заземлении и затем сравни требования"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "пункты"
+                },
+                {
+                  "end": 14,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "о"
+                },
+                {
+                  "end": 25,
+                  "ordinal": 4,
+                  "start": 15,
+                  "text": "заземлении"
+                },
+                {
+                  "end": 27,
+                  "ordinal": 5,
+                  "start": 26,
+                  "text": "и"
+                },
+                {
+                  "end": 33,
+                  "ordinal": 6,
+                  "start": 28,
+                  "text": "затем"
+                },
+                {
+                  "end": 40,
+                  "ordinal": 7,
+                  "start": 34,
+                  "text": "сравни"
+                },
+                {
+                  "end": 51,
+                  "ordinal": 8,
+                  "start": 41,
+                  "text": "требования"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "U02",
+      "classifier": {
+        "predicted": "complex",
+        "expected": "complex",
+        "correct": true,
+        "error": null
+      },
+      "parser_role": "complex_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Найди пункты о допуске, затем составь заключение о соответствии",
+        "status": "deferred",
+        "complexity": "complex",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "search: пункты о допуске",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Найди пункты о допуске"
+              }
+            ],
+            "skill": "corpus_point_search",
+            "query": "пункты о допуске",
+            "scope": "corpus",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          },
+          {
+            "task_id": "t2",
+            "intent_text": "conclude: соответствие",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "затем составь заключение о соответствии"
+              }
+            ],
+            "skill": null,
+            "query": "соответствие",
+            "scope": "unresolved",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [],
+            "constraints": [],
+            "depends_on": [
+              "t1"
+            ],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [
+          {
+            "code": "unsupported_intent",
+            "task_ids": [
+              "t2"
+            ],
+            "message": "operation conclude requires unsupported_intent"
+          },
+          {
+            "code": "dependency_execution_not_in_stage1",
+            "task_ids": [
+              "t2"
+            ],
+            "message": "dependent execution is deferred in stage 1"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "search",
+                "source": [
+                  "current@1:4"
+                ],
+                "topic": "пункты о допуске",
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Найди пункты о допуске"
+                  }
+                ]
+              },
+              {
+                "operation": "conclude",
+                "source": [
+                  "current@6:10"
+                ],
+                "topic": "соответствие",
+                "after": [
+                  1
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "затем составь заключение о соответствии"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Найди пункты о допуске, затем составь заключение о соответствии"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 5,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Найди"
+                },
+                {
+                  "end": 12,
+                  "ordinal": 2,
+                  "start": 6,
+                  "text": "пункты"
+                },
+                {
+                  "end": 14,
+                  "ordinal": 3,
+                  "start": 13,
+                  "text": "о"
+                },
+                {
+                  "end": 22,
+                  "ordinal": 4,
+                  "start": 15,
+                  "text": "допуске"
+                },
+                {
+                  "end": 23,
+                  "ordinal": 5,
+                  "start": 22,
+                  "text": ","
+                },
+                {
+                  "end": 29,
+                  "ordinal": 6,
+                  "start": 24,
+                  "text": "затем"
+                },
+                {
+                  "end": 37,
+                  "ordinal": 7,
+                  "start": 30,
+                  "text": "составь"
+                },
+                {
+                  "end": 48,
+                  "ordinal": 8,
+                  "start": 38,
+                  "text": "заключение"
+                },
+                {
+                  "end": 50,
+                  "ordinal": 9,
+                  "start": 49,
+                  "text": "о"
+                },
+                {
+                  "end": 63,
+                  "ordinal": 10,
+                  "start": 51,
+                  "text": "соответствии"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "U03",
+      "classifier": {
+        "predicted": "simple",
+        "expected": "complex",
+        "correct": false,
+        "error": null
+      },
+      "parser_role": "simple_parser",
+      "parser_attempts": [
+        {
+          "attempt": 1,
+          "wire_valid": true,
+          "technical_valid": true,
+          "error": null
+        }
+      ],
+      "first_draft_wire_valid": true,
+      "first_draft_technical_valid": true,
+      "repair_succeeded": null,
+      "final_technical_valid": true,
+      "final_validation_error": null,
+      "assembler_error": null,
+      "actual_plan": {
+        "schema_version": "skill_query_plan.v2",
+        "original_query": "Дай определение ВЛ",
+        "status": "deferred",
+        "complexity": "simple",
+        "dialog_action": "new",
+        "tasks": [
+          {
+            "task_id": "t1",
+            "intent_text": "define: ВЛ",
+            "evidence": [
+              {
+                "turn_id": "current",
+                "quote": "Дай определение ВЛ"
+              }
+            ],
+            "skill": null,
+            "query": "ВЛ",
+            "scope": "unresolved",
+            "doc_id": null,
+            "document_mention": null,
+            "point_ref": null,
+            "coverage": "ranked",
+            "concepts": [
+              {
+                "surface": "ВЛ",
+                "variants": [],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "ВЛ"
+                  }
+                ]
+              }
+            ],
+            "constraints": [],
+            "depends_on": [],
+            "replaces": []
+          }
+        ],
+        "clarification": null,
+        "issues": [
+          {
+            "code": "unsupported_intent",
+            "task_ids": [
+              "t1"
+            ],
+            "message": "operation define requires unsupported_intent"
+          }
+        ],
+        "trace": {
+          "replay_mode": "codex_subscription_file_replay",
+          "semantic_draft": {
+            "dialog": "new",
+            "tasks": [
+              {
+                "operation": "define",
+                "source": [
+                  "current@1:3"
+                ],
+                "topic": "ВЛ",
+                "terms": [
+                  {
+                    "source": "current@3:3",
+                    "evidence": {
+                      "turn_id": "current",
+                      "quote": "ВЛ"
+                    }
+                  }
+                ],
+                "evidence": [
+                  {
+                    "turn_id": "current",
+                    "quote": "Дай определение ВЛ"
+                  }
+                ]
+              }
+            ],
+            "uncertain": []
+          },
+          "source_manifest": {
+            "sources": {
+              "current": "Дай определение ВЛ"
+            },
+            "tokenizer_version": "source_tokens.v1",
+            "tokens": {
+              "current": [
+                {
+                  "end": 3,
+                  "ordinal": 1,
+                  "start": 0,
+                  "text": "Дай"
+                },
+                {
+                  "end": 15,
+                  "ordinal": 2,
+                  "start": 4,
+                  "text": "определение"
+                },
+                {
+                  "end": 18,
+                  "ordinal": 3,
+                  "start": 16,
+                  "text": "ВЛ"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "generated_at": "2026-10-08T00:45:19.855518+00:00",
+  "replay_determinism": {
+    "replays": 2,
+    "identical_excluding_generated_at": true,
+    "substantive_sha256": "62f34708578ce50cad5fc602d93cdf1bfba697bf4f16abe62d2d85b15c213971"
+  },
+  "provenance_limits": {
+    "workers": [
+      "/root/luna_v2_tuning_worker",
+      "/root/sol_v2_tuning_worker"
+    ],
+    "worker_models": "requested gpt-6-luna medium / gpt-6-sol medium; server-side actual_model unavailable",
+    "actual_model_verification": "requested_by_host_only",
+    "worker_tools_used": false,
+    "repair_prompt_wrapper_unavailable": true,
+    "repair_success_means_second_captured_response_validated": true,
+    "holdout_loaded": false,
+    "network_or_live_services_used": false
+  }
+}

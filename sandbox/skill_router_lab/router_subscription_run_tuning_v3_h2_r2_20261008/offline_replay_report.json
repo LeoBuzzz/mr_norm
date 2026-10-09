@@ -1,0 +1,239 @@
+{
+  "schema_version": "router_v3_offline_technical_replay.v1",
+  "run_id": "router-v3-h2-tuning-20261008-r2",
+  "run_manifest_sha256": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+  "frozen_validation": "v3_frozen_inputs_valid",
+  "receipt_count": 45,
+  "expected_case_denominator": 20,
+  "classifier_coverage": {
+    "received": 20,
+    "expected": 20
+  },
+  "predicted_parser_coverage": {
+    "received": 20,
+    "expected": 20
+  },
+  "coverage_complete": true,
+  "complete": true,
+  "first_wire_valid": 20,
+  "first_wire_denominator": 20,
+  "first_technical_valid": 15,
+  "first_technical_denominator": 20,
+  "first_technical_pass": false,
+  "final_technical_valid": 20,
+  "final_technical_denominator": 20,
+  "final_technical_pass": true,
+  "overall_gate_pass": false,
+  "repair_succeeded": 5,
+  "missing_attempt_case_ids": [],
+  "transport_failure_case_ids": [],
+  "model_failure_case_ids": [],
+  "case_results": [
+    {
+      "case_id": "S01",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": false,
+      "final_technical_valid": true,
+      "repair_state": "succeeded",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "S02",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "S03",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "S04",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "C01",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": false,
+      "final_technical_valid": true,
+      "repair_state": "succeeded",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "C02",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": false,
+      "final_technical_valid": true,
+      "repair_state": "succeeded",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "C03",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": false,
+      "final_technical_valid": true,
+      "repair_state": "succeeded",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "V01",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "V03",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "V06",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "D01",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "D02",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "D03",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "D04",
+      "classification": "completed",
+      "parser_role": "simple_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "A01",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": false,
+      "final_technical_valid": true,
+      "repair_state": "succeeded",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "A02",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "A03",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "U01",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "U02",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    },
+    {
+      "case_id": "U03",
+      "classification": "completed",
+      "parser_role": "complex_parser",
+      "first_wire_valid": true,
+      "first_technical_valid": true,
+      "final_technical_valid": true,
+      "repair_state": "not_needed",
+      "final_state": "completed"
+    }
+  ],
+  "provenance": {
+    "network_used": false,
+    "gold_loaded": false,
+    "holdout_loaded": false,
+    "actual_model_metadata": "requested_by_host_only"
+  }
+}

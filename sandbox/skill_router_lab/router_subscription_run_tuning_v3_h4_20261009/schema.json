@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["dialog", "tasks"],
+  "properties": {
+    "dialog": {"type": "string", "enum": ["new", "continue", "correct", "clarify"]},
+    "tasks": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operation", "source"],
+        "properties": {
+          "operation": {"type": "string", "enum": ["all", "compare", "conclude", "define", "search", "summarize", "text", "unknown"]},
+          "source": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "topic": {"type": "string"},
+          "document": {"type": "string"},
+          "point": {"type": "string"},
+          "terms": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source"], "properties": {"source": {"type": "string"}, "meaning": {"type": "string"}}}},
+          "conditions": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source", "kind", "polarity"], "properties": {"source": {"type": "string"}, "kind": {"type": "string", "enum": ["object", "action", "condition", "quantity", "exclusion"]}, "polarity": {"type": "string", "enum": ["include", "exclude"]}}}},
+          "after": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "replace": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "uncertain": {
+      "type": "array",
+      "items": {"type": "object", "additionalProperties": false, "required": ["field", "source"], "properties": {"field": {"type": "string", "enum": ["document", "intent", "point", "scope", "term"]}, "source": {"type": "string"}, "task": {"type": "integer", "minimum": 1}, "candidates": {"type": "array", "items": {"type": "string"}}}}
+    }
+  }
+}

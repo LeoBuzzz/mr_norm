@@ -1,0 +1,20 @@
+{
+  "run_id": "router-v3-h2-tuning-20261008-r2",
+  "manifest_sha256": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+  "receipts_sha256": "184b7516277df17e9c9098ba86239c6f9fddb32c0e921625a6a65a45967d7160",
+  "snapshot_files": 16,
+  "technical": {
+    "complete": true,
+    "first": 15,
+    "final": 20
+  },
+  "semantic": {
+    "baseline": {
+      "matched": 11,
+      "total": 20,
+      "display": "11/20"
+    },
+    "h2_matched": 5
+  },
+  "replay_twice_equal": true
+}\n
