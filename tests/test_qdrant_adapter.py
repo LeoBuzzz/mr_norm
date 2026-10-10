@@ -41,3 +41,35 @@ def test_payload_search_recreates_client_after_reset(monkeypatch) -> None:
 
     assert [item.doc_id for item in items] == ["doc-1"]
     assert FlakyClient.instances == 2
+
+
+def test_local_qdrant_bypasses_windows_system_proxy() -> None:
+    captured = []
+
+    class CapturingClient:
+        def __init__(self, **kwargs):
+            captured.append(kwargs)
+
+    client = QdrantRetrievalClient.__new__(QdrantRetrievalClient)
+    client.config = IndexingConfig(qdrant_host="localhost")
+    client._qdrant_client_type = CapturingClient
+
+    client._new_client()
+
+    assert captured[0]["trust_env"] is False
+
+
+def test_remote_qdrant_keeps_environment_proxy_support() -> None:
+    captured = []
+
+    class CapturingClient:
+        def __init__(self, **kwargs):
+            captured.append(kwargs)
+
+    client = QdrantRetrievalClient.__new__(QdrantRetrievalClient)
+    client.config = IndexingConfig(qdrant_host="qdrant.example.test")
+    client._qdrant_client_type = CapturingClient
+
+    client._new_client()
+
+    assert "trust_env" not in captured[0]

@@ -24,12 +24,19 @@ class QdrantRetrievalClient:
         # recreating the client is materially more reliable than retrying the
         # same pool.  The installed client is newer than the server, so the
         # compatibility probe is disabled to avoid an extra control request.
+        kwargs: dict[str, Any] = {
+            "url": self.config.qdrant_url,
+            "timeout": self.config.qdrant_timeout_sec,
+            "check_compatibility": False,
+        }
+        # httpx also reads the Windows system proxy.  If localhost is not in
+        # that proxy's bypass list, large query_points requests are sent to the
+        # proxy and can fail with WinError 10054.  A local Qdrant must always be
+        # reached directly; remote deployments retain their proxy behaviour.
+        if self.config.qdrant_host.casefold() in {"localhost", "127.0.0.1", "::1"}:
+            kwargs["trust_env"] = False
         try:
-            return self._qdrant_client_type(
-                url=self.config.qdrant_url,
-                timeout=self.config.qdrant_timeout_sec,
-                check_compatibility=False,
-            )
+            return self._qdrant_client_type(**kwargs)
         except TypeError:
             return self._qdrant_client_type(url=self.config.qdrant_url, timeout=self.config.qdrant_timeout_sec)
 

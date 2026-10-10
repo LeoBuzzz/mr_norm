@@ -5,9 +5,19 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import warnings
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
+
+# Some user environments contain an optional chardet version newer than the
+# range advertised by requests.  Router2 does not use chardet directly; keep
+# that harmless environment warning from obscuring the actual answer.
+warnings.filterwarnings(
+    "ignore",
+    message=r"urllib3 .* doesn't match a supported version!",
+    module=r"requests(?:\..*)?",
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 for source in (ROOT / "src", ROOT / "sandbox"):
