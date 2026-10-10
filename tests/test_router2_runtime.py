@@ -105,6 +105,46 @@ def test_exact_point_limits_pue_chapter_by_filename(monkeypatch):
     assert warnings == []
 
 
+def test_search_hit_is_hydrated_by_exact_point_identity(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    captured = []
+    identity = "48::Раздел::100:20"
+
+    def fake_point_tool(request, _config):
+        captured.append(request.filters)
+        return SimpleNamespace(items=[
+            RetrievedItem(
+                chunk_id="part-1", doc_id="doc-1", doc_name="Правила",
+                point_number="48", point_identity_key=identity,
+                text="48. Начало ", part_index=0, total_parts=2,
+                is_split=True, is_complete_point=False,
+            ),
+            RetrievedItem(
+                chunk_id="part-2", doc_id="doc-1", doc_name="Правила",
+                point_number="48", point_identity_key=identity,
+                text="и продолжение.", part_index=1, total_parts=2,
+                is_split=True, is_complete_point=False,
+            ),
+        ], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_point_tool", fake_point_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, warnings = backend.hydrate_full_points([RetrievedItem(
+        chunk_id="search-hit", doc_id="doc-1", doc_name="Правила",
+        point_number="48", point_identity_key=identity,
+        text="обрезанный фрагмент", score=0.91, source_tool="vector",
+        part_index=1, total_parts=2, is_split=True, is_complete_point=False,
+    )])
+
+    assert captured == [{"point_identity_key": identity}]
+    assert items[0].text == "48. Начало и продолжение."
+    assert items[0].score == 0.91
+    assert items[0].source_tool == "vector"
+    assert items[0].is_complete_point is True
+    assert warnings == []
+
+
 def test_final_answer_repairs_unescaped_source_quotes():
     class FakeClient:
         def __init__(self):

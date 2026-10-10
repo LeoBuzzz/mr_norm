@@ -165,6 +165,51 @@ class QdrantSkills:
             warnings.append("find_all currently returns at most 100 matching chunks; result is not guaranteed exhaustive")
         return list(found.items), warnings
 
+    def hydrate_full_points(self, items: list[RetrievedItem]) -> tuple[list[RetrievedItem], list[str]]:
+        """Replace split search hits with their complete point text."""
+        hydrated: list[RetrievedItem] = []
+        warnings: list[str] = []
+        cache: dict[str, RetrievedItem | None] = {}
+        for item in items:
+            if item.is_complete_point or not item.point_number:
+                hydrated.append(item)
+                continue
+            identity = str(item.point_identity_key or "").strip()
+            cache_key = identity or f"{item.doc_id}|{item.filename}|{item.point_number}"
+            if cache_key not in cache:
+                if identity:
+                    filters = {"point_identity_key": identity}
+                else:
+                    filters = {
+                        key: value for key, value in {
+                            "doc_id": item.doc_id,
+                            "filename": item.filename,
+                            "point_number": item.point_number,
+                        }.items() if value
+                    }
+                found = run_point_tool(ToolRequest(
+                    query=item.point_number, filters=filters, limit=100,
+                ), self.config)
+                assembled = assemble_point_parts(list(found.items), point_number=item.point_number)
+                if assembled is not None and assembled.is_complete:
+                    cache[cache_key] = replace(
+                        assembled.items[0],
+                        text=assembled.text,
+                        score=item.score,
+                        source_tool=item.source_tool,
+                        matched=item.matched,
+                        is_complete_point=True,
+                    )
+                else:
+                    cache[cache_key] = None
+                    warnings.extend(found.warnings)
+                    warnings.append(
+                        f"full point hydration incomplete: {item.doc_name or item.doc_id}, "
+                        f"point {item.point_number}"
+                    )
+            hydrated.append(cache[cache_key] or item)
+        return hydrated, warnings
+
 
 def _request_final_answer_payload(
     client: Any,
@@ -348,7 +393,7 @@ def run_router2(
             if rank >= len(items):
                 continue
             item = items[rank]
-            key = item.chunk_id or f"{item.doc_id}|{item.point_number}|{item.text}"
+            key = item.point_identity_key or item.chunk_id or f"{item.doc_id}|{item.point_number}|{item.text}"
             if key not in seen:
                 seen.add(key)
                 evidence.append(item)
@@ -356,6 +401,10 @@ def run_router2(
                 break
         if len(evidence) >= MAX_EVIDENCE:
             break
+    hydrate = getattr(backend, "hydrate_full_points", None)
+    if callable(hydrate):
+        evidence, hydration_warnings = hydrate(evidence)
+        result.warnings.extend(hydration_warnings)
     result.evidence = [asdict(item) for item in evidence]
     if not evidence:
         result.status = "not_found"
