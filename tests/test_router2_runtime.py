@@ -162,3 +162,76 @@ def test_final_answer_repair_keeps_escaped_newlines_and_citations():
         "answer": 'строка 1\nстрока "Не готов"',
         "citations": [{"chunk_id": "chunk_1"}],
     }
+
+
+def test_router_switches_to_fallback_model(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    raw = {
+        "complexity": "simple", "operation": "search",
+        "tools": [
+            {"skill": "vector_search", "query": "заземление", "doc_id": None, "after": []},
+            {"skill": "corpus_point_search", "query": "заземление", "doc_id": None, "after": []},
+        ],
+        "final": None, "clarification": None,
+    }
+    built = []
+
+    class FakeClient:
+        def __init__(self, model):
+            self.model = model
+
+        def chat(self, _request):
+            if self.model == "router-primary":
+                raise RuntimeError("temporarily unavailable")
+            return SimpleNamespace(content=json.dumps(raw))
+
+    def fake_build(_provider, model):
+        built.append(model)
+        return FakeClient(model)
+
+    monkeypatch.setattr(runtime, "build_chat_client", fake_build)
+    result = run_router2(
+        "заземление", router_model="router-primary",
+        router_fallback_models=("router-backup",), skill_backend=FakeSkills(),
+        answer_provider=lambda _request, _items, _pack: {
+            "answer": "Ответ", "citations": [{"chunk_id": "c1"}],
+        },
+    )
+
+    assert built == ["router-primary", "router-backup"]
+    assert result.router_model_used == "router-backup"
+    assert result.model_failures[0].startswith("router:router-primary:RuntimeError")
+    assert "router model fallback: router-primary -> router-backup" in result.warnings
+
+
+def test_final_answer_switches_to_fallback_model(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    raw = {
+        "complexity": "simple", "operation": "define",
+        "tools": [{"skill": "definition_search", "query": "термин", "doc_id": None, "after": []}],
+        "final": None, "clarification": None,
+    }
+
+    class FakeClient:
+        def __init__(self, model):
+            self.model = model
+
+        def chat(self, _request):
+            if self.model == "answer-primary":
+                raise RuntimeError("temporarily unavailable")
+            return SimpleNamespace(content='{"answer":"Резервный ответ", "citations":[{"chunk_id":"c1"}]}')
+
+    monkeypatch.setattr(runtime, "build_chat_client", lambda _provider, model: FakeClient(model))
+    result = run_router2(
+        "Что такое термин?", route_complete=lambda _s, _u: json.dumps(raw),
+        skill_backend=FakeSkills(), answer_model="answer-primary",
+        answer_fallback_models=("answer-backup",),
+    )
+
+    assert result.status == "answered"
+    assert result.answer == "Резервный ответ"
+    assert result.answer_model_used == "answer-backup"
+    assert result.model_failures[0].startswith("answer:answer-primary:RuntimeError")
+    assert "answer model fallback: answer-primary -> answer-backup" in result.warnings

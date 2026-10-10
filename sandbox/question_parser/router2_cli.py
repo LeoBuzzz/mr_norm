@@ -25,7 +25,13 @@ for source in (ROOT / "src", ROOT / "sandbox"):
         sys.path.insert(0, str(source))
 
 from mr_norm.config.indexing import IndexingConfig
-from question_parser.router2_runtime import DEFAULT_ANSWER_MODEL, DEFAULT_ROUTER_MODEL, run_router2
+from question_parser.router2_runtime import (
+    DEFAULT_ANSWER_FALLBACK_MODELS,
+    DEFAULT_ANSWER_MODEL,
+    DEFAULT_ROUTER_FALLBACK_MODELS,
+    DEFAULT_ROUTER_MODEL,
+    run_router2,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -33,6 +39,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--query", help="Run one question and exit")
     parser.add_argument("--router-model", default=DEFAULT_ROUTER_MODEL)
     parser.add_argument("--answer-model", default=DEFAULT_ANSWER_MODEL)
+    parser.add_argument("--router-fallback-models", default=",".join(DEFAULT_ROUTER_FALLBACK_MODELS))
+    parser.add_argument("--answer-fallback-models", default=",".join(DEFAULT_ANSWER_FALLBACK_MODELS))
     parser.add_argument("--collection", help="Override Qdrant collection")
     parser.add_argument("--no-trace", action="store_true", help="Do not write a JSON trace")
     return parser
@@ -53,7 +61,11 @@ def main(argv: list[str] | None = None) -> int:
         config = replace(config, collection_name=args.collection)
     pending = None
     pending_question = ""
-    print(f"router2 | Qdrant: {config.collection_name} | router: {args.router_model} | answer: {args.answer_model}")
+    router_fallbacks = tuple(model.strip() for model in args.router_fallback_models.split(",") if model.strip())
+    answer_fallbacks = tuple(model.strip() for model in args.answer_fallback_models.split(",") if model.strip())
+    print(f"router2 | Qdrant: {config.collection_name}")
+    print(f"router: {args.router_model} -> {' -> '.join(router_fallbacks) or 'без резерва'}")
+    print(f"answer: {args.answer_model} -> {' -> '.join(answer_fallbacks) or 'без резерва'}")
     print("Введите вопрос; new — новый вопрос, exit — выход.")
     while True:
         try:
@@ -80,12 +92,15 @@ def main(argv: list[str] | None = None) -> int:
                 chosen = options[int(user_text) - 1] if user_text.isdigit() and 1 <= int(user_text) <= len(options) else user_text
                 result = run_router2(
                     pending_question, router_model=args.router_model, answer_model=args.answer_model,
+                    router_fallback_models=router_fallbacks, answer_fallback_models=answer_fallbacks,
                     config=config, selected_option=chosen, prior_plan=pending,
                 )
                 pending = None
             else:
                 result = run_router2(
-                    user_text, router_model=args.router_model, answer_model=args.answer_model, config=config,
+                    user_text, router_model=args.router_model, answer_model=args.answer_model,
+                    router_fallback_models=router_fallbacks, answer_fallback_models=answer_fallbacks,
+                    config=config,
                 )
             if result.clarification:
                 pending = result.plan

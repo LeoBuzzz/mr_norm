@@ -24,6 +24,14 @@ from question_parser.model_route import abbreviation_candidates, load_abbreviati
 
 DEFAULT_ROUTER_MODEL = "deepseek/deepseek-v3.2"
 DEFAULT_ANSWER_MODEL = "anthropic/claude-sonnet-4.6"
+DEFAULT_ROUTER_FALLBACK_MODELS = (
+    "google/gemini-3-flash-preview",
+    "anthropic/claude-haiku-4.5",
+)
+DEFAULT_ANSWER_FALLBACK_MODELS = (
+    "openai/gpt-5.5",
+    "google/gemini-3-flash-preview",
+)
 MAX_STEPS = 12
 MAX_EVIDENCE = 16
 FINAL_JSON_ATTEMPTS = 3
@@ -40,6 +48,9 @@ class Router2Result:
     citations: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     clarification: dict[str, Any] | None = None
+    router_model_used: str = ""
+    answer_model_used: str = ""
+    model_failures: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -89,6 +100,10 @@ def validate_plan(plan: dict[str, Any]) -> None:
     final = plan.get("final")
     if final is not None and (not isinstance(final, dict) or not str(final.get("instruction") or "").strip()):
         raise ValueError("invalid final instruction")
+
+
+def _model_chain(primary: str, fallbacks: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(model.strip() for model in (primary, *fallbacks) if model.strip()))
 
 
 class QdrantSkills:
@@ -238,6 +253,8 @@ def run_router2(
     *,
     router_model: str = DEFAULT_ROUTER_MODEL,
     answer_model: str = DEFAULT_ANSWER_MODEL,
+    router_fallback_models: tuple[str, ...] = DEFAULT_ROUTER_FALLBACK_MODELS,
+    answer_fallback_models: tuple[str, ...] = DEFAULT_ANSWER_FALLBACK_MODELS,
     config: IndexingConfig | None = None,
     route_complete: Callable[[str, str], str] | None = None,
     skill_backend: Any | None = None,
@@ -246,6 +263,8 @@ def run_router2(
     prior_plan: dict[str, Any] | None = None,
 ) -> Router2Result:
     documents = load_documents()
+    router_model_used = router_model
+    model_failures: list[str] = []
     if prior_plan is not None:
         plan = dict(prior_plan)
         clarification = plan.get("clarification") or {}
@@ -267,19 +286,42 @@ def run_router2(
             } for step in plan["tools"]]
     else:
         if route_complete is None:
-            client = build_chat_client("polza", router_model)
+            plan = None
+            last_error: Exception | None = None
+            for candidate_model in _model_chain(router_model, router_fallback_models):
+                try:
+                    client = build_chat_client("polza", candidate_model)
 
-            def route_complete(system: str, user: str) -> str:
-                return client.chat(LLMRequest(
-                    messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                    model=router_model,
-                    temperature=0.1,
-                    max_tokens=4096,
-                    response_format={"type": "json_object"},
-                )).content
+                    def candidate_complete(system: str, user: str, *, _client=client, _model=candidate_model) -> str:
+                        return _client.chat(LLMRequest(
+                            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                            model=_model, temperature=0.1, max_tokens=4096,
+                            response_format={"type": "json_object"},
+                        )).content
 
-        plan = route_question(question, route_complete, documents=documents)
-    result = Router2Result(status=str(plan.get("status")), question=question, plan=plan)
+                    candidate_plan = route_question(question, candidate_complete, documents=documents)
+                    if not (
+                        candidate_plan.get("status") == "needs_clarification"
+                        and not candidate_plan.get("problems")
+                    ):
+                        validate_plan(candidate_plan)
+                    plan = candidate_plan
+                    router_model_used = candidate_model
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    model_failures.append(f"router:{candidate_model}:{type(exc).__name__}: {exc}")
+            if plan is None:
+                assert last_error is not None
+                raise RuntimeError("all router models failed") from last_error
+        else:
+            plan = route_question(question, route_complete, documents=documents)
+    result = Router2Result(
+        status=str(plan.get("status")), question=question, plan=plan,
+        router_model_used=router_model_used, model_failures=model_failures,
+    )
+    if router_model_used != router_model:
+        result.warnings.append(f"router model fallback: {router_model} -> {router_model_used}")
     if plan.get("status") == "needs_clarification" and not plan.get("problems"):
         result.clarification = plan.get("clarification")
         return result
@@ -321,12 +363,28 @@ def run_router2(
         return result
     final_instruction = str((plan.get("final") or {}).get("instruction") or "").strip()
     if answer_provider is None:
-        answer_client = build_chat_client("polza", answer_model)
+        answer_state: dict[str, Any] = {"used": "", "failures": []}
 
         def answer_provider(request: RuntimeRequest, items: list[RetrievedItem], pack: dict[str, Any]) -> dict[str, Any]:
-            return _request_final_answer_payload(
-                answer_client, request=request, items=items, pack=pack, answer_model=answer_model,
-            )
+            last_error: Exception | None = None
+            for candidate_model in _model_chain(answer_model, answer_fallback_models):
+                try:
+                    answer_client = build_chat_client("polza", candidate_model)
+                    payload = _request_final_answer_payload(
+                        answer_client, request=request, items=items, pack=pack,
+                        answer_model=candidate_model,
+                    )
+                    answer_state["used"] = candidate_model
+                    return payload
+                except Exception as exc:
+                    last_error = exc
+                    answer_state["failures"].append(
+                        f"answer:{candidate_model}:{type(exc).__name__}: {exc}"
+                    )
+            assert last_error is not None
+            raise RuntimeError("all answer models failed") from last_error
+    else:
+        answer_state = {"used": answer_model, "failures": []}
     final_query = question if not final_instruction else f"{question}\n\nЗадание для ответа: {final_instruction}"
     answer = build_final_answer("prompt", provider=answer_provider).answer(
         RuntimeRequest(query=final_query, user_query=final_query, limit=MAX_EVIDENCE),
@@ -334,6 +392,10 @@ def run_router2(
         limit=MAX_EVIDENCE,
     )
     result.warnings.extend(answer.warnings)
+    result.answer_model_used = str(answer_state["used"] or "")
+    result.model_failures.extend(answer_state["failures"])
+    if result.answer_model_used and result.answer_model_used != answer_model:
+        result.warnings.append(f"answer model fallback: {answer_model} -> {result.answer_model_used}")
     if any(warning.startswith("prompt final answer failed:") for warning in answer.warnings):
         result.status = "technical_error"
         result.answer = "Финальная модель не ответила; найденные фрагменты сохранены в трассе."
