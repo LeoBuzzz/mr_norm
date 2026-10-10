@@ -34,7 +34,7 @@ def run_point_tool(
             scope_filters = {
                 key: value
                 for key, value in point_filters.items()
-                if key in {"doc_id", "doc_name", "heading_path_text"} and value
+                if key in {"doc_id", "doc_name", "filename", "heading_path_text"} and value
             }
             if scope_filters:
                 fallback_spec = build_payload_filter_spec(
@@ -93,7 +93,7 @@ def select_point_filters(filters: dict[str, Any] | None) -> tuple[dict[str, Any]
     if source.get("point_identity_key"):
         return {"point_identity_key": source["point_identity_key"]}, warnings
     selected: dict[str, Any] = {}
-    for key in ("doc_id", "doc_name", "point_number", "heading_path_text"):
+    for key in ("doc_id", "doc_name", "filename", "point_number", "heading_path_text"):
         if source.get(key):
             selected[key] = doc_name_variants(source[key]) if key == "doc_name" else source[key]
     if not selected:

@@ -1,0 +1,103 @@
+"""Interactive terminal entry point for router2."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import replace
+from datetime import datetime
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+for source in (ROOT / "src", ROOT / "sandbox"):
+    if str(source) not in sys.path:
+        sys.path.insert(0, str(source))
+
+from mr_norm.config.indexing import IndexingConfig
+from question_parser.router2_runtime import DEFAULT_ANSWER_MODEL, DEFAULT_ROUTER_MODEL, run_router2
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Router2: question parser, Qdrant skills and final LLM")
+    parser.add_argument("--query", help="Run one question and exit")
+    parser.add_argument("--router-model", default=DEFAULT_ROUTER_MODEL)
+    parser.add_argument("--answer-model", default=DEFAULT_ANSWER_MODEL)
+    parser.add_argument("--collection", help="Override Qdrant collection")
+    parser.add_argument("--no-trace", action="store_true", help="Do not write a JSON trace")
+    return parser
+
+
+def _save_trace(payload: dict) -> Path:
+    trace_dir = ROOT / "tmp" / "router2_traces"
+    trace_dir.mkdir(parents=True, exist_ok=True)
+    destination = trace_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json"
+    destination.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return destination
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    config = IndexingConfig.from_env()
+    if args.collection:
+        config = replace(config, collection_name=args.collection)
+    pending = None
+    pending_question = ""
+    print(f"router2 | Qdrant: {config.collection_name} | router: {args.router_model} | answer: {args.answer_model}")
+    print("Введите вопрос; new — новый вопрос, exit — выход.")
+    while True:
+        try:
+            user_text = args.query if args.query is not None else input("router2> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return 0
+        if user_text.casefold() in {"exit", "quit", "выход"}:
+            return 0
+        if user_text.casefold() == "new":
+            pending = None
+            pending_question = ""
+            print("Контекст уточнения очищен.")
+            if args.query is not None:
+                return 0
+            continue
+        if not user_text:
+            if args.query is not None:
+                return 2
+            continue
+        try:
+            if pending is not None:
+                options = pending["clarification"]["option_ids"]
+                chosen = options[int(user_text) - 1] if user_text.isdigit() and 1 <= int(user_text) <= len(options) else user_text
+                result = run_router2(
+                    pending_question, router_model=args.router_model, answer_model=args.answer_model,
+                    config=config, selected_option=chosen, prior_plan=pending,
+                )
+                pending = None
+            else:
+                result = run_router2(
+                    user_text, router_model=args.router_model, answer_model=args.answer_model, config=config,
+                )
+            if result.clarification:
+                pending = result.plan
+                pending_question = result.question
+                print(result.clarification.get("question") or "Уточните значение:")
+                for index, option in enumerate(result.clarification.get("option_ids") or [], 1):
+                    print(f"  {index}. {option}")
+            else:
+                print(result.answer)
+                for citation in result.citations:
+                    print(f"  Источник: {citation.get('doc_name') or 'документ'}, п. {citation.get('point_number') or '—'}")
+                for warning in result.warnings:
+                    print(f"  Примечание: {warning}")
+            if not args.no_trace:
+                print(f"Трасса: {_save_trace(result.to_dict())}")
+        except Exception as exc:
+            print(f"Ошибка router2: {type(exc).__name__}: {exc}", file=sys.stderr)
+            if args.query is not None:
+                return 1
+        if args.query is not None:
+            return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

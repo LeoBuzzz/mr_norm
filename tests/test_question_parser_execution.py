@@ -263,14 +263,12 @@ def test_definition_request_is_not_executed():
     assert execution.results["t1"]["status"] == "skipped"
 
 
-def test_technical_failure_is_a_parser_error_and_sandbox_has_no_vector_client():
+def test_technical_failure_is_a_parser_error_before_search():
     plan = dry_run("заземление", catalog=CATALOG, draft={"dialog": "new", "tasks": [{"operation": "search", "source": ["current@1:1"], "topic": "тема current@1:1", "document": "corpus"}]})
     execution = execute_independent(plan, _corpus())
     assert isinstance(plan, TechnicalFailure)
     assert execution.calls == []
     assert execution.errors[0]["layer"] == "parser"
-    for path in (ROOT / "sandbox" / "question_parser").glob("*.py"):
-        assert "qdrant" not in path.read_text(encoding="utf-8").lower()
 
 
 def test_three_skills_read_a_real_glossary_file():

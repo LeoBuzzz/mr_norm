@@ -2,3 +2,5 @@ striprtf==0.0.26
 tiktoken==0.14.0
 pymorphy3
 pymorphy3-dicts-ru
+qdrant-client
+sentence-transformers
