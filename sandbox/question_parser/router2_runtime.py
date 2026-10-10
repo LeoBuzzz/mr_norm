@@ -106,6 +106,11 @@ def _model_chain(primary: str, fallbacks: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(model.strip() for model in (primary, *fallbacks) if model.strip()))
 
 
+def _build_polza_client(model: str, keys_path: Path | None) -> Any:
+    kwargs = {"keys_path": keys_path} if keys_path is not None else {}
+    return build_chat_client("polza", model, **kwargs)
+
+
 def expanded_query_variants(step: dict[str, Any]) -> list[str]:
     """Search both a catalog expansion and the abbreviation written by the user."""
     query = str(step.get("query") or "").strip()
@@ -445,6 +450,7 @@ def run_router2(
     router_fallback_models: tuple[str, ...] = DEFAULT_ROUTER_FALLBACK_MODELS,
     answer_fallback_models: tuple[str, ...] = DEFAULT_ANSWER_FALLBACK_MODELS,
     config: IndexingConfig | None = None,
+    keys_path: Path | None = None,
     route_complete: Callable[[str, str], str] | None = None,
     skill_backend: Any | None = None,
     answer_provider: Any | None = None,
@@ -479,7 +485,7 @@ def run_router2(
             last_error: Exception | None = None
             for candidate_model in _model_chain(router_model, router_fallback_models):
                 try:
-                    client = build_chat_client("polza", candidate_model)
+                    client = _build_polza_client(candidate_model, keys_path)
 
                     def candidate_complete(system: str, user: str, *, _client=client, _model=candidate_model) -> str:
                         return _client.chat(LLMRequest(
@@ -564,7 +570,7 @@ def run_router2(
             last_error: Exception | None = None
             for candidate_model in _model_chain(answer_model, answer_fallback_models):
                 try:
-                    answer_client = build_chat_client("polza", candidate_model)
+                    answer_client = _build_polza_client(candidate_model, keys_path)
                     payload = _request_final_answer_payload(
                         answer_client, request=request, items=items, pack=pack,
                         answer_model=candidate_model,

@@ -400,20 +400,24 @@ def test_router_switches_to_fallback_model(monkeypatch):
                 raise RuntimeError("temporarily unavailable")
             return SimpleNamespace(content=json.dumps(raw))
 
-    def fake_build(_provider, model):
-        built.append(model)
+    def fake_build(_provider, model, **kwargs):
+        built.append((model, kwargs.get("keys_path")))
         return FakeClient(model)
 
     monkeypatch.setattr(runtime, "build_chat_client", fake_build)
     result = run_router2(
         "заземление", router_model="router-primary",
         router_fallback_models=("router-backup",), skill_backend=FakeSkills(),
+        keys_path=Path("custom-keys"),
         answer_provider=lambda _request, _items, _pack: {
             "answer": "Ответ", "citations": [{"chunk_id": "c1"}],
         },
     )
 
-    assert built == ["router-primary", "router-backup"]
+    assert built == [
+        ("router-primary", Path("custom-keys")),
+        ("router-backup", Path("custom-keys")),
+    ]
     assert result.router_model_used == "router-backup"
     assert result.model_failures[0].startswith("router:router-primary:RuntimeError")
     assert "router model fallback: router-primary -> router-backup" in result.warnings

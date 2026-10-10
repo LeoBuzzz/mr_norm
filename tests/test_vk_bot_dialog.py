@@ -4,39 +4,21 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 from mr_norm.apps.vk_bot import MRNormVKBot, parse_deep_research_query
-from mr_norm.runtime.contracts import Citation, PipelineResult, PreparedQueryPlan
 from mr_norm.runtime.deep_research_memory import DeepResearchSessionStore, PendingDeepResearchSession
-from mr_norm.runtime.dialog_memory import DialogSessionStore, DialogSourceReference
-from mr_norm.retrieval.contracts import RetrievedItem
+from mr_norm.runtime.dialog_memory import DialogSessionStore
 from mr_norm.skills.deep_research import DeepResearchResult, ResearchAnalysis, ResearchDocumentCandidate
-from mr_norm.skills.norm_lookup import NormLookupResult, NormLookupTrace
+from question_parser.router2_runtime import Router2Result
 
 
-def _norm_lookup_result(answer: str = "ответ") -> NormLookupResult:
-    pipeline = PipelineResult(
-        runtime=MagicMock(),
-        planner=MagicMock(),
-        rerank=MagicMock(),
-        final_answer=MagicMock(answer=answer, citations=[], warnings=[]),
-        trace=MagicMock(),
-        warnings=[],
-        diagnostics={},
-    )
-    return NormLookupResult(
+def _router2_result(answer: str = "ответ") -> Router2Result:
+    return Router2Result(
+        status="answered",
+        question="вопрос",
+        plan={"status": "ready", "operation": "search", "tools": []},
         answer=answer,
-        citations=[Citation(chunk_id="chunk_1", doc_name="Правила", point_number="24")],
-        evidence=[],
-        trace=NormLookupTrace(
-            planner_backend="deterministic",
-            reranker_backend="score",
-            final_answer_backend="evidence",
-            runtime_profile="balanced",
-            runtime_fusion="",
-            trace_id="test",
-        ),
-        warnings=[],
-        pipeline=pipeline,
-        prepared_plan=PreparedQueryPlan(original_query="вопрос"),
+        citations=[{
+            "chunk_id": "chunk_1", "doc_name": "Правила", "point_number": "24",
+        }],
     )
 
 
@@ -105,31 +87,20 @@ def test_process_search_records_source_references() -> None:
     bot._dialog_sessions = DialogSessionStore()
     bot._research_sessions = DeepResearchSessionStore()
     bot._vk_answer = AsyncMock()
-    result = _norm_lookup_result("готовый ответ")
-    result = NormLookupResult(
-        answer=result.answer,
-        citations=[
-            Citation(
-                chunk_id="chunk_65",
-                doc_name="Правила технической эксплуатации",
-                point_number="65",
-            )
-        ],
-        evidence=[
-            RetrievedItem(
-                chunk_id="chunk_65",
-                doc_id="doc_pte",
-                doc_name="Правила технической эксплуатации",
-                point_number="65",
-                text="65. Текст пункта.",
-            )
-        ],
-        trace=result.trace,
-        warnings=result.warnings,
-        pipeline=result.pipeline,
-        prepared_plan=result.prepared_plan,
-    )
-    bot._run_norm_lookup = AsyncMock(return_value=result)
+    result = _router2_result("готовый ответ")
+    result.citations = [{
+        "chunk_id": "chunk_65",
+        "doc_name": "Правила технической эксплуатации",
+        "point_number": "65",
+    }]
+    result.evidence = [{
+        "chunk_id": "chunk_65",
+        "doc_id": "doc_pte",
+        "doc_name": "Правила технической эксплуатации",
+        "point_number": "65",
+        "text": "65. Текст пункта.",
+    }]
+    bot._run_router2 = AsyncMock(return_value=result)
 
     message = MagicMock(peer_id=100, from_id=200)
     asyncio.run(
@@ -154,7 +125,7 @@ def test_process_search_records_turn_after_answer() -> None:
     bot._dialog_sessions = DialogSessionStore()
     bot._research_sessions = DeepResearchSessionStore()
     bot._vk_answer = AsyncMock()
-    bot._run_norm_lookup = AsyncMock(return_value=_norm_lookup_result("готовый ответ"))
+    bot._run_router2 = AsyncMock(return_value=_router2_result("готовый ответ"))
 
     message = MagicMock(peer_id=100, from_id=200)
     asyncio.run(
@@ -171,6 +142,55 @@ def test_process_search_records_turn_after_answer() -> None:
     assert len(context.turns) == 1
     assert context.turns[0].user_text == "как часто?"
     assert context.turns[0].answer == "готовый ответ"
+    bot._run_router2.assert_awaited_once_with("первый как часто?")
+
+
+def test_router2_clarification_is_kept_and_numeric_answer_resumes_plan() -> None:
+    bot = MRNormVKBot.__new__(MRNormVKBot)
+    bot._dialog_sessions = DialogSessionStore()
+    bot._research_sessions = DeepResearchSessionStore()
+    bot._router2_pending = {}
+    bot._vk_answer = AsyncMock()
+
+    clarification_plan = {
+        "status": "needs_clarification",
+        "clarification": {
+            "field": "document",
+            "question": "Какой документ?",
+            "option_ids": ["doc_a", "doc_b"],
+        },
+    }
+    clarification = Router2Result(
+        status="needs_clarification",
+        question="Дай текст пункта 5",
+        plan=clarification_plan,
+        clarification=clarification_plan["clarification"],
+    )
+    answered = _router2_result("Текст пункта 5")
+    bot._run_router2 = AsyncMock(side_effect=[clarification, answered])
+
+    message = MagicMock(peer_id=100, from_id=200)
+    asyncio.run(
+        bot._process_search(
+            message,
+            "Дай текст пункта 5",
+            session_key="100:200",
+            stored_user_text="Дай текст пункта 5",
+            retrieval_query="Дай текст пункта 5",
+        )
+    )
+
+    assert bot._router2_pending["100:200"]["plan"] is clarification_plan
+    assert "Какой документ?" in str(bot._vk_answer.await_args)
+
+    asyncio.run(bot._process_dialog_message(message, "2"))
+
+    assert "100:200" not in bot._router2_pending
+    assert bot._run_router2.await_args_list[1].args == ("Дай текст пункта 5",)
+    assert bot._run_router2.await_args_list[1].kwargs == {
+        "selected_option": "doc_b",
+        "prior_plan": clarification_plan,
+    }
 
 
 def test_users_in_same_peer_have_isolated_sessions() -> None:

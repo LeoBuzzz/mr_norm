@@ -1,2 +1,4 @@
 vkbottle>=4.3.0,<5
 requests>=2.31.0
+pymorphy3>=2.0.0,<3
+-r requirements-gpu.txt

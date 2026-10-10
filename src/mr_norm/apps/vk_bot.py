@@ -5,7 +5,6 @@ import logging
 import os
 import subprocess
 import sys
-from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -13,11 +12,12 @@ from vkbottle.api import API
 from vkbottle.bot import Bot, Message
 from vkbottle.polling.bot_polling import BotPolling
 
-from mr_norm.apps.human_cli import (
-    HumanCliOptions,
-    MODE_PRESET_LABELS,
-    build_norm_lookup_request,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+SANDBOX_ROOT = PROJECT_ROOT / "sandbox"
+if str(SANDBOX_ROOT) not in sys.path:
+    sys.path.insert(0, str(SANDBOX_ROOT))
+
+from mr_norm.apps.human_cli import MODE_PRESET_LABELS
 from mr_norm.apps.vk_config import VKBotSettings, VKConfig
 from mr_norm.apps.vk_longpoll_settings import ensure_longpoll_message_new
 from mr_norm.apps.vk_token_file import get_community_token_from_env_or_file, oauth_user_token_url
@@ -29,12 +29,10 @@ from mr_norm.runtime.deep_research_memory import (
     parse_document_selection,
 )
 from mr_norm.runtime.dialog_memory import (
+    DialogSourceReference,
     DialogSessionStore,
     build_retrieval_query,
     build_session_key,
-    extract_source_references_from_citations,
-    extract_source_references_from_evidence,
-    merge_source_references,
     parse_dialog_input,
 )
 from mr_norm.skills.deep_research import (
@@ -44,7 +42,14 @@ from mr_norm.skills.deep_research import (
     run_deep_research_broad,
     run_deep_research_deep_dive,
 )
-from mr_norm.skills.norm_lookup import NormLookupResult, run_norm_lookup
+from question_parser.router2_runtime import (
+    DEFAULT_ANSWER_FALLBACK_MODELS,
+    DEFAULT_ANSWER_MODEL,
+    DEFAULT_ROUTER_FALLBACK_MODELS,
+    DEFAULT_ROUTER_MODEL,
+    Router2Result,
+    run_router2,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +189,7 @@ def _plain(text: str) -> str:
 
 
 KNOWN_SLASH_COMMANDS = frozenset(
-    {"/start", "/help", "/status", "/settings", "/set_limit", "/mode", "/search"}
+    {"/start", "/help", "/status", "/settings", "/mode", "/search"}
 )
 
 
@@ -259,7 +264,7 @@ def _split_message(text: str, max_length: int) -> list[str]:
     return parts
 
 
-def _format_norm_lookup_for_vk(result: NormLookupResult) -> str:
+def _format_router2_for_vk(result: Router2Result) -> str:
     lines: list[str] = []
     answer = (result.answer or "").strip()
     if answer:
@@ -268,10 +273,17 @@ def _format_norm_lookup_for_vk(result: NormLookupResult) -> str:
         lines.append("")
         lines.append("Источники:")
         for index, citation in enumerate(result.citations[:5], start=1):
-            doc = citation.doc_name or "—"
-            point = citation.point_number or "—"
+            doc = str(citation.get("doc_name") or "—")
+            point = str(citation.get("point_number") or "—")
             lines.append(f"{index}. п. {point} — {doc}")
     return _plain("\n".join(lines))
+
+
+def _env_models(name: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return defaults
+    return tuple(model.strip() for model in raw.split(",") if model.strip())
 
 
 def _format_deep_research_broad_for_vk(result: DeepResearchResult) -> str:
@@ -341,7 +353,7 @@ def _install_vk_longpoll_update_logging() -> None:
 
 
 class MRNormVKBot:
-    """VK-бот для MR Norm (norm_lookup pipeline)."""
+    """VK-бот для MR Norm (Router2 production pipeline)."""
 
     def __init__(self, token: str) -> None:
         self.bot = _make_vk_bot(token)
@@ -351,6 +363,7 @@ class MRNormVKBot:
         self._keys_path = self._paths.root / "keys"
         self._dialog_sessions = DialogSessionStore()
         self._research_sessions = DeepResearchSessionStore()
+        self._router2_pending: dict[str, dict[str, Any]] = {}
         if not self._keys_path.is_file():
             self._keys_path = None
 
@@ -422,7 +435,10 @@ class MRNormVKBot:
             elif cmd == "/settings":
                 await self._cmd_settings(message)
             elif cmd == "/set_limit":
-                await self._cmd_set_limit(message, rest)
+                await self._vk_answer(
+                    message,
+                    _plain("Команда /set_limit удалена: Router2 сам управляет объёмом поиска."),
+                )
             elif cmd == "/mode":
                 await self._cmd_set_mode(message, rest)
             elif cmd == "/search":
@@ -432,7 +448,7 @@ class MRNormVKBot:
                         _plain("Укажите запрос. Пример: /search требования к диспетчерскому центру"),
                     )
                     return
-                await self._process_search(message, rest.strip())
+                await self._process_dialog_message(message, rest.strip())
             elif cmd.startswith("/"):
                 research_query, research_error = parse_deep_research_query(raw)
                 if research_query:
@@ -443,7 +459,7 @@ class MRNormVKBot:
                     await self._vk_answer(
                         message,
                         _plain(
-                            "Неизвестная команда. Доступны: /help, /status, /settings, /search, /set_limit, /mode"
+                            "Неизвестная команда. Доступны: /help, /status, /settings, /search, /mode"
                         ),
                     )
             else:
@@ -460,8 +476,7 @@ class MRNormVKBot:
             "• /help — эта справка\n"
             "• /status — статус системы\n"
             "• /settings — текущие настройки\n"
-            "• /set_limit <1–40> — лимит фрагментов\n"
-            "• /mode <1|2|3> — режим: 1 deterministic, 2 ollama, 3 polza\n\n"
+            "• /mode <1|2|3> — модель для глубокого исследования\n\n"
             "Глубокое исследование:\n"
             "• / <вопрос> или /<вопрос> — широкий поиск, выбор документов, аналитическая записка\n"
             "  Пример: /как оформляются диспетчерские заявки?\n"
@@ -482,8 +497,9 @@ class MRNormVKBot:
             f"• Qdrant collection: {os.getenv('MR_NORM_QDRANT_COLLECTION', 'mr_norm_docs_bge_m3')}\n"
             f"• Конфиг индекса: {config_ok}\n"
             f"• LLM keys: {keys_ok}\n"
-            f"• Режим: {MODE_PRESET_LABELS.get(self.settings.mode_preset, self.settings.mode_preset)}\n"
-            f"• limit={self.settings.limit}, profile={self.settings.profile}\n\n"
+            "• Основной контур: Router2\n"
+            f"• Router: {os.getenv('MR_NORM_ROUTER2_ROUTER_MODEL', DEFAULT_ROUTER_MODEL)}\n"
+            f"• Answer: {os.getenv('MR_NORM_ROUTER2_ANSWER_MODEL', DEFAULT_ANSWER_MODEL)}\n\n"
             "Готов к поиску."
         )
         await self._vk_answer(message, text)
@@ -491,25 +507,12 @@ class MRNormVKBot:
     async def _cmd_settings(self, message: Message) -> None:
         text = _plain(
             "Настройки:\n\n"
-            f"• limit: {self.settings.limit}\n"
-            f"• profile: {self.settings.profile}\n"
-            f"• mode: {self.settings.mode_preset} "
-            f"({MODE_PRESET_LABELS.get(self.settings.mode_preset, '—')})\n\n"
-            "Изменить: /set_limit 10, /mode 3"
+            "• Обычные вопросы: Router2 + Qdrant + финальная LLM\n"
+            f"• Router: {os.getenv('MR_NORM_ROUTER2_ROUTER_MODEL', DEFAULT_ROUTER_MODEL)}\n"
+            f"• Answer: {os.getenv('MR_NORM_ROUTER2_ANSWER_MODEL', DEFAULT_ANSWER_MODEL)}\n"
+            f"• Глубокое исследование: {MODE_PRESET_LABELS.get(self.settings.mode_preset, '—')}"
         )
         await self._vk_answer(message, text)
-
-    async def _cmd_set_limit(self, message: Message, rest: str) -> None:
-        try:
-            value = rest.strip().split()[0]
-            count = int(value)
-            if 1 <= count <= 40:
-                self.settings.limit = count
-                await self._vk_answer(message, _plain(f"Лимит фрагментов: {count}"))
-            else:
-                await self._vk_answer(message, _plain("Число должно быть от 1 до 40"))
-        except (IndexError, ValueError):
-            await self._vk_answer(message, _plain("Пример: /set_limit 10"))
 
     async def _cmd_set_mode(self, message: Message, rest: str) -> None:
         mapping = {"1": "deterministic", "2": "ollama", "3": "polza"}
@@ -532,29 +535,29 @@ class MRNormVKBot:
             self._config = IndexingConfig.from_env()
         return self._config
 
-    async def _run_norm_lookup(
+    async def _run_router2(
         self,
         query: str,
         *,
-        dialog_context=None,
-    ) -> NormLookupResult:
-        options = HumanCliOptions(
-            query=query,
-            mode_preset=self.settings.mode_preset,
-            no_doc_filter=True,
-            limit=self.settings.limit,
-            profile=self.settings.profile,
-        )
-        request = build_norm_lookup_request(options)
-        if dialog_context is not None and dialog_context.turns:
-            request = replace(request, dialog_context=dialog_context)
+        selected_option: str | None = None,
+        prior_plan: dict[str, Any] | None = None,
+    ) -> Router2Result:
         config = self._ensure_config()
         return await asyncio.to_thread(
-            run_norm_lookup,
-            request,
-            config,
+            run_router2,
+            query,
+            router_model=os.getenv("MR_NORM_ROUTER2_ROUTER_MODEL", DEFAULT_ROUTER_MODEL),
+            answer_model=os.getenv("MR_NORM_ROUTER2_ANSWER_MODEL", DEFAULT_ANSWER_MODEL),
+            router_fallback_models=_env_models(
+                "MR_NORM_ROUTER2_ROUTER_FALLBACK_MODELS", DEFAULT_ROUTER_FALLBACK_MODELS,
+            ),
+            answer_fallback_models=_env_models(
+                "MR_NORM_ROUTER2_ANSWER_FALLBACK_MODELS", DEFAULT_ANSWER_FALLBACK_MODELS,
+            ),
+            config=config,
             keys_path=self._keys_path,
-            project_paths=self._paths,
+            selected_option=selected_option,
+            prior_plan=prior_plan,
         )
 
     async def _run_deep_research_broad(self, query: str) -> DeepResearchResult:
@@ -684,6 +687,7 @@ class MRNormVKBot:
             lock = self._dialog_sessions.lock_for(session_key)
             async with lock:
                 self._dialog_sessions.reset(session_key)
+                getattr(self, "_router2_pending", {}).pop(session_key, None)
                 if research_sessions is not None:
                     research_sessions.clear(session_key)
                 await self._vk_answer(message, _plain("Новый диалог. Задайте вопрос."))
@@ -696,6 +700,19 @@ class MRNormVKBot:
             await self._process_research_selection(message, query)
             return
 
+        router2_pending = getattr(self, "_router2_pending", {}).get(session_key)
+        if router2_pending is not None:
+            lock = self._dialog_sessions.lock_for(session_key)
+            async with lock:
+                await self._process_search(
+                    message,
+                    query,
+                    session_key=session_key,
+                    stored_user_text=str(router2_pending["question"]),
+                    retrieval_query=str(router2_pending["question"]),
+                )
+            return
+
         if is_new_dialog and research_sessions is not None:
             research_sessions.clear(session_key)
 
@@ -703,6 +720,7 @@ class MRNormVKBot:
         async with lock:
             if is_new_dialog:
                 self._dialog_sessions.reset(session_key)
+                getattr(self, "_router2_pending", {}).pop(session_key, None)
             dialog_context = self._dialog_sessions.get(session_key)
             active_context = dialog_context if dialog_context.turns else None
             if not query.strip():
@@ -733,8 +751,46 @@ class MRNormVKBot:
         hard = 4096
         try:
             await self._vk_answer(message, "Ищу релевантные фрагменты...")
-            result = await self._run_norm_lookup(query, dialog_context=dialog_context)
-            response = _format_norm_lookup_for_vk(result)
+            if not hasattr(self, "_router2_pending"):
+                self._router2_pending = {}
+            pending_store = self._router2_pending
+            pending = pending_store.get(session_key) if session_key else None
+            if pending is not None:
+                options = list((pending["plan"].get("clarification") or {}).get("option_ids") or [])
+                selected_option = query.strip()
+                if selected_option.isdigit() and 1 <= int(selected_option) <= len(options):
+                    selected_option = str(options[int(selected_option) - 1])
+                result = await self._run_router2(
+                    str(pending["question"]),
+                    selected_option=selected_option,
+                    prior_plan=pending["plan"],
+                )
+            else:
+                result = await self._run_router2(retrieval_query or query)
+
+            if result.clarification:
+                if session_key:
+                    pending_store[session_key] = {
+                        "question": result.question,
+                        "plan": result.plan,
+                    }
+                lines = [str(result.clarification.get("question") or "Уточните значение:")]
+                for index, option in enumerate(result.clarification.get("option_ids") or [], 1):
+                    lines.append(f"{index}. {option}")
+                await self._vk_answer(message, _plain("\n".join(lines)))
+                return
+            if session_key:
+                pending_store.pop(session_key, None)
+
+            logger.info(
+                "Router2 status=%s router_model=%s answer_model=%s calls=%s warnings=%s",
+                result.status,
+                result.router_model_used,
+                result.answer_model_used,
+                len(result.calls),
+                len(result.warnings),
+            )
+            response = _format_router2_for_vk(result)
             if not response.strip():
                 await self._vk_answer(
                     message,
@@ -743,27 +799,35 @@ class MRNormVKBot:
                 return
 
             if session_key and stored_user_text.strip() and result.answer.strip():
-                resolved_doc_id = ""
-                if result.prepared_plan is not None:
-                    catalog_id = str(result.prepared_plan.document_resolution.catalog_id or "").strip()
-                    if catalog_id and not catalog_id.startswith("knowledge:"):
-                        resolved_doc_id = catalog_id
                 evidence_by_chunk = {
-                    item.chunk_id: item for item in result.evidence if item.chunk_id
+                    str(item.get("chunk_id") or ""): item
+                    for item in result.evidence if item.get("chunk_id")
                 }
-                source_references = merge_source_references(
-                    extract_source_references_from_citations(
-                        citations=tuple(result.citations),
-                        evidence_by_chunk_id=evidence_by_chunk,
-                    ),
-                    extract_source_references_from_evidence(result.evidence),
-                )
+                source_references_by_key: dict[tuple[str, str], DialogSourceReference] = {}
+                for citation in result.citations:
+                    evidence_item = evidence_by_chunk.get(str(citation.get("chunk_id") or ""), {})
+                    doc_id = str(evidence_item.get("doc_id") or "").strip()
+                    doc_name = str(citation.get("doc_name") or evidence_item.get("doc_name") or "").strip()
+                    point_number = str(citation.get("point_number") or evidence_item.get("point_number") or "").strip()
+                    if point_number and point_number not in {"—", "-"} and (doc_id or doc_name):
+                        reference = DialogSourceReference(doc_id, doc_name, point_number)
+                        source_references_by_key[(doc_id or doc_name, point_number)] = reference
+                for evidence_item in result.evidence:
+                    doc_id = str(evidence_item.get("doc_id") or "").strip()
+                    doc_name = str(evidence_item.get("doc_name") or "").strip()
+                    point_number = str(evidence_item.get("point_number") or "").strip()
+                    if point_number and point_number not in {"—", "-"} and (doc_id or doc_name):
+                        reference = DialogSourceReference(doc_id, doc_name, point_number)
+                        source_references_by_key[(doc_id or doc_name, point_number)] = reference
+                source_references = tuple(source_references_by_key.values())
+                resolved_doc_ids = {ref.doc_id for ref in source_references if ref.doc_id}
+                resolved_doc_id = next(iter(resolved_doc_ids)) if len(resolved_doc_ids) == 1 else ""
                 self._dialog_sessions.append_turn(
                     session_key,
                     user_text=stored_user_text.strip(),
                     answer=result.answer,
                     retrieval_query=retrieval_query or stored_user_text.strip(),
-                    prepared_plan=result.prepared_plan,
+                    prepared_plan=None,
                     resolved_doc_id=resolved_doc_id,
                     source_references=source_references,
                 )
