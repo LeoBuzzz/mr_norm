@@ -16,6 +16,7 @@ from question_parser.router2_runtime import (
     _request_final_answer_payload,
     corpus_doc_id,
     document_filters,
+    expanded_query_variants,
     run_router2,
 )
 from question_parser.router2_runtime import QdrantSkills
@@ -143,6 +144,74 @@ def test_search_hit_is_hydrated_by_exact_point_identity(monkeypatch):
     assert items[0].source_tool == "vector"
     assert items[0].is_complete_point is True
     assert warnings == []
+
+
+def test_expansion_searches_full_value_and_abbreviation(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    step = {
+        "skill": "find_all", "query": "обходная система шин",
+        "doc_id": "gostr_59279_24122020",
+        "expansions": [{"abbreviation": "ОСШ", "value": "обходная система шин"}],
+    }
+    queries = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        queries.append(request.query)
+        common = RetrievedItem(
+            chunk_id="definition", point_identity_key="3::terms", point_number="3",
+            text="ОСШ - обходная система шин",
+        )
+        if request.query == "ОСШ":
+            return SimpleNamespace(items=[
+                common,
+                RetrievedItem(
+                    chunk_id="usage", point_identity_key="4.8::usage",
+                    point_number="4.8", text="Схема с ОСШ.",
+                ),
+            ], warnings=[])
+        return SimpleNamespace(items=[common], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, _warnings = backend.run(step)
+
+    assert expanded_query_variants(step) == ["обходная система шин", "ОСШ"]
+    assert queries == ["обходная система шин", "ОСШ"]
+    assert [item.chunk_id for item in items] == ["definition", "usage"]
+
+
+def test_find_all_keeps_more_than_default_evidence_limit():
+    raw = {
+        "complexity": "simple", "operation": "all",
+        "tools": [{
+            "skill": "find_all", "query": "ОСШ", "doc_id": None,
+            "expansions": [], "after": [],
+        }],
+        "final": None, "clarification": None,
+    }
+
+    class ManySkills:
+        def run(self, _step):
+            return [RetrievedItem(
+                chunk_id=f"c{index}", point_identity_key=f"point-{index}",
+                point_number=str(index), text=f"Пункт {index}",
+            ) for index in range(20)], []
+
+    seen = []
+
+    def answer_provider(_request, evidence, _pack):
+        seen.append(len(evidence))
+        return {"answer": "Все пункты", "citations": [{"chunk_id": "c0"}]}
+
+    result = run_router2(
+        "Все упоминания ОСШ", route_complete=lambda _s, _u: json.dumps(raw),
+        skill_backend=ManySkills(), answer_provider=answer_provider,
+    )
+
+    assert result.status == "answered"
+    assert len(result.evidence) == 20
+    assert seen == [20]
 
 
 def test_final_answer_repairs_unescaped_source_quotes():

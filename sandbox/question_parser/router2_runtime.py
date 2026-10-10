@@ -106,6 +106,52 @@ def _model_chain(primary: str, fallbacks: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(model.strip() for model in (primary, *fallbacks) if model.strip()))
 
 
+def expanded_query_variants(step: dict[str, Any]) -> list[str]:
+    """Search both a catalog expansion and the abbreviation written by the user."""
+    query = str(step.get("query") or "").strip()
+    if not query:
+        return []
+    variants = [query]
+    for expansion in step.get("expansions") or []:
+        abbreviation = str(expansion.get("abbreviation") or "").strip()
+        value = str(expansion.get("value") or "").strip()
+        if not abbreviation or not value:
+            continue
+        if re.search(re.escape(value), query, flags=re.IGNORECASE):
+            candidate = re.sub(re.escape(value), abbreviation, query, flags=re.IGNORECASE)
+        elif re.search(rf"(?<!\w){re.escape(abbreviation)}(?!\w)", query, flags=re.IGNORECASE):
+            candidate = re.sub(
+                rf"(?<!\w){re.escape(abbreviation)}(?!\w)", value, query,
+                flags=re.IGNORECASE,
+            )
+        else:
+            continue
+        candidate = candidate.strip()
+        if candidate and candidate.casefold() not in {item.casefold() for item in variants}:
+            variants.append(candidate)
+    return variants
+
+
+def _merge_query_results(groups: list[list[RetrievedItem]], *, limit: int) -> list[RetrievedItem]:
+    """Round-robin query variants so a broad first spelling cannot starve another."""
+    merged: list[RetrievedItem] = []
+    seen: set[str] = set()
+    width = max((len(group) for group in groups), default=0)
+    for rank in range(width):
+        for group in groups:
+            if rank >= len(group):
+                continue
+            item = group[rank]
+            key = item.chunk_id or f"{item.point_identity_key}|{item.text}"
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(item)
+            if len(merged) >= limit:
+                return merged
+    return merged
+
+
 class QdrantSkills:
     """Router2's five skill names backed by the existing retrieval primitives."""
 
@@ -116,23 +162,27 @@ class QdrantSkills:
     def run(self, step: dict[str, Any]) -> tuple[list[RetrievedItem], list[str]]:
         skill = step["skill"]
         query = str(step.get("query") or "")
+        query_variants = expanded_query_variants(step) or [query]
         doc_id = step.get("doc_id")
         filters = document_filters(doc_id, self.documents)
         if skill == "definition_search":
-            result = definition_search(query=query, doc_id=doc_id)
-            items = []
-            for index, hit in enumerate(result["hits"]):
-                digest = hashlib.sha1(f"{hit.get('doc_id')}|{hit.get('point_ref')}|{hit.get('text')}".encode("utf-8")).hexdigest()[:16]
-                items.append(RetrievedItem(
-                    chunk_id=f"definition_{digest}",
-                    doc_id=str(hit.get("doc_id") or ""),
-                    filename=str(hit.get("file") or ""),
-                    doc_name=str(hit.get("file") or ""),
-                    point_number=str(hit.get("point_ref") or ""),
-                    text=str(hit.get("text") or ""),
-                    source_tool=skill,
-                ))
-            return items, []
+            groups: list[list[RetrievedItem]] = []
+            for variant in query_variants:
+                result = definition_search(query=variant, doc_id=doc_id)
+                items = []
+                for hit in result["hits"]:
+                    digest = hashlib.sha1(f"{hit.get('doc_id')}|{hit.get('point_ref')}|{hit.get('text')}".encode("utf-8")).hexdigest()[:16]
+                    items.append(RetrievedItem(
+                        chunk_id=f"definition_{digest}",
+                        doc_id=str(hit.get("doc_id") or ""),
+                        filename=str(hit.get("file") or ""),
+                        doc_name=str(hit.get("file") or ""),
+                        point_number=str(hit.get("point_ref") or ""),
+                        text=str(hit.get("text") or ""),
+                        source_tool=skill,
+                    ))
+                groups.append(items)
+            return _merge_query_results(groups, limit=100), []
         if skill == "exact_point":
             point_ref = str(step["point_ref"])
             found = run_point_tool(ToolRequest(
@@ -155,15 +205,21 @@ class QdrantSkills:
             elif not assembled.is_complete:
                 warnings.append("point text is incomplete")
             return [replace(assembled.items[0], text=assembled.text, is_complete_point=assembled.is_complete and not text_fallback)], warnings
-        request = ToolRequest(query=query, filters=filters, limit=100 if skill == "find_all" else 12)
-        if skill == "vector_search":
-            found = run_vector_tool(request, self.config)
-        else:
-            found = run_payload_tool(request, self.config, search_fields=["text"])
-        warnings = list(found.warnings)
+        limit = 100 if skill == "find_all" else 12
+        groups = []
+        warnings: list[str] = []
+        for variant in query_variants:
+            request = ToolRequest(query=variant, filters=filters, limit=limit)
+            if skill == "vector_search":
+                found = run_vector_tool(request, self.config)
+            else:
+                found = run_payload_tool(request, self.config, search_fields=["text"])
+            groups.append(list(found.items))
+            warnings.extend(found.warnings)
+        items = _merge_query_results(groups, limit=limit)
         if skill == "find_all":
             warnings.append("find_all currently returns at most 100 matching chunks; result is not guaranteed exhaustive")
-        return list(found.items), warnings
+        return items, warnings
 
     def hydrate_full_points(self, items: list[RetrievedItem]) -> tuple[list[RetrievedItem], list[str]]:
         """Replace split search hits with their complete point text."""
@@ -381,10 +437,12 @@ def run_router2(
         completed[step_number] = items
         result.calls.append({
             "step": step_number, "skill": step["skill"], "query": step.get("query"),
+            "query_variants": expanded_query_variants(step),
             "doc_id": step.get("doc_id"), "point_ref": step.get("point_ref"),
             "hits": len(items), "warnings": warnings,
         })
         result.warnings.extend(warnings)
+    evidence_limit = 100 if plan.get("operation") == "all" else MAX_EVIDENCE
     seen: set[str] = set()
     evidence = []
     width = max((len(items) for items in completed.values()), default=0)
@@ -397,9 +455,9 @@ def run_router2(
             if key not in seen:
                 seen.add(key)
                 evidence.append(item)
-            if len(evidence) >= MAX_EVIDENCE:
+            if len(evidence) >= evidence_limit:
                 break
-        if len(evidence) >= MAX_EVIDENCE:
+        if len(evidence) >= evidence_limit:
             break
     hydrate = getattr(backend, "hydrate_full_points", None)
     if callable(hydrate):
@@ -436,9 +494,9 @@ def run_router2(
         answer_state = {"used": answer_model, "failures": []}
     final_query = question if not final_instruction else f"{question}\n\nЗадание для ответа: {final_instruction}"
     answer = build_final_answer("prompt", provider=answer_provider).answer(
-        RuntimeRequest(query=final_query, user_query=final_query, limit=MAX_EVIDENCE),
+        RuntimeRequest(query=final_query, user_query=final_query, limit=evidence_limit),
         evidence,
-        limit=MAX_EVIDENCE,
+        limit=evidence_limit,
     )
     result.warnings.extend(answer.warnings)
     result.answer_model_used = str(answer_state["used"] or "")
