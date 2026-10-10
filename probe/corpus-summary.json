@@ -1,0 +1,84 @@
+{
+  "files": 152,
+  "files_ok": 152,
+  "files_failed": [],
+  "chars": 21361805,
+  "unique_terms": 201894,
+  "terms_at_min_count": 81272,
+  "written": 10000,
+  "min_count": 2,
+  "top_requested": 10000,
+  "seconds": 23.2,
+  "top10": [
+    {
+      "term": "энергия",
+      "pattern": "NOUN",
+      "count": 20024,
+      "docs": 120,
+      "rank": 1
+    },
+    {
+      "term": "объект",
+      "pattern": "NOUN",
+      "count": 19891,
+      "docs": 131,
+      "rank": 2
+    },
+    {
+      "term": "электрический энергия",
+      "pattern": "2-gram",
+      "count": 18013,
+      "docs": 108,
+      "rank": 3
+    },
+    {
+      "term": "редакция",
+      "pattern": "NOUN",
+      "count": 15867,
+      "docs": 94,
+      "rank": 4
+    },
+    {
+      "term": "мощность",
+      "pattern": "NOUN",
+      "count": 13888,
+      "docs": 120,
+      "rank": 5
+    },
+    {
+      "term": "электроэнергетика",
+      "pattern": "NOUN",
+      "count": 10623,
+      "docs": 105,
+      "rank": 6
+    },
+    {
+      "term": "устройство",
+      "pattern": "NOUN",
+      "count": 9220,
+      "docs": 130,
+      "rank": 7
+    },
+    {
+      "term": "система",
+      "pattern": "NOUN",
+      "count": 9187,
+      "docs": 136,
+      "rank": 8
+    },
+    {
+      "term": "субъект",
+      "pattern": "NOUN",
+      "count": 9068,
+      "docs": 106,
+      "rank": 9
+    },
+    {
+      "term": "управление",
+      "pattern": "NOUN",
+      "count": 8956,
+      "docs": 127,
+      "rank": 10
+    }
+  ]
+}

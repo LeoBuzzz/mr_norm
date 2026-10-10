@@ -1,0 +1,63 @@
+{
+  "document": "ГОСТ 19431-2023 Энергетика и электрификация. Термины и определения.rtf",
+  "document_bytes": 84713,
+  "model": "grok-4.7-medium-fast",
+  "invocation": "cursor-subagent",
+  "runs": [
+    {
+      "cards": 16,
+      "glossary_cards": 8,
+      "boilerplate_cards": 8,
+      "agent_id": "bc-91369eac-b3d9-5be5-b07b-f4a1b031f55b",
+      "wall_seconds": 50.122,
+      "kept": 8,
+      "rejected": 8,
+      "input_tokens_o200k": 644,
+      "output_tokens_o200k": 353,
+      "input_tokens_cl100k": 1181,
+      "output_tokens_cl100k": 408
+    },
+    {
+      "cards": 52,
+      "glossary_cards": 44,
+      "boilerplate_cards": 8,
+      "agent_id": "bc-7a3cddc3-33fa-5439-aab2-cbdde6d16c1e",
+      "wall_seconds": 70.694,
+      "kept": 44,
+      "rejected": 8,
+      "input_tokens_o200k": 2142,
+      "output_tokens_o200k": 1147,
+      "input_tokens_cl100k": 4141,
+      "output_tokens_cl100k": 1389
+    }
+  ],
+  "fit": {
+    "seconds_fixed_per_call": 40.98,
+    "seconds_per_extra_card": 0.5714,
+    "note": "Two runs only. The slope is the extra 36 glossary cards between them."
+  },
+  "per_glossary_card": {
+    "input_o200k": 41.6,
+    "output_o200k": 22.1,
+    "input_cl100k": 82.2,
+    "output_cl100k": 27.3
+  },
+  "projection_same_batching": {
+    "batch_cards": 52,
+    "rows_1000": {
+      "calls": 20,
+      "sequential_minutes": 23.2,
+      "parallel_8_minutes": 2.9,
+      "payload_tokens_o200k": 64000,
+      "payload_tokens_cl100k": 109000
+    },
+    "rows_10000": {
+      "calls": 193,
+      "sequential_minutes": 227.1,
+      "parallel_8_minutes": 28.4,
+      "payload_tokens_o200k": 640000,
+      "payload_tokens_cl100k": 1090000
+    }
+  },
+  "billing_meter": "not returned by the run record; token figures are tokenizer counts of the exact prompt and answer"
+}

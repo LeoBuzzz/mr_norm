@@ -1,0 +1,1043 @@
+{
+  "source": "Правила устройства электроустановок (ПУЭ). Глава 1.2 Электроснабжение и электрические сети",
+  "chars": 12151,
+  "min_count": 2,
+  "terms": [
+    {
+      "term": "электроснабжение",
+      "pattern": "NOUN",
+      "count": 33,
+      "docs": 1,
+      "rank": 1
+    },
+    {
+      "term": "электроприемник",
+      "pattern": "NOUN",
+      "count": 22,
+      "docs": 1,
+      "rank": 2
+    },
+    {
+      "term": "питание",
+      "pattern": "NOUN",
+      "count": 21,
+      "docs": 1,
+      "rank": 3
+    },
+    {
+      "term": "напряжение",
+      "pattern": "NOUN",
+      "count": 20,
+      "docs": 1,
+      "rank": 4
+    },
+    {
+      "term": "сеть",
+      "pattern": "NOUN",
+      "count": 19,
+      "docs": 1,
+      "rank": 5
+    },
+    {
+      "term": "источник",
+      "pattern": "NOUN",
+      "count": 17,
+      "docs": 1,
+      "rank": 6
+    },
+    {
+      "term": "источник питание",
+      "pattern": "2-gram",
+      "count": 16,
+      "docs": 1,
+      "rank": 7
+    },
+    {
+      "term": "система",
+      "pattern": "NOUN",
+      "count": 16,
+      "docs": 1,
+      "rank": 8
+    },
+    {
+      "term": "энергия",
+      "pattern": "NOUN",
+      "count": 16,
+      "docs": 1,
+      "rank": 9
+    },
+    {
+      "term": "категория",
+      "pattern": "NOUN",
+      "count": 15,
+      "docs": 1,
+      "rank": 10
+    },
+    {
+      "term": "режим",
+      "pattern": "NOUN",
+      "count": 14,
+      "docs": 1,
+      "rank": 11
+    },
+    {
+      "term": "электрический энергия",
+      "pattern": "2-gram",
+      "count": 14,
+      "docs": 1,
+      "rank": 12
+    },
+    {
+      "term": "электрический сеть",
+      "pattern": "2-gram",
+      "count": 11,
+      "docs": 1,
+      "rank": 13
+    },
+    {
+      "term": "электроустановка",
+      "pattern": "NOUN",
+      "count": 10,
+      "docs": 1,
+      "rank": 14
+    },
+    {
+      "term": "энергосистема",
+      "pattern": "NOUN",
+      "count": 10,
+      "docs": 1,
+      "rank": 15
+    },
+    {
+      "term": "процесс",
+      "pattern": "NOUN",
+      "count": 9,
+      "docs": 1,
+      "rank": 16
+    },
+    {
+      "term": "система электроснабжение",
+      "pattern": "2-gram",
+      "count": 9,
+      "docs": 1,
+      "rank": 17
+    },
+    {
+      "term": "устройство",
+      "pattern": "NOUN",
+      "count": 9,
+      "docs": 1,
+      "rank": 18
+    },
+    {
+      "term": "нарушение",
+      "pattern": "NOUN",
+      "count": 7,
+      "docs": 1,
+      "rank": 19
+    },
+    {
+      "term": "потребитель",
+      "pattern": "NOUN",
+      "count": 7,
+      "docs": 1,
+      "rank": 20
+    },
+    {
+      "term": "потребитель электрический энергия",
+      "pattern": "3-gram",
+      "count": 7,
+      "docs": 1,
+      "rank": 21
+    },
+    {
+      "term": "технологический процесс",
+      "pattern": "2-gram",
+      "count": 6,
+      "docs": 1,
+      "rank": 22
+    },
+    {
+      "term": "шина",
+      "pattern": "NOUN",
+      "count": 6,
+      "docs": 1,
+      "rank": 23
+    },
+    {
+      "term": "группа",
+      "pattern": "NOUN",
+      "count": 5,
+      "docs": 1,
+      "rank": 24
+    },
+    {
+      "term": "независимый источник",
+      "pattern": "2-gram",
+      "count": 5,
+      "docs": 1,
+      "rank": 25
+    },
+    {
+      "term": "независимый источник питание",
+      "pattern": "3-gram",
+      "count": 5,
+      "docs": 1,
+      "rank": 26
+    },
+    {
+      "term": "перерыв",
+      "pattern": "NOUN",
+      "count": 5,
+      "docs": 1,
+      "rank": 27
+    },
+    {
+      "term": "перерыв электроснабжение",
+      "pattern": "2-gram",
+      "count": 5,
+      "docs": 1,
+      "rank": 28
+    },
+    {
+      "term": "резервирование",
+      "pattern": "NOUN",
+      "count": 5,
+      "docs": 1,
+      "rank": 29
+    },
+    {
+      "term": "сеть напряжение",
+      "pattern": "2-gram",
+      "count": 5,
+      "docs": 1,
+      "rank": 30
+    },
+    {
+      "term": "устройство электроустановка",
+      "pattern": "2-gram",
+      "count": 5,
+      "docs": 1,
+      "rank": 31
+    },
+    {
+      "term": "электростанция",
+      "pattern": "NOUN",
+      "count": 5,
+      "docs": 1,
+      "rank": 32
+    },
+    {
+      "term": "группа электроприемник",
+      "pattern": "2-gram",
+      "count": 4,
+      "docs": 1,
+      "rank": 33
+    },
+    {
+      "term": "категория электроприемник",
+      "pattern": "2-gram",
+      "count": 4,
+      "docs": 1,
+      "rank": 34
+    },
+    {
+      "term": "нейтраль",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 35
+    },
+    {
+      "term": "послеаварийный режим",
+      "pattern": "2-gram",
+      "count": 4,
+      "docs": 1,
+      "rank": 36
+    },
+    {
+      "term": "секция",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 37
+    },
+    {
+      "term": "система шина",
+      "pattern": "2-gram",
+      "count": 4,
+      "docs": 1,
+      "rank": 38
+    },
+    {
+      "term": "совокупность",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 39
+    },
+    {
+      "term": "ток",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 40
+    },
+    {
+      "term": "уровень",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 41
+    },
+    {
+      "term": "учет",
+      "pattern": "NOUN",
+      "count": 4,
+      "docs": 1,
+      "rank": 42
+    },
+    {
+      "term": "ПУЭ",
+      "pattern": "ABBR",
+      "count": 3,
+      "docs": 1,
+      "rank": 43
+    },
+    {
+      "term": "агрегат",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 44
+    },
+    {
+      "term": "вопрос",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 45
+    },
+    {
+      "term": "исчезновение",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 46
+    },
+    {
+      "term": "качество",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 47
+    },
+    {
+      "term": "компенсация",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 48
+    },
+    {
+      "term": "линия",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 49
+    },
+    {
+      "term": "линия электропередача",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 50
+    },
+    {
+      "term": "надежность",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 51
+    },
+    {
+      "term": "надежность электроснабжение",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 52
+    },
+    {
+      "term": "нарушение электроснабжение",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 53
+    },
+    {
+      "term": "один источник",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 54
+    },
+    {
+      "term": "один источник питание",
+      "pattern": "3-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 55
+    },
+    {
+      "term": "передача",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 56
+    },
+    {
+      "term": "передача распределение",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 57
+    },
+    {
+      "term": "подстанция",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 58
+    },
+    {
+      "term": "проект",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 59
+    },
+    {
+      "term": "проектирование",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 60
+    },
+    {
+      "term": "производство",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 61
+    },
+    {
+      "term": "развитие",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 62
+    },
+    {
+      "term": "распределение",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 63
+    },
+    {
+      "term": "решение",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 64
+    },
+    {
+      "term": "связь",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 65
+    },
+    {
+      "term": "совокупность электроустановка",
+      "pattern": "2-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 66
+    },
+    {
+      "term": "условие",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 67
+    },
+    {
+      "term": "электрический сеть напряжение",
+      "pattern": "3-gram",
+      "count": 3,
+      "docs": 1,
+      "rank": 68
+    },
+    {
+      "term": "электропередача",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 69
+    },
+    {
+      "term": "элемент",
+      "pattern": "NOUN",
+      "count": 3,
+      "docs": 1,
+      "rank": 70
+    },
+    {
+      "term": "ОАО",
+      "pattern": "ABBR",
+      "count": 2,
+      "docs": 1,
+      "rank": 71
+    },
+    {
+      "term": "ПРАВИЛА",
+      "pattern": "ABBR",
+      "count": 2,
+      "docs": 1,
+      "rank": 72
+    },
+    {
+      "term": "безаварийный останов",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 73
+    },
+    {
+      "term": "бригада",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 74
+    },
+    {
+      "term": "воздушный линия",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 75
+    },
+    {
+      "term": "воздушный линия электропередача",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 76
+    },
+    {
+      "term": "восстановление",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 77
+    },
+    {
+      "term": "выбор",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 78
+    },
+    {
+      "term": "генераторный напряжение",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 79
+    },
+    {
+      "term": "дежурство",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 80
+    },
+    {
+      "term": "деятельность",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 81
+    },
+    {
+      "term": "железобетонный металлический опора",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 82
+    },
+    {
+      "term": "жизнь",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 83
+    },
+    {
+      "term": "жизнь человек",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 84
+    },
+    {
+      "term": "замыкание",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 85
+    },
+    {
+      "term": "замыкание земля",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 86
+    },
+    {
+      "term": "земля",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 87
+    },
+    {
+      "term": "значение",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 88
+    },
+    {
+      "term": "исчезновение напряжение",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 89
+    },
+    {
+      "term": "категория электроприемник перерыв",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 90
+    },
+    {
+      "term": "компенсация реактивный мощность",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 91
+    },
+    {
+      "term": "металлический опора",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 92
+    },
+    {
+      "term": "мощность",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 93
+    },
+    {
+      "term": "нагрузка",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 94
+    },
+    {
+      "term": "номинальный период",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 95
+    },
+    {
+      "term": "общность",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 96
+    },
+    {
+      "term": "объект",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 97
+    },
+    {
+      "term": "опора",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 98
+    },
+    {
+      "term": "опора воздушный линия",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 99
+    },
+    {
+      "term": "определенный территория",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 100
+    },
+    {
+      "term": "остальной электроприемник",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 101
+    },
+    {
+      "term": "останов",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 102
+    },
+    {
+      "term": "пересмотр",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 103
+    },
+    {
+      "term": "период",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 104
+    },
+    {
+      "term": "перспектива",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 105
+    },
+    {
+      "term": "поддержание",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 106
+    },
+    {
+      "term": "предел",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 107
+    },
+    {
+      "term": "преобразование",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 108
+    },
+    {
+      "term": "приемник",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 109
+    },
+    {
+      "term": "приемник электрический энергия",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 110
+    },
+    {
+      "term": "проектирование система",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 111
+    },
+    {
+      "term": "проектирование система электроснабжение",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 112
+    },
+    {
+      "term": "процесс производство",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 113
+    },
+    {
+      "term": "развитие энергосистема",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 114
+    },
+    {
+      "term": "развитие энергосистема система",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 115
+    },
+    {
+      "term": "реактивный мощность",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 116
+    },
+    {
+      "term": "реактор",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 117
+    },
+    {
+      "term": "регулирование",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 118
+    },
+    {
+      "term": "регулирование напряжение",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 119
+    },
+    {
+      "term": "резервирование электроснабжение",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 120
+    },
+    {
+      "term": "решение вопрос",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 121
+    },
+    {
+      "term": "секция система",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 122
+    },
+    {
+      "term": "секция система шина",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 123
+    },
+    {
+      "term": "снижение",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 124
+    },
+    {
+      "term": "совет",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 125
+    },
+    {
+      "term": "способность",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 126
+    },
+    {
+      "term": "территория",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 127
+    },
+    {
+      "term": "технологический резервирование",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 128
+    },
+    {
+      "term": "ток замыкание",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 129
+    },
+    {
+      "term": "ток замыкание земля",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 130
+    },
+    {
+      "term": "угроза",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 131
+    },
+    {
+      "term": "уровень напряжение",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 132
+    },
+    {
+      "term": "установка",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 133
+    },
+    {
+      "term": "устройство электроустановка ПУЭ",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 134
+    },
+    {
+      "term": "человек",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 135
+    },
+    {
+      "term": "электрический энергия электроприемник",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 136
+    },
+    {
+      "term": "электроприемник перерыв",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 137
+    },
+    {
+      "term": "электроприемник перерыв электроснабжение",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 138
+    },
+    {
+      "term": "электроснабжение один источник",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 139
+    },
+    {
+      "term": "электроснабжение учет",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 140
+    },
+    {
+      "term": "электроснабжение электроприемник",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 141
+    },
+    {
+      "term": "электростанция подстанция",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 142
+    },
+    {
+      "term": "электроустановка ПУЭ",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 143
+    },
+    {
+      "term": "электроэнергия",
+      "pattern": "NOUN",
+      "count": 2,
+      "docs": 1,
+      "rank": 144
+    },
+    {
+      "term": "энергия электроприемник",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 145
+    },
+    {
+      "term": "энергосистема система",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 146
+    },
+    {
+      "term": "энергосистема система электроснабжение",
+      "pattern": "3-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 147
+    },
+    {
+      "term": "энергосистема совокупность",
+      "pattern": "2-gram",
+      "count": 2,
+      "docs": 1,
+      "rank": 148
+    }
+  ]
+}

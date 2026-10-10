@@ -1,0 +1,194 @@
+{
+  "schema": "question_parser_eval.v1",
+  "production_connection": "not_connected",
+  "runtime_model": null,
+  "prompt_version": null,
+  "model_calls": 0,
+  "cost": null,
+  "vector_store": "not_used",
+  "elapsed_ms": 6.718,
+  "unexpected_errors": [],
+  "layer_counts": {
+    "parser": 1,
+    "dispatcher": 1,
+    "search": 1,
+    "none": 8
+  },
+  "cases": [
+    {
+      "case_id": "ready-point",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "status": "ready",
+        "calls": 1
+      }
+    },
+    {
+      "case_id": "ambiguous-document",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "status": "needs_clarification",
+        "calls": 0
+      }
+    },
+    {
+      "case_id": "definition-deferred",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "issues": [
+          "unsupported_intent"
+        ]
+      }
+    },
+    {
+      "case_id": "abbreviation-exclusion",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "points": [
+          "3"
+        ],
+        "queries": [
+          "все упоминания ЛЭП, то есть линия электропередачи, кроме кабельных"
+        ]
+      }
+    },
+    {
+      "case_id": "paraphrase-exclusion",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "constraints": [
+          "exclusion"
+        ]
+      }
+    },
+    {
+      "case_id": "quantity-not-point",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "skill": "corpus_point_search"
+      }
+    },
+    {
+      "case_id": "new-question-scope",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "doc_id": null,
+        "skill": "corpus_point_search"
+      }
+    },
+    {
+      "case_id": "unsupported-conclusion",
+      "expected_layer": null,
+      "observed_layer": null,
+      "passed": true,
+      "detail": {
+        "status": "deferred"
+      }
+    },
+    {
+      "case_id": "parser-contract",
+      "expected_layer": "parser",
+      "observed_layer": "parser",
+      "passed": true,
+      "detail": {
+        "code": "TOPIC_MUST_BE_LITERAL_TEXT"
+      }
+    },
+    {
+      "case_id": "dispatcher-cycle",
+      "expected_layer": "dispatcher",
+      "observed_layer": "dispatcher",
+      "passed": true,
+      "detail": {
+        "calls": 0
+      }
+    },
+    {
+      "case_id": "search-miss",
+      "expected_layer": "search",
+      "observed_layer": "search",
+      "passed": true,
+      "detail": {
+        "status": "missed"
+      }
+    }
+  ],
+  "baseline": [
+    {
+      "query": "пункт 2 ГОСТ 19431",
+      "skill": "exact_point",
+      "legacy": "exact_point",
+      "same_skill": true
+    },
+    {
+      "query": "что такое электроэнергетика",
+      "skill": null,
+      "legacy": "definition_search",
+      "same_skill": false
+    },
+    {
+      "query": "все упоминания ЛЭП",
+      "skill": "find_all",
+      "legacy": "find_all",
+      "same_skill": true
+    },
+    {
+      "query": "заземление",
+      "skill": "corpus_point_search",
+      "legacy": "corpus_point_search",
+      "same_skill": true
+    },
+    {
+      "query": "применимо ли заземление",
+      "skill": null,
+      "legacy": "applicability",
+      "same_skill": false
+    },
+    {
+      "query": "напряжение 110 кВ",
+      "skill": "corpus_point_search",
+      "legacy": "corpus_point_search",
+      "same_skill": true
+    }
+  ],
+  "baseline_differences": [
+    "что такое электроэнергетика",
+    "применимо ли заземление"
+  ],
+  "planner_comparison": {
+    "original_query": "линия электропередачи кроме кабельных",
+    "off_points": [
+      "3"
+    ],
+    "aspect_points": [
+      "3",
+      "5"
+    ],
+    "good_adapter": {
+      "status": "ok",
+      "dropped_constraints": [],
+      "aspects": [
+        "воздушной линии"
+      ]
+    },
+    "bad_adapter": {
+      "status": "fallback",
+      "failure": "ValueError: required_constraint_omitted",
+      "aspects": []
+    }
+  }
+}
