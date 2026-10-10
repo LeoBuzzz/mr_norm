@@ -1,0 +1,30 @@
+{
+  "schema": "h5_r7_reviewer_anchor_inputs.v1",
+  "issued": false,
+  "note": "Non-circular digest inputs for independent reviewer anchoring. This file does not issue an anchor or authorize dispatch.",
+  "run_id": "router-v3-h5-tuning-20261010-r7",
+  "direct_parent_manifest_sha256": "a0c7bb381ca1b0ce4e812f67b1ba7b4636ae56b52028d269fe9e383a4046f48c",
+  "launcher_sha256": "e5ea4f70a79fbe5d2d3d81a6a87840a0ff765536584c41e4b23a89c33f204095",
+  "release_lock_sha256": "84809ee3f55ebdcb6e5e0f96734fdf4f0203ab84588d98c3fa5810192d5bd527",
+  "manifest_sha256": "bd787b6787ba03a7de3e659bd6e6898ec089901c0c875369747f2746ded833c2",
+  "invocation": {
+    "interpreter": "C:\\Users\\buleo\\miniconda3\\python.exe",
+    "interpreter_version": "3.13.11",
+    "flags": [
+      "-I",
+      "-S"
+    ],
+    "sys_path": [
+      "C:\\Users\\buleo\\miniconda3\\python313.zip",
+      "C:\\Users\\buleo\\miniconda3\\DLLs",
+      "C:\\Users\\buleo\\miniconda3\\Lib",
+      "C:\\Users\\buleo\\miniconda3"
+    ],
+    "external_dependency_root": "C:\\Users\\buleo\\miniconda3\\Lib\\site-packages",
+    "jsonschema_version": "4.26.0"
+  },
+  "import_origins": {
+    "hashlib": "C:\\Users\\buleo\\miniconda3\\Lib\\hashlib.py",
+    "jsonschema": "C:\\Users\\buleo\\miniconda3\\Lib\\site-packages\\jsonschema\\__init__.py"
+  }
+}

@@ -1,0 +1,1884 @@
+{
+  "schema_version": "router_subscription_reconciled_baseline.v1",
+  "source_run_id": "router-v2-tuning-20261007",
+  "source_run_manifest_sha256": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad",
+  "source_gold_sha256": "386e7d682cf5153dd9e5bba266e348eb621fc6cfd6378b2af51c62e4609c14fe",
+  "scorer_code_sha256": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+  "legacy_score": {
+    "matched": 7,
+    "total": 20,
+    "display": "7/20"
+  },
+  "baseline_reconciled": {
+    "matched": 11,
+    "total": 20,
+    "display": "11/20"
+  },
+  "metrics": {
+    "first_wire_valid": 20,
+    "first_technical_valid": 16,
+    "first_technical_threshold_pass": false,
+    "repair": {
+      "needed": 4,
+      "succeeded_case_ids": [
+        "S01",
+        "S02",
+        "C01"
+      ],
+      "missing_attempt_case_ids": [
+        "C02"
+      ],
+      "model_failure_case_ids": []
+    },
+    "strict_single_span_evidence_cases": 8,
+    "union_evidence_cases": 12,
+    "critical_omissions": {
+      "count": 7,
+      "by_case": {
+        "S02": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": 0,
+            "failed_fields": [
+              "skill",
+              "intent",
+              "coverage",
+              "semantic_elements"
+            ]
+          }
+        ],
+        "C02": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": null,
+            "failed_fields": []
+          },
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 1,
+            "closest_actual_task_index": null,
+            "failed_fields": []
+          }
+        ],
+        "V01": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": 0,
+            "failed_fields": [
+              "query_semantics",
+              "semantic_elements",
+              "conditions"
+            ]
+          }
+        ],
+        "V03": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": 0,
+            "failed_fields": [
+              "semantic_elements",
+              "conditions"
+            ]
+          }
+        ],
+        "V06": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": 0,
+            "failed_fields": [
+              "semantic_elements",
+              "conditions"
+            ]
+          }
+        ],
+        "D03": [
+          {
+            "code": "unmatched_expected_task",
+            "task_index": 0,
+            "closest_actual_task_index": 0,
+            "failed_fields": [
+              "semantic_elements",
+              "conditions"
+            ]
+          }
+        ]
+      }
+    },
+    "paired_V03_V06": {
+      "task_count_match": true,
+      "skill_scope_match": true,
+      "concepts_compatible": true,
+      "passed": true
+    }
+  },
+  "case_scores": [
+    {
+      "case_id": "S01",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "S02",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": false,
+          "intent": false,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": false,
+          "query_semantics": true,
+          "semantic_elements": false,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": 0,
+          "failed_fields": [
+            "skill",
+            "intent",
+            "coverage",
+            "semantic_elements"
+          ]
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "S03",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "S04",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "C01",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        },
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0,
+        "1": 1
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": {
+        "task_index": 0,
+        "operation": "define",
+        "reason": "question explicitly asks what the abbreviation means; frozen gold marks this unsupported operation unknown"
+      }
+    },
+    {
+      "case_id": "C02",
+      "task_count_match": false,
+      "task_checks": [
+        {},
+        {}
+      ],
+      "task_semantics_match": false,
+      "classification_match": false,
+      "status_match": false,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": null,
+          "failed_fields": []
+        },
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 1,
+          "closest_actual_task_index": null,
+          "failed_fields": []
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "C03",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        },
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0,
+        "1": 1
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "V01",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": false,
+          "semantic_elements": false,
+          "concepts": true,
+          "conditions": false,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": 0,
+          "failed_fields": [
+            "query_semantics",
+            "semantic_elements",
+            "conditions"
+          ]
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "V03",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": false,
+          "concepts": true,
+          "conditions": false,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": 0,
+          "failed_fields": [
+            "semantic_elements",
+            "conditions"
+          ]
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "V06",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": false,
+          "concepts": true,
+          "conditions": false,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": 0,
+          "failed_fields": [
+            "semantic_elements",
+            "conditions"
+          ]
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "D01",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "D02",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "D03",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": false,
+          "concepts": true,
+          "conditions": false,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": false,
+      "task_assignment": {},
+      "critical_omissions": [
+        {
+          "code": "unmatched_expected_task",
+          "task_index": 0,
+          "closest_actual_task_index": 0,
+          "failed_fields": [
+            "semantic_elements",
+            "conditions"
+          ]
+        }
+      ],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "D04",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "A01",
+      "task_count_match": false,
+      "task_checks": [],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {},
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": true,
+      "operation_audit": null
+    },
+    {
+      "case_id": "A02",
+      "task_count_match": false,
+      "task_checks": [],
+      "task_semantics_match": false,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {},
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "A03",
+      "task_count_match": false,
+      "task_checks": [],
+      "task_semantics_match": false,
+      "classification_match": false,
+      "status_match": false,
+      "clarification_match": false,
+      "clarification_subject_match": false,
+      "clarification_options_match": false,
+      "evidence_coverage": false,
+      "dependency_edges_match": false,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": false,
+      "operation_match": true,
+      "task_assignment": {},
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": null
+    },
+    {
+      "case_id": "U01",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        },
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0,
+        "1": 1
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": {
+        "task_index": 1,
+        "operation": "compare",
+        "reason": "question explicitly says compare requirements"
+      }
+    },
+    {
+      "case_id": "U02",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        },
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": true,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": true,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0,
+        "1": 1
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": {
+        "task_index": 1,
+        "operation": "conclude",
+        "reason": "question explicitly asks for a conclusion about conformity"
+      }
+    },
+    {
+      "case_id": "U03",
+      "task_count_match": true,
+      "task_checks": [
+        {
+          "skill": true,
+          "intent": true,
+          "doc_id": true,
+          "point_ref": true,
+          "coverage": true,
+          "query_semantics": true,
+          "semantic_elements": true,
+          "concepts": true,
+          "conditions": true,
+          "evidence": true
+        }
+      ],
+      "task_semantics_match": true,
+      "classification_match": false,
+      "status_match": true,
+      "clarification_match": true,
+      "clarification_subject_match": true,
+      "clarification_options_match": true,
+      "evidence_coverage": true,
+      "dependency_edges_match": true,
+      "dialog_action_match": true,
+      "forbidden_substitutions_match": true,
+      "plan_match": false,
+      "strict_single_span_evidence_coverage": true,
+      "operation_match": true,
+      "task_assignment": {
+        "0": 0
+      },
+      "critical_omissions": [],
+      "unresolved_clarification_task_accepted": false,
+      "operation_audit": {
+        "task_index": 0,
+        "operation": "define",
+        "reason": "question explicitly asks for a definition"
+      }
+    }
+  ],
+  "source_audit_map": {
+    "schema_version": "source_audit_map.v1",
+    "rules": {
+      "required": "content words, task/negation markers, numeric atoms, and units",
+      "excluded": "punctuation, coordinating/task connectors checked separately, and prepositions only between semantic atoms",
+      "morphology": "existing mr_norm.retrieval.text_normalize normalization for ordinary Russian forms",
+      "numbers_units_negation": "exact semantic atoms; never synonym-normalized",
+      "derived_from": "frozen source spans and general token rules only; actual outputs not read"
+    },
+    "spans": [
+      {
+        "case_id": "S01",
+        "task_index": 0,
+        "source_ref": "current@1:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Как",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "звучит",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 4,
+            "text": "6.25",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 5,
+            "text": "из",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 6,
+            "text": "правил",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 8,
+            "text": "охране",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "труда",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "S02",
+        "task_index": 0,
+        "source_ref": "current@1:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Найди",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "пункты",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "о",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "заземлении",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "S03",
+        "task_index": 0,
+        "source_ref": "current@1:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "вытащи",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "все",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "про",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "допускающего",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 5,
+            "text": "из",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 6,
+            "text": "правил",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 8,
+            "text": "охране",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "труда",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "S04",
+        "task_index": 0,
+        "source_ref": "current@1:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Покажи",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "2.3",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 4,
+            "text": "ПУЭ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C01",
+        "task_index": 0,
+        "source_ref": "current@1:3",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Что",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "такое",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "ВЛ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C01",
+        "task_index": 1,
+        "source_ref": "current@5:8",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 5,
+            "text": "покажи",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "1.1",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "ПУЭ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C02",
+        "task_index": 0,
+        "source_ref": "current@2:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "пункты",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "6.25",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 4,
+            "text": "и",
+            "required_semantic_atom": false,
+            "exclusion_reason": "coordinating/task connector; operation or dependency is checked separately"
+          },
+          {
+            "ordinal": 5,
+            "text": "6.26",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "правил",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 8,
+            "text": "охране",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "труда",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C02",
+        "task_index": 1,
+        "source_ref": "current@2:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "пункты",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "6.25",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 4,
+            "text": "и",
+            "required_semantic_atom": false,
+            "exclusion_reason": "coordinating/task connector; operation or dependency is checked separately"
+          },
+          {
+            "ordinal": 5,
+            "text": "6.26",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "правил",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 8,
+            "text": "охране",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "труда",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C03",
+        "task_index": 0,
+        "source_ref": "current@2:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "требования",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "к",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "заземлению",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "C03",
+        "task_index": 1,
+        "source_ref": "current@7:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 7,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "2.1",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "ПУЭ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "V01",
+        "task_index": 0,
+        "source_ref": "current@5:10",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 5,
+            "text": "работу",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "под",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "наведённым",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "напряжением",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "на",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 10,
+            "text": "ЛЭП",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "V03",
+        "task_index": 0,
+        "source_ref": "current@4:9",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 4,
+            "text": "к",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 5,
+            "text": "заземлению",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "воздушных",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "линий",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "110",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "кВ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "V03",
+        "task_index": 0,
+        "source_ref": "current@11:14",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 11,
+            "text": "не",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 12,
+            "text": "для",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 13,
+            "text": "кабельных",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 14,
+            "text": "линий",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "V06",
+        "task_index": 0,
+        "source_ref": "current@4:8",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 4,
+            "text": "к",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 5,
+            "text": "заземлению",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "ВЛ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "110",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "кВ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "V06",
+        "task_index": 0,
+        "source_ref": "current@10:13",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 10,
+            "text": "не",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 11,
+            "text": "для",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 12,
+            "text": "кабельных",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 13,
+            "text": "линий",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D01",
+        "task_index": 0,
+        "source_ref": "current@1:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "А",
+            "required_semantic_atom": false,
+            "exclusion_reason": "coordinating/task connector; operation or dependency is checked separately"
+          },
+          {
+            "ordinal": 2,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "2.1",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 4,
+            "text": "?",
+            "required_semantic_atom": false,
+            "exclusion_reason": "punctuation carries no semantic atom"
+          }
+        ]
+      },
+      {
+        "case_id": "D01",
+        "task_index": 0,
+        "source_ref": "turn_1@6:9",
+        "turn_id": "turn_1",
+        "tokens": [
+          {
+            "ordinal": 6,
+            "text": "правил",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 7,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 8,
+            "text": "охране",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "труда",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D02",
+        "task_index": 0,
+        "source_ref": "current@1:5",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Не",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "электростанции",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": ",",
+            "required_semantic_atom": false,
+            "exclusion_reason": "punctuation carries no semantic atom"
+          },
+          {
+            "ordinal": 4,
+            "text": "а",
+            "required_semantic_atom": false,
+            "exclusion_reason": "coordinating/task connector; operation or dependency is checked separately"
+          },
+          {
+            "ordinal": 5,
+            "text": "подстанции",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D03",
+        "task_index": 0,
+        "source_ref": "current@2:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "только",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "по",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "ПУЭ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D03",
+        "task_index": 0,
+        "source_ref": "turn_1@5:6",
+        "turn_id": "turn_1",
+        "tokens": [
+          {
+            "ordinal": 5,
+            "text": "защитному",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 6,
+            "text": "заземлению",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D04",
+        "task_index": 0,
+        "source_ref": "current@2:3",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "пункт",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "3.2",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "D04",
+        "task_index": 0,
+        "source_ref": "turn_1@4:4",
+        "turn_id": "turn_1",
+        "tokens": [
+          {
+            "ordinal": 4,
+            "text": "ПУЭ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "U01",
+        "task_index": 0,
+        "source_ref": "current@2:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "пункты",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "о",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "заземлении",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "U01",
+        "task_index": 1,
+        "source_ref": "current@7:8",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 7,
+            "text": "сравни",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "требования",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "U02",
+        "task_index": 0,
+        "source_ref": "current@2:4",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 2,
+            "text": "пункты",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "о",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 4,
+            "text": "допуске",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "U02",
+        "task_index": 1,
+        "source_ref": "current@7:10",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 7,
+            "text": "составь",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 8,
+            "text": "заключение",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 9,
+            "text": "о",
+            "required_semantic_atom": false,
+            "exclusion_reason": "preposition between grounded semantic atoms"
+          },
+          {
+            "ordinal": 10,
+            "text": "соответствии",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      },
+      {
+        "case_id": "U03",
+        "task_index": 0,
+        "source_ref": "current@1:3",
+        "turn_id": "current",
+        "tokens": [
+          {
+            "ordinal": 1,
+            "text": "Дай",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 2,
+            "text": "определение",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          },
+          {
+            "ordinal": 3,
+            "text": "ВЛ",
+            "required_semantic_atom": true,
+            "exclusion_reason": null
+          }
+        ]
+      }
+    ]
+  },
+  "operation_audit": {
+    "C01": {
+      "task_index": 0,
+      "operation": "define",
+      "reason": "question explicitly asks what the abbreviation means; frozen gold marks this unsupported operation unknown"
+    },
+    "U01": {
+      "task_index": 1,
+      "operation": "compare",
+      "reason": "question explicitly says compare requirements"
+    },
+    "U02": {
+      "task_index": 1,
+      "operation": "conclude",
+      "reason": "question explicitly asks for a conclusion about conformity"
+    },
+    "U03": {
+      "task_index": 0,
+      "operation": "define",
+      "reason": "question explicitly asks for a definition"
+    }
+  },
+  "replay": {
+    "runs": 2,
+    "identical_actual_plans": true
+  },
+  "provenance": {
+    "no_live_or_network_calls": true,
+    "holdout_loaded": false,
+    "gold_or_receipts_modified": false,
+    "actual_model_metadata": "requested_by_host_only"
+  }
+}

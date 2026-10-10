@@ -1,0 +1,26 @@
+{
+  "schema": "h5_r7_scope_provenance.v1",
+  "authorization_source": "Parent task delegation carrying the user-authorized R7 scope; no independent acceptance/anchor issued by this artifact.",
+  "source_critique": {
+    "path": "CRITIQUE_QUESTION_PARSER_H5_R6_20261010.md",
+    "sha256": "3ff822fdf3af5e31a113ee9da6cd0f6709d17cad16ec820f979be79132aa65d8"
+  },
+  "normative_scope_source": {
+    "path": "SPEC_QUESTION_PARSER_STAGE1.md#H5.6.5",
+    "sha256": "35d1e898178254e21c50d16b3fcda37401d01e3cf1d7099257d5cfe0d6afcd4d"
+  },
+  "direct_parent": {
+    "run_id": "router-v3-h5-tuning-20261010-r6",
+    "manifest_sha256": "a0c7bb381ca1b0ce4e812f67b1ba7b4636ae56b52028d269fe9e383a4046f48c"
+  },
+  "permitted_outputs": [
+    "versioned H5 r7 launcher/runtime/tests",
+    "immutable H5 r7 run directory",
+    "H4 disposable fixture/assertion changes in the three named H4 tests"
+  ],
+  "excluded": [
+    "spec/decision/report/checkpoint edits",
+    "r1-r6 artifact changes",
+    "sampling/live model/network/Polza/holdout/Qdrant/production/bot"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "run_id": "router-v3-h5-tuning-20261010-r4",
+  "manifest_sha256": "c0472cea7a9c72a2ebcabef444b5bb205492c124bda917f108aee2d03da6623b",
+  "frozen_resources_sha256": {
+    "inputs/input_manifest.jsonl": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+    "source_manifests.json": "0668beebfae1879abb93988cdffef181ce1e1b9741f8fa3a08edf1b3bb5fc5be",
+    "schema.json": "daf2033dd8c47f3764c824d6832a4d5e32d6e029a15acbb2ff83ccb469c1b035",
+    "evaluation/router_plan_cases_tuning_v2.json": "386e7d682cf5153dd9e5bba266e348eb621fc6cfd6378b2af51c62e4609c14fe",
+    "evaluation/baseline_reconciled_v3_20261008.json": "48cff410dfc9fc61f1cf4b4e4c39285f66a796188239711c44833a8487253929",
+    "evaluation/h2_manifest.json": "e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862",
+    "evaluation/h2_parent_manifest.json": "1d4a4840ccabec4779558c37cea2a5fd35a1ef3d6f2fdd83d1a9d9b3f0af2a4f",
+    "evaluation/v2_manifest.json": "29388141657d47bed126e01fda28ce8a6158d06e1caefd56f44175fe48c511ad",
+    "prompts/classifier.txt": "1339fcf528515cfd9c6fffaeb534a4bdc0350001456f705fd671600a91986c12",
+    "prompts/parser.txt": "e2f1249959f470eb163ee59387aebec9ea1edda7db8a79bb31ea0c41d85f0589",
+    "prompts/repair.txt": "dcad9e073d6acb27ea9db4d314be10ac321dc46e547e4c29380bfa8b815aed63"
+  },
+  "implementation_sha256": {
+    "router_prompts_v3_h5.py": "1c4faac21d5dc4ab533df4f896e7847c44b3b50951750a059f33a5fd5467ef54",
+    "router_subscription_lifecycle_h5.py": "32f3bb4dcd48dabfcd71574247dc4798a071a6a8a3c19690a6fccc2c44658290",
+    "prepare_router_subscription_h5.py": "1cd96d0d32976994cd0c204440a04478776d8a032cb51ceb098bbe5c6fdc0f90",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_draft_h3.py": "2e9600d6214d111762fcb4a70e4dada7c08c9712c56d548b22ddf456cccc8f60",
+    "router_validation_policy.py": "3a9f5817bb63a89805648aaeed43ddcca4d9af169bd57de2d526ab2fc7ad4320",
+    "router_subscription_lifecycle_v3.py": "69b42f95a3785d76dbbfdfd9dc1c789c406ab355b3dec50fd9605ab7266a6830",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "router_subscription_eval_v3.py": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+    "router_request_envelope_v3.py": "8b32696fc3547d86e4f719e47cab86b39bbab204fb08185dc2f943950b5ff24a",
+    "evaluate_router_v2_tuning.py": "e22e447076c98bd3758b6b53f21df52dc3128e76c130b2cf27367ed8c44053fe",
+    "evaluate_router_v3_semantic_replay.py": "a6df171be6df6245212b4846d23f3887f8fc67181612921e5c185f079a050651",
+    "freeze_router_v3_h5_r4.py": "77cd83eb5085b4c82ef4d9f1bfb4988ff8c16cc5ee2241206a9b0e71e4c1aa54",
+    "router_subscription_lifecycle_h5_r4.py": "31f6797b5f94069b9aaf6ae66f3bdc8837ec74224877a581bd562b4f7232c3a3",
+    "prepare_router_subscription_h5_r4.py": "2e0e45b83a352e20095a92dd455602a6a8b8d3590e8774c3b4eb5f3dc55ac04a",
+    "release_router_h5_r4.py": "dfa2a0e8cfef02cb2cd6b6ae1a7fd230b19981e9a4450791f1bed93c0b30a47e",
+    "replay_router_h4_for_h5_r4.py": "9cf70ca88bea018dbd69d9b72a401258a0cdbd87e8a056c918d7f978df042acf"
+  },
+  "direct_parent_manifest_sha256": "2617500135233dd4d0903e8e6c3bda7e668acc55d993f3d6fe64ff17f428bdf7",
+  "test_sha256": {
+    "test_router_h5_r4_offline.py": "7364adc9c7e3e84ceb4f0a76c3b20c87c5672cf34709486a561a495614dd023e",
+    "test_router_h5_r4_lifecycle_boundaries.py": "e4a2aa4b20460ee805fd057ae0ee1c9ff1035f6bbfb721cd04a88b538050256b",
+    "test_router_subscription_h5_r4_coordinator.py": "c05dbf246b5f42dc0d6f2ab904daa6b677c8c38c13df96cdf04fdc1d7ebb8ece",
+    "test_router_h5_r4_trust.py": "5ef6c81f32d898d5ebb5157b79058fdf9b272e9975ce9092afb92bcd849699e3"
+  },
+  "historical_h2_runtime_sha256": {
+    "generate_router_v2_tuning.py": "70a1ec2bde9fbbe45b720cb85cbf438c9e6b7eb415cfe9c483a8e0127cb464c1",
+    "router_contracts.py": "7332ff433956d69b097e3f11a06a7ba56c68120b2f71c04db1f3221152b53c53",
+    "router_draft.py": "d6ede2b53cd70741254e0e9fa64e68a7986a46ab29e690651417342a8ecc75fe",
+    "router_planning.py": "6e96eb0756e4e0a5728e535191406ecdaa4e19779b4d53708c00d1fc874c07e8",
+    "router_prompts_v2.py": "f230e76a70d85093a6ee0c4d2f5ab82f936e8abcf6b20dfde883700e91d73126",
+    "router_subscription_eval.py": "66c11fb5b505c66501c8413bfa8c863db285017c52ddad60f71c806b7d897535",
+    "router_v2_runtime.py": "08728e908d91536c24b7d7895faa6777ad5d5db996478d46fb73194377bbaebc",
+    "run_router_v2_offline_gate.py": "699df07fc82878034a63f7deffd6862288994866cc923dcef8c1b29cd9851753",
+    "evaluate_router_v2_tuning.py": "e22e447076c98bd3758b6b53f21df52dc3128e76c130b2cf27367ed8c44053fe",
+    "router_prompts_v3.py": "5d7845b570f62059f78ebd13d935899f7125ac78bd01b788e27bb6acd7e2c017",
+    "router_subscription_eval_v3.py": "147704ef6ce71bbb381891a3d01fd05921142fbc9591865af73b36ce04667f7a",
+    "router_request_envelope_v3.py": "8b32696fc3547d86e4f719e47cab86b39bbab204fb08185dc2f943950b5ff24a",
+    "router_subscription_lifecycle_v3.py": "b06b3933820c909d64ad5ec563ca0ccb6d72635b5b9954883eaf104b4a144817",
+    "evaluate_router_v3_file_replay.py": "c02f5520a71a98cb960cbd8a4c928299b4d40dae796f6e6012f291adf8fae893",
+    "freeze_router_v3_run.py": "0f0d5e98cd6f76e44b58fa6091a5e64a4c286b68f2bf51726154db7417a71ba1",
+    "evaluate_router_v3_semantic_replay.py": "a6df171be6df6245212b4846d23f3887f8fc67181612921e5c185f079a050651"
+  }
+}

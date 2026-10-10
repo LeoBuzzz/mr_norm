@@ -1,0 +1,1 @@
+{"dialog":"new","tasks":[{"operation":"search","source":["current@1:4"],"topic":"требования к АВР","terms":[{"source":"current@4:4"}]}],"uncertain":[{"field":"term","source":"current@4:4","task":1,"candidates":["АВР","аварийно-восстановительные работы","автоматический ввод резерва"]}]}

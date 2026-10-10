@@ -1207,3 +1207,112 @@ started. Resume after reset, still stopping before the 95% reserve boundary.
 After all parser receipts (and at most one required repair per invalid case),
 run deterministic technical and semantic H4 replay against H4.5 gates. Holdout
 remains closed. No Polza, Qdrant, production or bot use.
+
+## H4 r1 completed subscription tuning — 2026-10-09
+
+Resumed below the five-hour threshold and completed the exact frozen H4 run
+`router-v3-h4-tuning-20261009-r1`, manifest SHA-256
+`4a02b0a3ea9c4fd860eed38814e44e5f5d1002bca4a5dd9ea0033c72bb2e7caa`.
+All 20 classifier and 20 parser receipts are imported and bound. Each missing
+case/role/attempt used a fresh isolated subscription worker with its prepared
+exact envelope: GPT-6 Luna medium for classifier/simple and GPT-6 Sol medium for
+complex. There were no repair attempts. No completed role was resampled.
+
+Two byte-identical deterministic replays completed through the frozen H4
+validator/lifecycle and the pinned r10 technical/semantic evaluator logic. The
+adapter only rebound the pinned evaluator module globals to H4's run identity,
+validator and lifecycle; pinned files and manifest were not edited. Final H4
+metrics:
+
+```text
+coverage                  20/20
+first technical           20/20
+final technical           20/20
+classifier                19/20 (all 11 expected complex correct)
+semantic plan             14/20
+semantic tasks            15/20
+status                    19/20
+ambiguities               1/3
+unnecessary clarification 1 (V03)
+repairs                    0
+determinism                2/2 byte-identical substantive results
+useful                     false
+full tuning gate           false
+```
+
+Against r10, H4 gained plan passes for V06 and U03, retained the intended true
+clarifications for A02/A03, and reduced unnecessary clarifications from four to
+one. V01 became ready with correct task semantics but remained the sole
+classifier mismatch (`complex` instead of expected `simple`); V03 still emitted
+an alias clarification. H4 lost the prior D04 plan pass because the fresh model
+answer did not provide the expected evidence coverage. D03 also retained its
+known task-semantic failure. Consequently only 12 of the 13 r10 plan passes were
+preserved, semantic useful remained below 15/20, new critical regressions were
+reported for D04 (and versus H2 also D03), and zero-critical-ready-losses failed.
+
+H4 is therefore a completed failed experiment, not a stage1 acceptance. Per
+H4.5, do not edit prompts or retry under this manifest and do not spend more
+sampling on H4. The next step requires a new explicitly versioned hypothesis and
+offline decision before any H5 implementation or sampling. Holdout remains
+closed. No Polza, Qdrant, production, bot or definition-task path was used.
+
+## H5 specification and offline implementation checkpoint — 2026-10-09
+
+Astra medium reviewed the completed H4 evidence and returned `spec_ready`.
+Normative H5 is appended to `SPEC_QUESTION_PARSER_STAGE1.md`; the decision is
+`DECISION_QUESTION_PARSER_STAGE1_H5_20261009.md`. The single bounded hypothesis
+adds a prompt-only consistency self-check for alias/ambiguity, complexity and
+source/condition preservation. Gates/scorer remain unchanged; H4 remains
+immutable and sampling remains prohibited before a new Astra `accept_offline`.
+
+GPT-6 Luna medium created only the H5 allowlisted adapters, prompts and tests,
+plus immutable run `router-v3-h5-tuning-20261009-r1`. Manifest SHA-256:
+`c4819b3e9b661ce0dfcf83788823da4b6b7a7fe54555af81cce385bfa88d77fd`;
+direct H4 parent SHA-256:
+`4a02b0a3ea9c4fd860eed38814e44e5f5d1002bca4a5dd9ea0033c72bb2e7caa`.
+Freeze validation reports 20 unchanged inputs, exact schema/source manifests,
+repair-prompt parity, pinned code/resource/test inventory, zero receipts and
+empty replay fail-closed. Seven new source/test files passed syntax parsing; a
+direct offline scorer probe distinguishes missing D04 historical evidence from
+complete evidence. No sampling occurred.
+
+The next required role is independent GPT-5.5 Sol medium testing. It is blocked
+in the current Codex subscription model catalog: `spawn_agent` rejects
+`gpt-5.5-sol`; available Sol models begin at GPT-5.6. Do not silently substitute
+the tester model. The local default Python and `venv312` also lack pytest (and
+the configured Miniconda path is missing), so Luna could not execute pytest or
+historical replay suites. Resume only after the user chooses whether GPT-5.6
+Sol medium may replace GPT-5.5 Sol medium for the independent test role, or an
+exact GPT-5.5 Sol subscription model becomes available. No Polza, holdout,
+Qdrant, production or bot path was used.
+
+## H5 r1-r3 offline correction checkpoint — 2026-10-10
+
+The user authorized GPT-5.6 Sol medium as the independent tester because the
+subscription catalog no longer exposes GPT-5.5 Sol. H5 r1 independent tests
+found three P1 defects: duplicated parser self-check, undefined `wrong_role` in
+the coordinator test, and missing exact-manifest-SHA enforcement. Luna produced
+immutable successor r2; r1 stayed byte-identical. R2 fixed all three defects and
+passed 18 focused tests, but independent retest found incorrect lineage fields:
+the H4 SHA was replaced by r1 SHA, H2 SHA was null, and validation missed both.
+
+Luna therefore produced immutable successor
+`router-v3-h5-tuning-20261009-r3` with manifest SHA-256
+`2617500135233dd4d0903e8e6c3bda7e668acc55d993f3d6fe64ff17f428bdf7`.
+Direct parent is r2 SHA
+`0c63752b3711ba44351cc673b3befd0e0accbe60623a8de6d982345c2ecce194`;
+lineage pins r1 `c4819b3e9b661ce0dfcf83788823da4b6b7a7fe54555af81cce385bfa88d77fd`,
+H4 `4a02b0a3ea9c4fd860eed38814e44e5f5d1002bca4a5dd9ea0033c72bb2e7caa`,
+H2 `e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862`
+and r10 `ebca3c43947ab7361369bf9a59eff93789c565ce4f0f32dfb274b0b614ee4cdc`.
+Validator checks every lineage field and exact manifest SHA; coordinator and
+lifecycle pin exact r3. Focused suite: 19 passed. `py_compile` passed. Empty
+replay is 0/20, incomplete and fail-closed; coherent lineage substitution is
+rejected. R1/r2 manifests remain unchanged. R3 has the same 20 inputs and zero
+receipts. No sampling or live path ran.
+
+Five-hour usage reached 90% after the r3 correction. Per H5.5 do not begin the
+next batch before reset. Exact next step: fresh GPT-5.6 Sol medium independent
+retest of r3, then (only on PASS) GPT-5.6 Sol medium critique and GPT-6 Astra
+medium final offline acceptance. Sampling remains forbidden until
+`accept_offline`. No Polza, holdout, Qdrant, production or bot path was used.

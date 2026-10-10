@@ -373,3 +373,390 @@ H4 failed, сохранить результаты и прекратить эт�
 2026-10-09 недельный резерв теперь 2%: при weekly used>=98% checkpoint и stop;
 не запускать batch, который по оценке может съесть этот резерв. Пятичасовой
 порог начала batch остаётся used<90%.
+
+---
+
+# Этап 1, итерация 3.3 / H5: проверка согласованности решения с его основаниями
+
+2026-10-09. Verdict: **spec_ready**. Разрешена только ограниченная offline
+реализация ниже; sampling запрещён до отдельного **accept_offline** Astra.
+H4 завершён как failed и остаётся immutable. Настоящий раздел дополняет историю,
+не меняет scorer, gold, strict gate или разрешения на holdout.
+
+## H5.1 Диагноз и одна гипотеза
+
+H4 r1: technical 20/20→20/20, classifier 19/20 (11/11 expected complex),
+status 19/20, semantic tasks 15/20, semantic plan 14/20, одно лишнее уточнение.
+V06/U03 восстановлены; D04 потерян: 13 r10 passes превратились в 12 сохранённых.
+V01 уже имеет верные tasks/status, но complex вместо simple; V03 одновременно
+выбирает значение и уточняет варианты написания этого же значения. Правильный
+status/classifier не компенсирует task/evidence/clarification ошибки в full plan.
+
+Одна H5 гипотеза: небольшой заключительный prompt self-check согласованности
+решения с уже доступными основаниями уменьшит противоречивые решения и потери
+источников. Это один проход перед выдачей JSON, без нового вызова модели,
+reasoning-поля, runtime inference, postprocessing или semantic repair. Он
+проверяет только (a) основание ambiguity/complexity и (b) полноту source и
+conditions для уже выбранных полей. Не менять ontology или алгоритм routing.
+
+D04 raw H4 содержит dialog=correct и только current source, хотя выбранный
+doc_id взят из истории; r10 содержит continue и отдельный historical doc span.
+Это наблюдаемая вариативность prompt/model output при свежем ответе, совместимая
+с недостаточно явным evidence правилом; один run не доказывает стохастическую
+причину или причинность alias patch. H5 может предупредить её общим правилом
+обоснования наследуемых полей. Нельзя объявить её шумом и исключить из gate.
+
+D03 больше НЕ является только classifier ошибкой: H4 исправил complexity, но
+потерял явное scope condition, которое r10 сохранял. Отдельный redesign
+scope-changing continuation остаётся вне H5; однако D03 НЕ исключается из
+regression guard. Общая проверка сохранения явно заданных ограничений обязана
+защитить его, без case-specific инструкции. Если это требует отдельного runtime
+или dialog redesign, вернуть changes_required, а не ослаблять critical gate.
+
+## H5.2 Нормативное содержание bounded prompt patch
+
+1. Classifier считает независимые запрошенные результаты/операции, а не число
+   найденных пунктов, слов, условий или candidate labels. Один полный перечень
+   по одной теме с action/object/quantity/exclusion — один результат и simple,
+   если нет существующего complex trigger. Multiple document-point pairs,
+   dependencies, реальные ambiguity, corrections и unsupported intents сохраняют
+   complex. Не превращать любое наличие истории в complex.
+2. Parser проверяет, есть ли реально конкурирующие смыслы перед uncertain.
+   Явно названная полная форма, включая обычное склонение, и её установленный
+   supplied alias не создают ambiguity только из-за разных строк. Правило
+   симметрично для surface→expansion и expansion→surface, независимо от порядка
+   candidates. Не создавать программный stemmer/alias table. Выбирать только
+   exact supplied meaning ID по H4.2. Нельзя автоматически снимать uncertainty
+   лишь потому, что draft уже заполнил meaning: выбранное значение само не
+   доказательство. При конкурирующих expansions или недостатке оснований
+   сохранять uncertainty и не выдавать предположение за resolution.
+3. Для каждого уже выбранного поля убедиться, что task.source включает
+   подтверждающие его supplied spans: текущую операцию/target и историческое
+   упоминание документа/темы, если поле наследовано. Наличие resolved_doc_id
+   не заменяет доступный исторический source span. Не цитировать всю историю
+   автоматически; включать релевантный источник, не старый point как новый
+   target. Если подтверждения нет, не выдумывать span или документ.
+4. Явные restrictions сохранять в conditions независимо от заполненных
+   document/topic/terms: scope selection не поглощает «только по ...», concept
+   не поглощает object, quantity не теряет unit, exclusion не меняет polarity.
+   Новый номер в том же подтверждённом документе без сигнала исправления —
+   continue; correct требует реального исправления прежнего условия. Не
+   переносить чужие/устаревшие условия в новый запрос; сохранить прежние правила
+   correction/replace/dependency, без новых триггеров и inference.
+5. Реальные разные doc IDs никогда не объединять по labels. Для настоящего
+   term/document clarification сохранять field, subject и полный exact набор
+   options без duplicates/extras/omissions; не выбирать guessed meaning/doc.
+   A02/A03 corpus вместо unresolved — отдельный representation defect,
+   остающийся вне H5. Не убирать retained task ради score и не менять assembler.
+   Его сохранение не разрешает full acceptance. U03 остаётся unsupported define
+   и deferred при отсутствии настоящей ambiguity.
+
+Допускается один короткий заключительный self-check block в parser и один
+согласованный classifier paragraph. Можно уточнить противоречащую формулировку
+H4 внутри этих границ и добавить максимум один компактный fictional contrast
+block: alias в обе стороны/конкурирующие meanings и inherited-document source.
+Все literals/IDs вымышленные, не из tuning. SourceRefs проверяются tokenizer.
+Repair prompt, schema и остальные правила H4 сохраняются побайтно, кроме
+необходимого размещения этих blocks; не переписывать весь prompt.
+
+## H5.3 Точный allowlist и immutable revisions
+
+Все пути ниже относительно sandbox/skill_router_lab. Реализация может создать
+только router_prompts_v3_h5.py, freeze_router_v3_h5.py,
+router_subscription_lifecycle_h5.py, prepare_router_subscription_h5.py,
+test_router_h5_offline.py, test_router_h5_lifecycle_boundaries.py,
+test_router_subscription_h5_coordinator.py. Обвязка — минимальная адаптация H4
+для новой идентичности/хешей/версии; evaluator adapter может только привязать
+существующий pinned evaluator к H5 identity/lifecycle, без изменения логики.
+Не менять существующие implementation/tests. Документы H5 review/acceptance
+и append-only checkpoint допустимы отдельно, не как evidence model quality.
+Если нужен иной файл или semantic runtime patch — changes_required до правки.
+
+Запрещены изменения assembler, validator, _candidate_sets, _prepare_vocab,
+meaning_groups/file protocol, dictionary, tokenizer, schemas, gold, audit maps,
+scorer/matching, status precedence, repair budget и исторических reports/runs.
+Не вводить case-ID branching, tuning literals, тестовые ответы в runtime.
+
+Первый H5 freeze: router-v3-h5-tuning-20261009-r1, отдельный каталог
+router_subscription_run_tuning_v3_h5_r1_20261009. Прямой parent H4 r1 manifest
+SHA-256 4a02b0a3ea9c4fd860eed38814e44e5f5d1002bca4a5dd9ea0033c72bb2e7caa;
+сохранить lineage до r10 ebca3c43947ab7361369bf9a59eff93789c565ce4f0f32dfb274b0b614ee4cdc.
+Новые manifests/resources/envelopes разрешены только в новом H5 каталоге.
+Закрепить exact prompt/runtime/resource hashes и отдельный test/hash inventory.
+Те же 20 tuning inputs/order/candidates/context/source manifests и schema bytes.
+Freeze можно подготовить offline без receipts. Любое изменение manifest-pinned
+bytes после freeze требует следующего явного revision и нового offline review;
+не перезаписывать r1. После dispatch не менять prompt и не делать silent retry.
+
+## H5.4 Обязательный offline gate и роли
+
+Luna medium пишет код; Sol 5.5 medium независимо проверяет tests; Sol 5.6 medium
+делает critique; Astra medium принимает exact frozen revision. Недоступность
+указанной модели фиксировать как blocker роли, не заменять молча. До sampling:
+
+- Focused и релевантная ранее проходившая suite PASS; compact diff и hash
+  inventory подтверждают allowlist, отсутствие case-specific prompt content и
+  неизменность всех неразрешённых ресурсов, включая repair prompt и schema.
+- Synthetic drafts через реальный H5 lifecycle/assembler: обе формы одного
+  alias дают один concept без лишнего clarification, один all с несколькими
+  условиями сохраняет object/action/quantity/unit/exclusion; define deferred.
+  Перестановка labels не меняет смысл; несколько разных meanings/doc IDs
+  сохраняют точные clarification options, отсутствие guessed resolution.
+- Продолжение point lookup цитирует current point и historical document,
+  не возвращает старый point и не становится correction лишь из-за нового
+  номера. Scope-only continuation сохраняет condition и topic; отдельные
+  synthetic correction/new-request contrasts защищают перенос условий.
+- Проверять task-local source coverage, не только наличие поля: положительные
+  и отрицательные drafts (пропущенный historical source/condition) должны
+  различаться существующим scorer; не добавлять validator semantic rejection.
+  Отрицательные примеры могут быть technically valid и semantic fail.
+- Все старые guards: literal topic/point SourceRef, unknown IDs, measured
+  quantity, один technical repair, terminal failure, role selection по observed
+  classifier, canonical request/repair input binding, tamper/resource substitution,
+  critical multiset identity и empty/partial coverage fail-closed.
+- Исторический replay без правки артефактов воспроизводит B=11, H2=5
+  (technical15→20), r10 semantic13/technical20 и H4 semantic14/classifier19/
+  status19/technical20, включая реальные failures. Два substantive deterministic
+  replay совпадают. Empty H5: coverage0/20, complete=false, gate=false.
+- Независимые tests PASS, critique PASS и отдельный Astra accept_offline с
+  exact manifest SHA обязательны. Offline injected outputs проверяют plumbing,
+  а не следование модели prompt; offline quality score не заявлять.
+
+## H5.5 Измеримый target, regression guards и запрет sampling
+
+Прогноз H5 — semantic18/20, classifier20/20, status20/20, ноль лишних уточнений:
+V01/V03 и D04 плюс восстановленная task semantics D03; A02/A03 остаются
+representation failures. Это проверяемый target, НЕ результат и НЕ новый gate.
+H5 useful сохраняет порог >=15/20 и ВСЕ H4.5 technical/provenance/critical
+условия; повышение score само по себе недостаточно. Обязательно сохранить все
+14 H4 plan passes и восстановить все 13 r10 passes; ноль новых critical records
+отдельно против B, H2, r10 и H4, ноль ready critical losses. В частности D03
+не освобождается от critical guard. Все11 expected complex сохраняются,
+V03/V06 metamorphic pass; A01/A02/A03 field/subject/options сохранены;
+V06/U03 не регрессируют. Два byte-identical replay, coverage20/20, first>=19/20,
+final20/20, locator-free accepted plans, <=1 лишнее уточнение обязательны.
+
+Strict tuning gate НЕ МЕНЯЕТСЯ: semantic>=18/20, classifier>=18/20 и все11
+expected complex, status>=18/20, все3 ambiguity корректны, <=1 лишнее уточнение,
+metamorphic/technical/critical/provenance gates. Известные A02/A03 failures
+нельзя засчитать по одним field/options или объявить full pass при score18.
+
+До отдельного accept_offline — никаких новых model samples/Polza/Qdrant/
+production/bot/holdout. После acceptance допустим только новый frozen tuning
+по прежнему подписочному протоколу: свежий isolated worker на case/role/attempt,
+Luna medium classifier/simple и Sol medium complex, exact immutable envelopes,
+raw receipts/bindings, один technical repair, без gold/reports/repository у
+worker. Requested model не выдавать за verified actual. Не reuse H4 responses.
+Лимиты: старт batch при 5h used<90%, stop при >=95% либо weekly>=98%, резерв2%.
+При failure сохранить весь run и остановить гипотезу; дальнейший retry требует
+новой версии/решения. Holdout не открывается даже при tuning_pass.
+
+## H5.6 Нормативная коррекция r4 после independent critique r3
+
+2026-10-10. Verdict: **spec_ready**, только для подготовки и проверки offline
+successor. R3 остаётся **changes_required**; его test report с 12 failures не
+является PASS по H5.4. Этот append-only раздел уточняет trust boundary и строго
+расширяет allowlist ниже; H5.1–H5.5, semantic/critical thresholds и запрет sampling
+сохраняются. Ни это решение, ни созданный release lock не являются accept_offline.
+
+### H5.6.1 Trust root без самоподтверждения кода
+
+Хеш в изменяемом Python module, manifest или соседнем inventory — не независимый
+корень доверия. Добавление validator в manifest при embedded exact manifest SHA
+создаёт цикл и НЕ является решением. Для r4 применяется внешний release anchor:
+
+1. Сначала фиксируются окончательные code/tests/resources и создаётся manifest,
+   содержащий их SHA-256, включая freeze validator, coordinator, lifecycle и
+   весь локальный import/dependency closure, влияющий на validation/assembly/
+   scoring/replay. Затем создаётся `release_lock.json`: exact manifest SHA,
+   exact `hash_inventory.json` SHA, полный path→SHA-256 inventory executable
+   closure/tests/replay adapter, predecessor tree inventory и identity/lineage.
+   Lock НЕ включает свой SHA и НЕ меняется ради последующей review. Ни code, ни
+   manifest не содержат SHA самого lock или собственного будущего manifest.
+2. Независимый reviewer проверяет байты и записывает SHA-256 lock, SHA-256
+   stdlib-only launcher `release_router_h5_r4.py`, exact manifest SHA и run ID
+   в свой результат в доверенном канале coordinator/reviewer. Astra при
+   accept_offline повторяет эту точную тройку hashes в acceptance message и
+   acceptance artifact. Авторитетен сохранённый внешний message/record, не
+   изменяемая копия markdown/JSON в checkout. Локальный acceptance документ —
+   только зеркало. До acceptance независимый test reviewer может задать такой
+   anchor исключительно для synthetic offline tests; это не dispatch approval.
+3. Доверенный host сначала сравнивает actual launcher bytes с внешним SHA
+   стандартным SHA-256 инструментом, не импортируя candidate Python modules.
+   Проверенный launcher получает expected lock SHA из внешнего record, проверяет
+   lock и все bytes до первого candidate import, затем вызывает выбранный
+   validator/coordinator/lifecycle из проверенного closure. Нельзя получать
+   expected SHA из run directory, его manifest, Python constant или unverified
+   local acceptance mirror. Нет fallback при отсутствующем/неверном anchor.
+4. Все три supported release entry points проходят один этот preflight; прямой
+   запуск/import candidate API без проверенного host context не является
+   release verification и должен fail closed в supported entry points. Python
+   object/token не объявляется unforgeable security boundary. Host удерживает
+   проверенный checkout неизменяемым до завершения процесса, фиксирует import
+   paths и исключает стороннее local module shadowing; либо повторно проверяет
+   bytes непосредственно перед использованием. Не запускать проверку в уже
+   monkeypatched процессе. Freeze preparation, synthetic test и release-use
+   режимы должны быть различимы; preparation не выдаёт release authorization.
+
+Threat model: противник/ошибка может согласованно заменить run manifest,
+inventory, lock, candidate validator/coordinator/lifecycle и launcher в checkout
+до старта. Он не может заменить внешний reviewer/acceptance message, host hash
+tool/interpreter/dependencies или менять process/memory после host verification.
+Эта доверенная база перечисляется с версиями/путями в acceptance. Подмена самой
+доверенной базы либо arbitrary monkeypatch после verification вне обещания; при
+невозможности обеспечить эти предпосылки acceptance blocked, а не self-auth claim.
+
+Обязательные subprocess negatives на disposable copies: (a) manifest transport
+и inventory согласованно изменены; (b) тот же manifest плюс изменённые expected
+constants/validator в candidate code; (c) обновлены также candidate lock/hash
+maps; (d) изменён launcher; (e) missing/wrong external anchor; (f) resource или
+local imported dependency изменены. Сохранённый внешний test anchor одинаков
+для originals и substitutions. Для validator/coordinator/lifecycle отклонение
+до candidate import/dispatch/write подтверждается sentinel и нулём side effects.
+Оригинал проходит. Подмена самого trusted anchor не считается negative PASS:
+это другая разрешённая release identity, а не доказательство tamper resistance.
+Отдельные lineage unit tests могут подавать изменённые данные за hash boundary,
+но не заменяют внешний preflight negative. Нужен exact inventory membership,
+не только проверка оставленных в attacker-controlled map записей.
+
+### H5.6.2 Минимальная коррекция H4 fixture debt
+
+Разрешено изменить только fixture setup и ошибочное empty assertion в трёх
+существующих H4 test files, перечисленных ниже. Все 13 test instances, их
+behavioral assertions и parametrization сохраняются; 12 failures должны стать
+PASS в общей suite. Удаление, skip, xfail, deselection, suppression и исключение
+из PASS запрещены. Старая empty проверка переносится на disposable copy.
+
+Для lifecycle/coordinator synthetic dispatch тест создаёт отдельную копию H4
+под pytest tmp_path, проверяет resolved destination вне original run, затем
+убирает ТОЛЬКО receipts.jsonl, request_envelopes.jsonl и
+receipt_envelope_bindings.jsonl из этой копии. До/после подтверждаются одинаковые
+manifest/resource bytes и пустые три evidence streams копии. Original H4 не
+чистить и не перефризить. Дополнительно проверяется actual populated run:
+receipts_present=true, ровно 40 receipts/40 envelopes/40 bindings, exact SHA
+каждого файла из independently reviewed release lock, valid key/hash bindings,
+и прежний отказ повторного start/role/attempt на populated disposable copy.
+Counts без exact bytes недостаточны. Старые test bytes сохраняются в r4 evidence
+до изменения; report даёт mapping прежних test node IDs к тем же assertions.
+
+### H5.6.3 Исполняемая граница D03 и source/condition
+
+В новых r4 tests обязательны injected drafts через настоящий
+FileSubscriptionRunnerH5R4 → существующие validator/assembler → неизменённый
+`router_subscription_eval_v3.compare_case`. D03 input и expected берутся из
+замороженных tuning/evaluation bytes, только в тестах. Positive draft сохраняет
+continue, all/comprehensive, inherited literal topic, выбранный exact doc ID,
+current scope condition и task-local current+historical evidence. Проверяются
+assembled values и full semantic plan PASS. Negative меняет ровно omission
+scope condition, оставляя topic/doc/evidence; technical validation остаётся
+успешной без repair, conditions и full semantic plan scorer дают FAIL. Отдельный
+negative удаляет historical source того же task: scorer source coverage FAIL,
+а соседний task с этим source не может компенсировать потерю. Нельзя добавлять
+semantic rejection в validator или считать presence prompt substring покрытием.
+
+D04 current-only/complete inherited-document drafts также проходят lifecycle,
+assembler и scorer, сохраняя новый point и continue без ложного correction.
+Synthetic explicit correction и independent new-request contrasts исполняются
+через lifecycle/assembler, проверяют dialog/conditions и отсутствие переноса
+устаревших условий; expected может быть test-local, scorer остаётся прежним.
+Не менять gold ради PASS. Если положительный D03 невозможно провести через
+неизменённый runtime, вернуть changes_required для отдельного решения.
+
+### H5.6.4 Immutable lineage и воспроизводимый historical replay
+
+Новая identity: `router-v3-h5-tuning-20261010-r4`, каталог
+`router_subscription_run_tuning_v3_h5_r4_20261010`. Direct parent — H5 r3,
+SHA-256 `2617500135233dd4d0903e8e6c3bda7e668acc55d993f3d6fe64ff17f428bdf7`.
+R3→r2 SHA `0c63752b3711ba44351cc673b3befd0e0accbe60623a8de6d982345c2ecce194`,
+r2→r1 SHA `c4819b3e9b661ce0dfcf83788823da4b6b7a7fe54555af81cce385bfa88d77fd`;
+actual H4 SHA `4a02b0a3ea9c4fd860eed38814e44e5f5d1002bca4a5dd9ea0033c72bb2e7caa`,
+r10 SHA `ebca3c43947ab7361369bf9a59eff93789c565ce4f0f32dfb274b0b614ee4cdc`,
+H2 SHA `e0fb87c8b6dc2864fec9204c4089e3ae2a265f7f77b2f88e8216627093c7c862`.
+Legacy erroneous lineage fields внутри r1/r2 не исправлять: отдельно записать
+их original contents и corrected actual ancestry. Не объявлять старые fields
+верными ради chain validation. R4 inputs/order/schema/prompts/evaluation и H2
+snapshot resources побайтно равны r3; новая prompt гипотеза здесь не разрешена.
+
+Release lock закрепляет full existing file inventory r1/r2/r3 и H4 (включая
+manifest, inventories, frozen resources, historical snapshots и H4 raw evidence).
+При каждом supported preflight проверяются full tree membership/hashes и все
+доступные historical resource maps, не только parent manifest. Evidence trees
+не получают новых файлов. R1/r2/r3 остаются без receipts/envelopes/bindings;
+на r4 filesystem тоже проверяется отсутствие всех трёх, а empty replay обязан
+инспектировать их и fail closed на unexpected evidence, не возвращать константу.
+
+Старые inventories ссылаются на разные поколения live H5 code/tests, которые
+не хранятся внутри r1/r2. Нельзя сравнивать их с r4 code, переписывать inventories
+или утверждать full historical code validation по одним resources. Для каждого
+такого entry report указывает verified archived bytes либо unavailable, с exact
+old hash. Найденные originals можно архивировать в новом r4 evidence только
+после exact hash match; восстановленный похожий код не оригинал. Неполные старые
+rejected H5 revisions используются только как immutable historical data, не как
+доверенный executable runtime или proof прежнего PASS. Это не waiver r4 closure:
+все выполняемые r4/H4/H2/r10 code/tests/dependencies должны реально существовать
+и быть закреплены. Текущие r3 code/tests и original H4 tests архивируются до
+правок. Любое изменение predecessor data после anchor блокирует release.
+
+Новый `replay_router_h4_for_h5_r4.py` — только воспроизводимый offline adapter
+существующих pinned r10 replay/scorer к pinned H4 identity/validator/lifecycle,
+без правки evaluator logic и artifacts. Он запускается отдельным процессом,
+проверяет/документирует все переназначенные globals/import bindings (technical
+и semantic RUN_DIR/RUN_ID/validate_frozen, validate_raw_h3, assemble_plan_h3,
+semantic replay_h3 и frozen gold/baseline paths); H2 остаётся pinned. Нельзя
+оставить неизвестный скрытый in-process monkeypatch как единственное evidence.
+Report сохраняет точную CLI, interpreter/dependency versions, input/closure
+hashes, canonical serialization и SHA-256 полных substantive outputs двух запусков
+в свежих процессах. Нормализация для сокрытия различий запрещена. Для H4 оба
+выхода одинаковы: technical20, semantic14, classifier19, status19 со всеми
+actual failures; H2 technical15→20/semantic5, B11 и r10 technical20/semantic13
+также воспроизводятся дважды. Digest не подставлять прогнозом заранее.
+Replay использует read-only original evidence, отключает запись bytecode в
+historical trees; outputs идут в disposable/evidence destination нового r4.
+Сначала получить canonical replay outputs, затем финализировать manifest и lock:
+outputs не включают будущий lock SHA или своё собственное hash поле. Независимый
+reviewer повторяет replay и сравнивает с уже закреплёнными outputs без перезаписи.
+
+### H5.6.5 Точный расширенный allowlist, gates и роли
+
+Все пути относительно sandbox/skill_router_lab. В рамках r4 разрешены ТОЛЬКО:
+
+- Новые `freeze_router_v3_h5_r4.py`, `router_subscription_lifecycle_h5_r4.py`,
+  `prepare_router_subscription_h5_r4.py`, `release_router_h5_r4.py`,
+  `replay_router_h4_for_h5_r4.py`: identity/trust/preflight/replay binding changes
+  выше; никакой semantic runtime logic. Имя lifecycle class —
+  `FileSubscriptionRunnerH5R4`.
+- Новые `test_router_h5_r4_offline.py`, `test_router_h5_r4_lifecycle_boundaries.py`,
+  `test_router_subscription_h5_r4_coordinator.py`, `test_router_h5_r4_trust.py`.
+- Только H5.6.2 fixture/assertion refactor в `test_router_h4_offline.py`,
+  `test_router_h4_lifecycle_boundaries.py`, `test_router_subscription_h4_coordinator.py`.
+- Новый r4 run directory с frozen resources, manifest, hash_inventory,
+  `release_lock.json`, `evidence/predecessor_files_sha256.json`,
+  `evidence/original_tests/`, `evidence/predecessor_runtime/` и
+  `evidence/replay/`. В evidence разрешены только exact archived originals,
+  hash/provenance inventories, replay command metadata и canonical outputs.
+  Никаких model receipts/envelopes/bindings в этом offline run.
+- Этот append-only spec, `DECISION_QUESTION_PARSER_STAGE1_H5_R4_20261010.md`,
+  новые `REPORT_QUESTION_PARSER_H5_R4_INDEPENDENT_TEST_20261010.md`,
+  `CRITIQUE_QUESTION_PARSER_H5_R4_20261010.md`,
+  `ACCEPTANCE_QUESTION_PARSER_H5_R4_ASTRA_20261010.md`; checkpoint append
+  coordinator по прежнему разрешению, вне данной specification role.
+
+Существующие H5 r1/r2/r3 modules/tests/prompts, все старые frozen runs/reports,
+H4 implementation, common runtime/scorer/gold/schema/tokenizer не меняются.
+Tests/preflight temporary artifacts допускаются только в disposable tmp dirs.
+Новые manifests/tests не ретроактивно переписывают pins предыдущих revisions.
+Любая правка frozen r4 bytes после выпуска lock требует successor revision,
+новый anchor и заново независимые reviews. Review reports и external acceptance
+создаются после lock и не включаются в него: их provenance идёт из внешнего
+reviewer record, что устраняет hash cycle.
+
+Общий regression command включает все suites из r3 independent report, новые
+четыре r4 suites и исправленные три H4 suites без deselection; PASS обязателен,
+без исключения fixture debt. Отдельно обязательны external-anchor negatives,
+D03/D04 behavioral contrasts, precursor preservation и reproducible replay.
+Все H5.4 guards и H5.5 quality/critical gates остаются conjunctive.
+Роли прежние: Luna medium implementation; Sol 5.5 medium independent tests;
+Sol 5.6 medium critique; Astra medium exact release acceptance. Недоступность
+роли — blocker, не тихая замена. Нужны independent tests PASS, critique PASS и
+отдельный Astra accept_offline с manifest/lock/launcher SHA из trusted record.
+До этого sampling запрещён. Никаких Polza/holdout/Qdrant/production/bot.

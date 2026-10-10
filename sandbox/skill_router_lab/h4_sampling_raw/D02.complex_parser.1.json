@@ -1,0 +1,1 @@
+{"dialog":"correct","tasks":[{"operation":"all","source":["turn_1@1:5","current@1:5"],"topic":"требования к подстанциям","conditions":[{"source":"current@5:5","kind":"object","polarity":"include"}],"replace":["turn_1:c1"]}]}

@@ -1,0 +1,1 @@
+{"dialog":"new","tasks":[{"operation":"search","source":["current@1:4"],"topic":"заземление"},{"operation":"compare","source":["current@4:4","current@6:8"],"topic":"требования к заземлению","after":[1]}]}

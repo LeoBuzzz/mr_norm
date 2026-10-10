@@ -1,0 +1,31 @@
+{
+  "schema": "h5_r7_replay_command_metadata.v1",
+  "invocation": [
+    "C:\\Users\\buleo\\miniconda3\\python.exe",
+    "-I",
+    "-S",
+    "C:\\PY\\PythonProject\\mr_norm\\sandbox\\skill_router_lab\\release_router_h5_r7.py",
+    "--anchor-launcher-sha256",
+    "bf0c6473620aaa3dc864c9617ce770973d740bd2a107cda9e23aed66bfcb0928",
+    "--anchor-lock-sha256",
+    "18b1e54c1858bab4c0c78b2547bdf59a9a28cb7192897ba6277e646392a72034",
+    "--anchor-manifest-sha256",
+    "89d46b3e76720fcf35c7e7e357652b60b8a5a50f31314c947ca8619264ef09c6",
+    "--action",
+    "replay",
+    "--output-dir",
+    "C:\\PY\\PythonProject\\mr_norm\\sandbox\\skill_router_lab\\.pytest_h5_r7_replay_run"
+  ],
+  "interpreter": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:21:58) [MSC v.1929 64 bit (AMD64)]",
+  "jsonschema_version": "4.26.0",
+  "external_dependency_root": "C:\\Users\\buleo\\miniconda3\\Lib\\site-packages",
+  "external_dependency_closure_sha256": "f1fb2aa605235b83e8e18671a21f6f77be9eed0b23a1b079ccc83f6ddfe2bb3b",
+  "executable_closure_sha256": "32c37693a5349497351f989552508fcb43638269ee8ada929942d70938b829ae",
+  "input_manifest_sha256": "b0a7ab3d55b8d185ab2439718ea180580f99ca51442c56f6b61d1ec0405fc4a4",
+  "r6_parent_manifest_sha256": "a0c7bb381ca1b0ce4e812f67b1ba7b4636ae56b52028d269fe9e383a4046f48c",
+  "fresh_processes": 2,
+  "canonical_output_sha256": "f57815b4742d3532f72c535da847e5520f7c8f507df8499731d716593a9c0e07",
+  "repeat_output_sha256": "f57815b4742d3532f72c535da847e5520f7c8f507df8499731d716593a9c0e07",
+  "output_bytes": 266340,
+  "fresh_replay_outputs_match": true
+}

@@ -1,0 +1,1 @@
+{"dialog":"new","tasks":[{"operation":"search","source":["current@1:4"],"topic":"требования к ПТЭ","terms":[{"source":"current@4:4","meaning":"ПТЭ"}]}],"uncertain":[{"field":"document","source":"current@4:4","task":1,"candidates":["doc_eae0520bf60a818d","doc_691ad88b0e765823"]}]}

@@ -1,0 +1,10 @@
+{
+  "schema": "h5_r6_reviewer_anchor_inputs.v1",
+  "issued": false,
+  "note": "Non-circular digest inputs for independent reviewer anchoring; this file does not authorize or issue an anchor.",
+  "run_id": "router-v3-h5-tuning-20261010-r6",
+  "direct_parent_manifest_sha256": "2e7bac2a309c5e8723907763e76171c979b294eb39df456c4c21be0106f00756",
+  "launcher_sha256": "add50fa1a3fd0f967ea4acf9296681885b8f25b2ce2475efcc915d3f455d2fcd",
+  "release_lock_sha256": "dae5d5d20d3081a15ddf0b6ede3d64d7044eeca44e11721b8cd1bbec9a11724d",
+  "manifest_sha256": "a0c7bb381ca1b0ce4e812f67b1ba7b4636ae56b52028d269fe9e383a4046f48c"
+}
