@@ -217,6 +217,19 @@ class QdrantSkills:
             groups.append(list(found.items))
             warnings.extend(found.warnings)
         items = _merge_query_results(groups, limit=limit)
+        if skill == "find_all" and not items:
+            fallback_query = str(step.get("_user_question") or query).strip()
+            if fallback_query:
+                vector_found = run_vector_tool(
+                    ToolRequest(query=fallback_query, filters=filters, limit=30),
+                    self.config,
+                )
+                items = _merge_query_results([list(vector_found.items)], limit=limit)
+                warnings.extend(vector_found.warnings)
+                if items:
+                    warnings.append(
+                        "find_all text search returned no hits; used semantic fallback"
+                    )
         if skill == "find_all":
             warnings.append("find_all currently returns at most 100 matching chunks; result is not guaranteed exhaustive")
         return items, warnings
@@ -433,7 +446,7 @@ def run_router2(
         step_number = step["step"]
         if any(dependency not in completed for dependency in step.get("after") or []):
             raise ValueError(f"unmet dependency at step {step_number}")
-        items, warnings = backend.run(step)
+        items, warnings = backend.run({**step, "_user_question": question})
         completed[step_number] = items
         result.calls.append({
             "step": step_number, "skill": step["skill"], "query": step.get("query"),

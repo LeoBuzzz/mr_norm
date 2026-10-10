@@ -214,6 +214,35 @@ def test_find_all_keeps_more_than_default_evidence_limit():
     assert seen == [20]
 
 
+def test_find_all_uses_user_question_as_semantic_fallback(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    vector_queries = []
+
+    def fake_payload_tool(_request, _config, *, search_fields):
+        return SimpleNamespace(items=[], warnings=[])
+
+    def fake_vector_tool(request, _config):
+        vector_queries.append(request.query)
+        return SimpleNamespace(items=[RetrievedItem(
+            chunk_id="contract-13", point_identity_key="13::contract",
+            point_number="13", text="Договор должен содержать...",
+        )], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    monkeypatch.setattr(runtime, "run_vector_tool", fake_vector_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, warnings = backend.run({
+        "skill": "find_all", "query": "договор на передачу электроэнергии",
+        "doc_id": None, "expansions": [],
+        "_user_question": "что указывается в договоре на передачу электроэнергии. назови всё.",
+    })
+
+    assert vector_queries == ["что указывается в договоре на передачу электроэнергии. назови всё."]
+    assert [item.chunk_id for item in items] == ["contract-13"]
+    assert "find_all text search returned no hits; used semantic fallback" in warnings
+
+
 def test_final_answer_repairs_unescaped_source_quotes():
     class FakeClient:
         def __init__(self):
