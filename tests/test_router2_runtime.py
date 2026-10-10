@@ -11,7 +11,13 @@ sys.path[:0] = [str(ROOT / "src"), str(ROOT / "sandbox")]
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.tools.chunker import stable_id
 from question_parser.model_route import load_documents
-from question_parser.router2_runtime import corpus_doc_id, document_filters, run_router2
+from question_parser.router2_runtime import (
+    _parse_final_answer_json,
+    _request_final_answer_payload,
+    corpus_doc_id,
+    document_filters,
+    run_router2,
+)
 from question_parser.router2_runtime import QdrantSkills
 
 
@@ -97,3 +103,62 @@ def test_exact_point_limits_pue_chapter_by_filename(monkeypatch):
     assert captured[0]["point_number"] == "1.2.18"
     assert items[0].text == "Текст пункта."
     assert warnings == []
+
+
+def test_final_answer_repairs_unescaped_source_quotes():
+    class FakeClient:
+        def __init__(self):
+            self.requests = []
+
+        def chat(self, request):
+            self.requests.append(request)
+            return SimpleNamespace(content='{"answer":"текст "Не готов"", "citations":[]}')
+
+    client = FakeClient()
+    payload = _request_final_answer_payload(
+        client,
+        request=SimpleNamespace(query="Дай текст пункта 6"),
+        items=[RetrievedItem(chunk_id="c1", text="текст")],
+        pack={"prompt": "Ответь", "output_contract": {}},
+        answer_model="test-model",
+    )
+
+    assert payload["answer"] == 'текст "Не готов"'
+    assert len(client.requests) == 1
+
+
+def test_final_answer_retries_unrecoverable_json():
+    class FakeClient:
+        def __init__(self):
+            self.requests = []
+
+        def chat(self, request):
+            self.requests.append(request)
+            if len(self.requests) == 1:
+                return SimpleNamespace(content="not json")
+            return SimpleNamespace(content='{"answer":"готово", "citations":[]}')
+
+    client = FakeClient()
+    payload = _request_final_answer_payload(
+        client,
+        request=SimpleNamespace(query="Вопрос"),
+        items=[RetrievedItem(chunk_id="c1", text="текст")],
+        pack={"prompt": "Ответь", "output_contract": {}},
+        answer_model="test-model",
+    )
+
+    assert payload["answer"] == "готово"
+    assert len(client.requests) == 2
+    assert "экранируй двойные кавычки" in client.requests[1].messages[-1]["content"]
+
+
+def test_final_answer_repair_keeps_escaped_newlines_and_citations():
+    payload = _parse_final_answer_json(
+        '{"answer":"строка 1\\nстрока "Не готов"",'
+        '"citations":[{"chunk_id":"chunk_1"}]}'
+    )
+
+    assert payload == {
+        "answer": 'строка 1\nстрока "Не готов"',
+        "citations": [{"chunk_id": "chunk_1"}],
+    }

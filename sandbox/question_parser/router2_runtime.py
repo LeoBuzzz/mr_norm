@@ -26,6 +26,7 @@ DEFAULT_ROUTER_MODEL = "deepseek/deepseek-v3.2"
 DEFAULT_ANSWER_MODEL = "anthropic/claude-sonnet-4.6"
 MAX_STEPS = 12
 MAX_EVIDENCE = 16
+FINAL_JSON_ATTEMPTS = 3
 
 
 @dataclass
@@ -150,6 +151,88 @@ class QdrantSkills:
         return list(found.items), warnings
 
 
+def _request_final_answer_payload(
+    client: Any,
+    *,
+    request: RuntimeRequest,
+    items: list[RetrievedItem],
+    pack: dict[str, Any],
+    answer_model: str,
+) -> dict[str, Any]:
+    payload = {
+        "query": request.query,
+        "evidence": [{
+            "chunk_id": item.chunk_id, "doc_name": item.doc_name,
+            "point_number": item.point_number, "text": item.text,
+        } for item in items],
+        "output_contract": pack.get("output_contract"),
+    }
+    base_messages = [
+        {"role": "system", "content": str(pack.get("prompt") or "")},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+    ]
+    last_error: Exception | None = None
+    for attempt in range(FINAL_JSON_ATTEMPTS):
+        messages = list(base_messages)
+        if attempt:
+            messages.append({
+                "role": "system",
+                "content": (
+                    "Предыдущий ответ не удалось разобрать как JSON. Сформируй ответ заново. "
+                    "Верни только один корректный JSON-объект с ключами answer и citations. "
+                    "Обязательно экранируй двойные кавычки и переводы строк внутри answer."
+                ),
+            })
+        response = client.chat(LLMRequest(
+            messages=messages,
+            model=answer_model, temperature=0.1, max_tokens=4096,
+            response_format={"type": "json_object"},
+        ))
+        try:
+            return _parse_final_answer_json(response.content)
+        except (json.JSONDecodeError, ValueError) as exc:
+            last_error = exc
+    assert last_error is not None
+    raise last_error
+
+
+def _parse_final_answer_json(content: str) -> dict[str, Any]:
+    """Parse final JSON and repair raw quotes inside the answer string.
+
+    Some OpenAI-compatible providers declare JSON mode but still return source
+    quotations such as ``"Не готов"`` without JSON escaping.  The outer shape
+    remains unambiguous, so recover only that narrow final-answer contract.
+    """
+    try:
+        return parse_json_object(content)
+    except json.JSONDecodeError as original:
+        text = content.strip()
+        answer_match = re.match(r'^\{\s*"answer"\s*:\s*"', text)
+        boundaries = list(re.finditer(r'"\s*,\s*"citations"\s*:\s*', text))
+        if answer_match is None or not boundaries or not text.endswith("}"):
+            raise original
+        boundary = boundaries[-1]
+        citations_text = text[boundary.end():-1].strip()
+        citations = json.loads(citations_text)
+        if not isinstance(citations, list):
+            raise original
+
+        raw_answer = text[answer_match.end():boundary.start()]
+        escaped: list[str] = []
+        for index, char in enumerate(raw_answer):
+            if char == '"':
+                slash_count = 0
+                cursor = index - 1
+                while cursor >= 0 and raw_answer[cursor] == "\\":
+                    slash_count += 1
+                    cursor -= 1
+                if slash_count % 2 == 0:
+                    escaped.append("\\")
+            escaped.append(char)
+        answer = json.loads('"' + "".join(escaped) + '"')
+        return {"answer": answer, "citations": citations}
+
+
 def run_router2(
     question: str,
     *,
@@ -241,23 +324,9 @@ def run_router2(
         answer_client = build_chat_client("polza", answer_model)
 
         def answer_provider(request: RuntimeRequest, items: list[RetrievedItem], pack: dict[str, Any]) -> dict[str, Any]:
-            payload = {
-                "query": request.query,
-                "evidence": [{
-                    "chunk_id": item.chunk_id, "doc_name": item.doc_name,
-                    "point_number": item.point_number, "text": item.text,
-                } for item in items],
-                "output_contract": pack.get("output_contract"),
-            }
-            response = answer_client.chat(LLMRequest(
-                messages=[
-                    {"role": "system", "content": str(pack.get("prompt") or "")},
-                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-                ],
-                model=answer_model, temperature=0.1, max_tokens=4096,
-                response_format={"type": "json_object"},
-            ))
-            return parse_json_object(response.content)
+            return _request_final_answer_payload(
+                answer_client, request=request, items=items, pack=pack, answer_model=answer_model,
+            )
     final_query = question if not final_instruction else f"{question}\n\nЗадание для ответа: {final_instruction}"
     answer = build_final_answer("prompt", provider=answer_provider).answer(
         RuntimeRequest(query=final_query, user_query=final_query, limit=MAX_EVIDENCE),
