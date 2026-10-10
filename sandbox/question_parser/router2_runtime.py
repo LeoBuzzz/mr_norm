@@ -19,7 +19,7 @@ from mr_norm.runtime.contracts import RuntimeRequest
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_clients import LLMRequest, build_chat_client, parse_json_object
 
-from question_parser.definitions import definition_search
+from question_parser.definitions import definition_search, lemma_key
 from question_parser.model_route import abbreviation_candidates, load_abbreviations, load_documents, route_question
 
 DEFAULT_ROUTER_MODEL = "deepseek/deepseek-v3.2"
@@ -132,6 +132,41 @@ def expanded_query_variants(step: dict[str, Any]) -> list[str]:
     return variants
 
 
+def lexical_fallback_variants(step: dict[str, Any]) -> list[str]:
+    """Recover the user's original inflected phrase when the planner normalized it."""
+    question = str(step.get("_user_question") or "").strip()
+    query = str(step.get("query") or "").strip()
+    words = re.findall(r"[A-Za-zА-ЯЁа-яё0-9-]+", question)
+    if len(words) < 2 or not query:
+        return []
+    query_lemmas = set(lemma_key(query).split())
+    candidates: list[tuple[float, int, int, int, str]] = []
+    for width in range(min(5, len(words)), 1, -1):
+        for start in range(len(words) - width + 1):
+            phrase = " ".join(words[start : start + width])
+            phrase_lemmas = set(lemma_key(phrase).split())
+            overlap = len(query_lemmas & phrase_lemmas)
+            if overlap < 2:
+                continue
+            candidates.append((overlap / len(phrase_lemmas), overlap, width, -start, phrase))
+    variants: list[str] = []
+    used = {query.casefold()}
+    ranked = sorted(
+        candidates,
+        key=lambda item: (item[0], -item[2], item[1], item[3]),
+        reverse=True,
+    )
+    for *_score, phrase in ranked:
+        folded = phrase.casefold()
+        if folded in used:
+            continue
+        used.add(folded)
+        variants.append(phrase)
+        if len(variants) >= 4:
+            break
+    return variants
+
+
 def _merge_query_results(groups: list[list[RetrievedItem]], *, limit: int) -> list[RetrievedItem]:
     """Round-robin query variants so a broad first spelling cannot starve another."""
     merged: list[RetrievedItem] = []
@@ -182,7 +217,33 @@ class QdrantSkills:
                         source_tool=skill,
                     ))
                 groups.append(items)
-            return _merge_query_results(groups, limit=100), []
+            items = _merge_query_results(groups, limit=100)
+            if items:
+                return items, []
+            fallback_variants = query_variants + lexical_fallback_variants(step)
+            corpus_groups: list[list[RetrievedItem]] = []
+            warnings: list[str] = []
+            for variant in dict.fromkeys(fallback_variants):
+                found = run_payload_tool(
+                    ToolRequest(query=variant, filters=filters, limit=12),
+                    self.config, search_fields=["text"],
+                )
+                corpus_groups.append(list(found.items))
+                warnings.extend(found.warnings)
+            vector_query = str(step.get("_user_question") or query).strip()
+            if vector_query:
+                found = run_vector_tool(
+                    ToolRequest(query=vector_query, filters=filters, limit=12),
+                    self.config,
+                )
+                corpus_groups.append(list(found.items))
+                warnings.extend(found.warnings)
+            items = _merge_query_results(corpus_groups, limit=12)
+            if items:
+                warnings.append(
+                    "definition catalog returned no hits; used corpus fallback"
+                )
+            return items, warnings
         if skill == "exact_point":
             point_ref = str(step["point_ref"])
             found = run_point_tool(ToolRequest(
@@ -217,6 +278,20 @@ class QdrantSkills:
             groups.append(list(found.items))
             warnings.extend(found.warnings)
         items = _merge_query_results(groups, limit=limit)
+        if skill == "corpus_point_search" and not items:
+            fallback_groups: list[list[RetrievedItem]] = []
+            for variant in lexical_fallback_variants(step):
+                found = run_payload_tool(
+                    ToolRequest(query=variant, filters=filters, limit=limit),
+                    self.config, search_fields=["text"],
+                )
+                fallback_groups.append(list(found.items))
+                warnings.extend(found.warnings)
+            items = _merge_query_results(fallback_groups, limit=limit)
+            if items:
+                warnings.append(
+                    "corpus text search returned no hits; used original phrase fallback"
+                )
         if skill == "find_all" and not items:
             fallback_query = str(step.get("_user_question") or query).strip()
             if fallback_query:

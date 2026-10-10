@@ -17,6 +17,7 @@ from question_parser.router2_runtime import (
     corpus_doc_id,
     document_filters,
     expanded_query_variants,
+    lexical_fallback_variants,
     run_router2,
 )
 from question_parser.router2_runtime import QdrantSkills
@@ -241,6 +242,81 @@ def test_find_all_uses_user_question_as_semantic_fallback(monkeypatch):
     assert vector_queries == ["что указывается в договоре на передачу электроэнергии. назови всё."]
     assert [item.chunk_id for item in items] == ["contract-13"]
     assert "find_all text search returned no hits; used semantic fallback" in warnings
+
+
+def test_lexical_fallback_preserves_inflected_phrase_from_question():
+    variants = lexical_fallback_variants({
+        "query": "простая наглядная схема электроустановки особенности",
+        "_user_question": (
+            "в правилах по охране труда - какие особенности электроустановок "
+            "с простой наглядной схемой?"
+        ),
+    })
+
+    assert "простой наглядной схемой" in variants
+
+
+def test_empty_corpus_search_retries_original_inflected_phrase(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    queries = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        queries.append(request.query)
+        items = []
+        if request.query == "простой наглядной схемой":
+            items = [RetrievedItem(chunk_id="p57", point_number="5.7", text="Нужный пункт")]
+        return SimpleNamespace(items=items, warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, warnings = backend.run({
+        "skill": "corpus_point_search",
+        "query": "простая наглядная схема электроустановки особенности",
+        "doc_id": None,
+        "_user_question": (
+            "в правилах по охране труда - какие особенности электроустановок "
+            "с простой наглядной схемой?"
+        ),
+    })
+
+    assert "простой наглядной схемой" in queries
+    assert [item.chunk_id for item in items] == ["p57"]
+    assert "corpus text search returned no hits; used original phrase fallback" in warnings
+
+
+def test_empty_definition_search_uses_corpus_and_vector_fallback(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    payload_queries = []
+    vector_queries = []
+
+    def fake_definition_search(**_kwargs):
+        return {"hits": []}
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        payload_queries.append(request.query)
+        return SimpleNamespace(items=[RetrievedItem(
+            chunk_id="scheme-table", text="Эксплуатационный критерий: простая и наглядная.",
+        )], warnings=[])
+
+    def fake_vector_tool(request, _config):
+        vector_queries.append(request.query)
+        return SimpleNamespace(items=[], warnings=[])
+
+    monkeypatch.setattr(runtime, "definition_search", fake_definition_search)
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    monkeypatch.setattr(runtime, "run_vector_tool", fake_vector_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, warnings = backend.run({
+        "skill": "definition_search", "query": "простая наглядная схема",
+        "doc_id": None, "_user_question": "Что такое простая наглядная схема?",
+    })
+
+    assert payload_queries[0] == "простая наглядная схема"
+    assert vector_queries == ["Что такое простая наглядная схема?"]
+    assert [item.chunk_id for item in items] == ["scheme-table"]
+    assert "definition catalog returned no hits; used corpus fallback" in warnings
 
 
 def test_final_answer_repairs_unescaped_source_quotes():

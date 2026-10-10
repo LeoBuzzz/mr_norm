@@ -89,6 +89,30 @@ def test_assemble_point_parts_joins_split_chunks_in_order() -> None:
     assert [part.chunk_id for part in assembled.parts] == ["chunk_1", "chunk_2"]
 
 
+def test_assemble_point_parts_drops_duplicate_indexed_chunks() -> None:
+    items = [
+        RetrievedItem(
+            chunk_id="part-0-a", point_number="8.6", text="8.6. Начало ",
+            part_index=0, total_parts=2, point_identity_key="8.6::section::10:2",
+        ),
+        RetrievedItem(
+            chunk_id="part-0-b", point_number="8.6", text="8.6. Начало ",
+            part_index=0, total_parts=2, point_identity_key="8.6::section::10:2",
+        ),
+        RetrievedItem(
+            chunk_id="part-1", point_number="8.6", text="и конец.",
+            part_index=1, total_parts=2, point_identity_key="8.6::section::10:2",
+        ),
+    ]
+
+    assembled = assemble_point_parts(items, point_number="8.6")
+
+    assert assembled is not None
+    assert assembled.text == "8.6. Начало и конец."
+    assert [part.chunk_id for part in assembled.parts] == ["part-0-a", "part-1"]
+    assert assembled.is_complete is True
+
+
 def test_select_point_identity_group_prefers_earliest_document_section() -> None:
     items = [
         RetrievedItem(

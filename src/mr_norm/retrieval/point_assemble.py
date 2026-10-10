@@ -64,6 +64,19 @@ def _part_sort_key(item: RetrievedItem) -> tuple[int, str]:
     return (item.part_index, item.chunk_id)
 
 
+def _deduplicate_parts(items: list[RetrievedItem]) -> list[RetrievedItem]:
+    """Drop duplicate indexed chunks without hiding genuinely different parts."""
+    unique: list[RetrievedItem] = []
+    seen: set[tuple[int, str]] = set()
+    for item in sorted(items, key=_part_sort_key):
+        key = (item.part_index, (item.text or "").strip())
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
 def _identity_line_number(point_identity_key: str) -> int:
     key = (point_identity_key or "").strip()
     if not key or "::" not in key:
@@ -105,7 +118,7 @@ def assemble_point_parts(
         return None
 
     matched, collapsed = select_point_identity_group(matched)
-    ordered = sorted(matched, key=_part_sort_key)
+    ordered = _deduplicate_parts(matched)
     total_parts = max((item.total_parts for item in ordered), default=1)
     if total_parts <= 0:
         total_parts = len(ordered)
