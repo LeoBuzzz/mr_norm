@@ -64,6 +64,8 @@ REQUIRED_RAG_NORM_PAYLOAD_KEYS = {
     "is_split",
 }
 
+REQUIRED_RAG_NORM_V2_PAYLOAD_KEYS = {"filename", "doc_id", "kind"}
+
 
 def stable_id(prefix: str, *parts: object, length: int = 16) -> str:
     joined = "\n".join(str(part) for part in parts)
@@ -748,6 +750,11 @@ def load_chunks(path: Path) -> list[dict[str, Any]]:
 
 def missing_payload_keys(chunk: dict[str, Any]) -> set[str]:
     payload = chunk.get("payload") or {}
+    if chunk.get("schema_version") == "mr_chunks_v2":
+        required = set(REQUIRED_RAG_NORM_V2_PAYLOAD_KEYS)
+        if payload.get("kind") == "point":
+            required.add("point_ref")
+        return required - set(payload)
     return REQUIRED_RAG_NORM_PAYLOAD_KEYS - set(payload)
 
 

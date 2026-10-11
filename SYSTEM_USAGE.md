@@ -26,19 +26,25 @@ python -m pytest tests/test_golden_quality_gates.py tests/test_runtime_tool_runn
 Если корпус изменился, типовой путь подготовки такой:
 
 ```powershell
-python -m mr_norm.apps.main ingest-rtf
 python -m mr_norm.apps.main build-chunks
-# ingest: синхронизация input/*.rtf ↔ output/marked_docs (хвосты в output удаляются;
-#   уже готовые пары .txt + .structured.json не перечитываются через Word)
-# перед chunk: output/qdrant_chunks.json → output/qdrant_chunks.bak
-# только синхронизация без Word: python -m mr_norm.apps.main sync-marked-docs
-python -m mr_norm.apps.main index-build
+# build-chunks читает input/All_raw_docks/*.rtf напрямую, включая таблицы, без Word;
+# перед записью output/qdrant_chunks.json сохраняется как output/qdrant_chunks.bak
+python -m mr_norm.apps.main index-build --rebuild
 python -m mr_norm.apps.main index-verify
 ```
 
-### GPU-окружение для индексации (как в `rag_norm`)
+Новый формат чанков — `mr_chunks_v2`: пункт остаётся целым до 4000 токенов
+`cl100k`, а каждая логическая строка таблицы получает отдельный чанк. Полная
+пересборка коллекции обязательна, потому что идентификаторы v1 и v2 различаются.
+Команда `ingest-rtf` сохранена только для задач, которым нужны старые
+`marked_docs`; в индексирующем контуре она больше не вызывается.
 
-Системный Python 3.13 с `torch+cpu` CUDA не видит. Один раз создайте **`venv312`** с PyTorch+CUDA:
+### GPU-окружение для индексации
+
+Для векторизации требуется `cuda:0` с NVIDIA GeForce RTX 4090. Если
+`venv312` не видит CUDA (например, в нём установлена CPU-сборка PyTorch),
+launcher автоматически проверяет системный Python. CPU-fallback намеренно
+запрещён. Для переустановки GPU-окружения выполните:
 
 ```powershell
 .\scripts\setup_venv312.bat
@@ -50,15 +56,17 @@ python -m mr_norm.apps.main index-verify
 .\src\mr_norm\apps\run_index_build.bat
 ```
 
-Батник использует `venv312\Scripts\python.exe`, выставляет `RAG_EMBEDDING_DEVICE=cuda:0` (переопределение: `$env:RAG_EMBEDDING_DEVICE="cpu"`). Коллекция по умолчанию: `mr_norm_docs_bge_m3` (`MR_NORM_QDRANT_COLLECTION`).
+Батник выставляет `RAG_EMBEDDING_DEVICE=cuda:0`, проверяет фактическую модель
+GPU и запускает индексацию только на RTX 4090. Коллекция по умолчанию:
+`mr_norm_docs_bge_m3` (`MR_NORM_QDRANT_COLLECTION`).
 
 ### Реестр нормативных документов
 
-Источник правды для реквизитов payload (`doc_title_full`, `doc_name`, `doc_reg`, `approving_act`, `authority`, `doc_date`, `registry_key`, `short_title`) — [`src/mr_norm/data/normative_documents_registry.json`](src/mr_norm/data/normative_documents_registry.json). При чанковании (реестр включён по умолчанию) запись ищется по **stem** имени файла (колонка «Файл» в таблице); из текста документа берутся только **структура** (главы, пункты, `heading_path_text`), не преамбула. Режим `--no-registry` — прежнее извлечение реквизитов из начала текста.
+Источник `doc_id` и `doc_name` в payload — [`src/mr_norm/data/normative_documents_registry.json`](src/mr_norm/data/normative_documents_registry.json). При чанковании (реестр включён по умолчанию) запись ищется по **stem** имени файла. Остальные поля `mr_chunks_v2` берутся из самого RTF: `point_ref`, табличная геометрия, подписи, ячейки и ссылки.
 
-- Файлы, в **имени** которых есть «ПУЭ», получают реквизиты **утверждающего акта** из записи `is_pue_canonical` в реестре (`registry_key` вида `pr_204_08072002`); главы по-прежнему различаются по `filename`, `doc_id`, `chapter_*`, `point_number`.
-- Если записи нет: по умолчанию ошибка (`--registry-missing=fail`). Интерактивное добавление: `--registry-missing=interactive`. Отключить реестр: `--no-registry`.
-- **Сверка stem до чанкования:** ключ в реестре — `match_stems` = stem имени RTF (как в колонке «Файл» без `.txt`). Команда `registry-check` смотрит только `input/All_raw_docks`; при `chunk` / `build-chunks` с реестром и `--registry-missing=fail` preflight по RTF в `input` (для частичного `build-chunks` — по structured JSON текущего прогона).
+- Файлы ПУЭ получают отдельный `doc_id` главы (`pue_1_1`, `pue_1_2` и т. п.).
+- Если записи нет: по умолчанию ошибка (`--registry-missing=fail`). Резервный `doc_id` из имени файла: `--registry-missing=skip`; полностью отключить реестр: `--no-registry`.
+- **Сверка stem до чанкования:** ключ в реестре — `match_stems` = stem имени RTF. Команда `registry-check` и preflight `chunk` / `build-chunks` проверяют `input/All_raw_docks`; временные файлы Word `~$*.rtf` не индексируются.
 
 ```powershell
 python -m mr_norm.apps.main registry-check
@@ -75,7 +83,7 @@ python scripts/export_normative_registry_from_xlsx.py
 
 ```powershell
 python -m mr_norm.apps.main chunk --registry-missing fail
-python -m mr_norm.apps.main build-chunks --registry-missing interactive
+python -m mr_norm.apps.main build-chunks --registry-missing fail
 ```
 
 Проверка payload indexes:

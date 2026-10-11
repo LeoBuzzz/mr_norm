@@ -4,6 +4,7 @@ from mr_norm.eval.chunk_quality import (
     build_quality_report,
     chunk_quality_penalties,
     chunk_quality_score,
+    has_service_markers,
     render_quality_markdown,
 )
 from mr_norm.tools.chunker import ChunkBuilder
@@ -38,6 +39,11 @@ def test_chunk_quality_score_penalizes_bad_chunk() -> None:
         "looks_truncated",
         "missing_required_payload_keys",
     }
+
+
+def test_inline_footnote_asterisks_are_not_service_markers() -> None:
+    assert not has_service_markers("Допустимое значение 50/***, более 4 Ом не требуется")
+    assert has_service_markers("Нормативный текст\n***\nПродолжение")
 
 
 def test_quality_report_scores_document_metadata() -> None:

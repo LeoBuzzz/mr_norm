@@ -7,7 +7,13 @@ name = "mr-norm"
 version = "0.1.0"
 description = "Deterministic normative document processing and RAG corpus tools."
 requires-python = ">=3.10"
-dependencies = ["natasha>=1.6"]
+dependencies = [
+    "natasha>=1.6",
+    "jsonschema>=4",
+    "pymorphy3>=2.0",
+    "pymorphy3-dicts-ru",
+    "tiktoken>=0.7",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
@@ -17,7 +23,7 @@ rtf = ["pywin32>=306"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"mr_norm.data" = ["*.json"]
+"mr_norm.data" = ["*.json", "document_passports/*.json"]
 "mr_norm.config" = ["prompts/*.json"]
 
 [tool.pytest.ini_options]

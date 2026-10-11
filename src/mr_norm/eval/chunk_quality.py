@@ -30,7 +30,11 @@ def percentile(values: list[int], pct: float) -> float:
 
 def has_service_markers(text: str) -> bool:
     stripped = (text or "").strip()
-    return bool(re.search(r"(^|\n)\s*//", stripped)) or "***" in stripped or bool(re.search(r"(^|\n)\s*\\\s*$", stripped))
+    return (
+        bool(re.search(r"(^|\n)\s*//", stripped))
+        or bool(re.search(r"(^|\n)\s*\*{3,}\s*(?=\n|$)", stripped))
+        or bool(re.search(r"(^|\n)\s*\\\s*$", stripped))
+    )
 
 
 def looks_truncated(text: str) -> bool:
@@ -41,10 +45,11 @@ def looks_truncated(text: str) -> bool:
 def chunk_quality_penalties(chunk: dict[str, Any]) -> list[dict[str, Any]]:
     payload = chunk.get("payload") or {}
     text = chunk.get("text") or ""
+    is_v2 = chunk.get("schema_version") == "mr_chunks_v2"
     penalties: list[dict[str, Any]] = []
     if not payload.get("doc_name"):
         penalties.append({"code": "missing_doc_name", "points": 25, "stage": "metadata_extraction"})
-    if not payload.get("heading_path_text"):
+    if not is_v2 and not payload.get("heading_path_text"):
         penalties.append({"code": "missing_heading_path_text", "points": 20, "stage": "heading_parsing"})
     if len(text.strip()) < 20:
         penalties.append({"code": "empty_or_tiny_text", "points": 20, "stage": "chunk_splitting"})
@@ -54,7 +59,7 @@ def chunk_quality_penalties(chunk: dict[str, Any]) -> list[dict[str, Any]]:
         penalties.append({"code": "looks_truncated", "points": 15, "stage": "chunk_splitting"})
     if not payload.get("point_number") and has_point_structure(chunk):
         penalties.append({"code": "missing_point_number", "points": 10, "stage": "point_parsing"})
-    if len(text) > 1800:
+    if not is_v2 and len(text) > 1800:
         penalties.append({"code": "text_over_target", "points": 10, "stage": "chunk_splitting"})
     missing_keys = sorted(missing_payload_keys(chunk))
     if missing_keys:
@@ -129,7 +134,9 @@ def build_quality_report(
     ]
     score_rows.sort(key=lambda row: row["score"])
     headings_by_doc: dict[str, set[str]] = {}
-    for payload in payloads:
+    for chunk, payload in zip(chunks, payloads, strict=True):
+        if chunk.get("schema_version") == "mr_chunks_v2":
+            continue
         filename = payload.get("filename") or ""
         headings_by_doc.setdefault(filename, set()).update(payload.get("headings") or [])
     doc_ids_by_filename = {
@@ -157,7 +164,11 @@ def build_quality_report(
         "structure": {
             "headings_per_document": {filename: len(values) for filename, values in sorted(headings_by_doc.items())},
             "documents_without_headings": sum(1 for values in headings_by_doc.values() if not values),
-            "chunks_without_heading_path_text": sum(1 for payload in payloads if not payload.get("heading_path_text")),
+            "chunks_without_heading_path_text": sum(
+                1
+                for chunk, payload in zip(chunks, payloads, strict=True)
+                if chunk.get("schema_version") != "mr_chunks_v2" and not payload.get("heading_path_text")
+            ),
             "suspicious_long_headings": sum(
                 1 for payload in payloads for heading in payload.get("headings", []) if len(heading) > 220
             ),

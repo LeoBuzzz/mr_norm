@@ -34,13 +34,14 @@ from mr_norm.runtime.pipeline import PipelineBatchDefaults, run_pipeline, run_pi
 from mr_norm.runtime.planner import build_planner
 from mr_norm.runtime.reranker import build_reranker
 from mr_norm.runtime.tool_runner import run_runtime, run_runtime_batch, save_runtime_report
+from mr_norm.rtf_tables.pipeline import RtfChunkBuilder
 from mr_norm.apps.human_cli import HumanCliOptions, collect_interactive_options, run_human_norm_lookup
 from mr_norm.data.normative_registry import (
     RegistryCoverageError,
     RegistryMissingMode,
     check_registry_coverage,
 )
-from mr_norm.tools.chunker import ChunkBuilder, MetadataExtractionError
+from mr_norm.tools.chunker import MetadataExtractionError
 from mr_norm.tools.document_knowledge_build import (
     DEFAULT_OLLAMA_BASE_URL,
     DEFAULT_OLLAMA_MODEL,
@@ -64,13 +65,13 @@ def _add_registry_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--no-registry",
         action="store_true",
-        help="Не использовать реестр нормативных документов (только extract_metadata).",
+        help="Не использовать реестр; doc_id и doc_name будут выведены из имени RTF.",
     )
     parser.add_argument(
         "--registry-missing",
-        choices=[m.value for m in RegistryMissingMode],
+        choices=[RegistryMissingMode.FAIL.value, RegistryMissingMode.SKIP.value],
         default=RegistryMissingMode.FAIL.value,
-        help="Поведение при отсутствии файла в реестре (не для ПУЭ по имени файла).",
+        help="fail: остановиться при неполном реестре; skip: использовать имя RTF как fallback.",
     )
 
 
@@ -158,15 +159,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Process N RTF files spread by file size (smallest…largest). Ignores --limit.",
     )
 
-    chunk = sub.add_parser("chunk", help="Build qdrant_chunks.json from structured documents.")
-    chunk.add_argument("--max-chars", type=int, default=1600)
+    chunk = sub.add_parser("chunk", help="Build table-aware qdrant_chunks.json directly from raw RTF files.")
+    chunk.add_argument("--limit", type=int, default=None)
+    chunk.add_argument("--output-dir", type=Path, default=None, help="Isolated output directory.")
+    chunk.add_argument("--max-chars", type=int, default=1600, help=argparse.SUPPRESS)
     _add_registry_args(chunk)
 
-    build = sub.add_parser("build-chunks", help="Run RTF processing, chunking and quality report.")
+    build = sub.add_parser("build-chunks", help="Run direct table-aware RTF chunking and quality report.")
     build.add_argument("--limit", type=int, default=None)
-    build.add_argument("--max-chars", type=int, default=1600)
+    build.add_argument("--output-dir", type=Path, default=None, help="Isolated output directory.")
+    build.add_argument("--max-chars", type=int, default=1600, help=argparse.SUPPRESS)
     _add_registry_args(build)
-    build.add_argument("--per-file-timeout-sec", type=float, default=120.0)
+    build.add_argument("--per-file-timeout-sec", type=float, default=120.0, help=argparse.SUPPRESS)
     build.add_argument(
         "--smoke-diverse-n",
         type=int,
@@ -199,6 +203,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     quality = sub.add_parser("quality-report", help="Build quality report for output/qdrant_chunks.json.")
+    quality.add_argument("--output-dir", type=Path, default=None, help="Directory containing qdrant_chunks.json.")
     quality.add_argument("--scope", choices=["existing-output", "smoke", "full"], default="existing-output")
 
     compare = sub.add_parser("compare-baseline", help="Compare output/qdrant_chunks.json with rag_norm baseline.")
@@ -207,10 +212,21 @@ def build_parser() -> argparse.ArgumentParser:
     _add_knowledge_args(sub)
 
     index_verify = sub.add_parser("index-verify", help="Validate qdrant_chunks.json readiness for Qdrant indexing.")
+    index_verify.add_argument("--output-dir", type=Path, default=None, help="Directory containing qdrant_chunks.json.")
     index_verify.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
 
     index_build = sub.add_parser("index-build", help="Embed chunks and upsert them into Qdrant.")
-    index_build.add_argument("--rebuild", action="store_true", help="Delete and recreate the target collection.")
+    index_build.add_argument("--output-dir", type=Path, default=None, help="Directory containing qdrant_chunks.json.")
+    index_build.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="Delete and recreate the target collection (required for mr_chunks_v2).",
+    )
+    index_build.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume an interrupted build by skipping point IDs already present in the target collection.",
+    )
     index_build.add_argument("--limit", type=int, default=None, help="Index only the first N chunks.")
     index_build.add_argument("--collection-name", default=None, help="Override MR_NORM_QDRANT_COLLECTION.")
 
@@ -426,6 +442,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     paths = ProjectPaths.from_root(args.root)
+    output_dir_arg = getattr(args, "output_dir", None)
+    if output_dir_arg is not None:
+        output_dir = output_dir_arg if output_dir_arg.is_absolute() else paths.root / output_dir_arg
+        output_dir = output_dir.resolve()
+        reports_dir = output_dir / "reports"
+        paths = replace(
+            paths,
+            output_dir=output_dir,
+            marked_docs_dir=output_dir / "marked_docs",
+            reports_dir=reports_dir,
+            chunks_json=output_dir / "qdrant_chunks.json",
+            metadata_manifest_md=reports_dir / "metadata_fallback_manifest.md",
+        )
     paths.ensure_output_dirs()
     exit_code = 0
 
@@ -450,6 +479,7 @@ def main(argv: list[str] | None = None) -> int:
             result = run_chunk(
                 paths,
                 args.max_chars,
+                limit=args.limit,
                 use_registry=not args.no_registry,
                 registry_path=args.registry_path,
                 registry_missing=_registry_missing_from_args(args),
@@ -488,6 +518,7 @@ def main(argv: list[str] | None = None) -> int:
                     paths,
                     resolve_indexing_config(args),
                     rebuild=args.rebuild,
+                    resume=args.resume,
                     limit=args.limit,
                 ),
             )
@@ -911,28 +942,27 @@ def run_registry_check(paths: ProjectPaths, args: argparse.Namespace) -> dict[st
 def run_chunk(
     paths: ProjectPaths,
     max_chars: int = 1600,
-    structured_paths: list[Path] | None = None,
-    scope: str = "existing-structured",
+    rtf_paths: list[Path] | None = None,
+    scope: str = "raw-rtf",
     *,
+    limit: int | None = None,
     use_registry: bool = True,
     registry_path: Path | None = None,
     registry_missing: RegistryMissingMode = RegistryMissingMode.FAIL,
 ) -> dict[str, Any]:
-    if use_registry and registry_missing == RegistryMissingMode.FAIL:
+    if use_registry and registry_missing != RegistryMissingMode.SKIP:
         _preflight_registry_coverage(
             paths,
             registry_path=registry_path,
-            structured_paths=structured_paths,
+            structured_paths=None,
         )
     start = time.perf_counter()
-    builder = ChunkBuilder(
+    builder = RtfChunkBuilder(
         paths,
-        max_chars=max_chars,
         use_registry=use_registry,
         registry_path=registry_path,
-        registry_missing=registry_missing,
     )
-    chunks = builder.build_all(structured_paths=structured_paths)
+    chunks = builder.build_all(rtf_paths=rtf_paths, limit=limit, show_progress=True)
     elapsed = time.perf_counter() - start
     report = ChunkQualityReporter(paths).report(
         chunks,
@@ -940,12 +970,14 @@ def run_chunk(
             command="chunk",
             paths=paths,
             scope=scope,
-            input_paths=structured_paths,
+            input_paths=rtf_paths,
             elapsed_sec=elapsed,
         ),
     )
     return {
         "command": "chunk",
+        "chunk_schema_version": "mr_chunks_v2",
+        "source_format": "raw_rtf",
         "scope": scope,
         "chunks_total": len(chunks),
         "chunks_json": str(paths.chunks_json),
@@ -953,10 +985,10 @@ def run_chunk(
         "quality_markdown_report": report.get("markdown_report_path"),
         "quality_gate_passes": report.get("passes_quality_gate"),
         "blocking_defects": report.get("blocking_defects"),
-        "metadata_manifest_md": str(paths.metadata_manifest_md),
-        "pue_canonical_applied_count": len(builder.manifest_pue),
-        "metadata_fallback_count": len(builder.manifest_other),
-        "registry_misses": list(builder.registry_misses),
+        "files_processed": len(builder.files_processed),
+        "chunks_per_file": dict(builder.chunks_per_file),
+        "max_point_tokens": 4000,
+        "max_chars_ignored": max_chars,
         "elapsed_sec": round(elapsed, 3),
     }
 
@@ -974,16 +1006,13 @@ def run_build_chunks(
     registry_missing: RegistryMissingMode = RegistryMissingMode.FAIL,
 ) -> dict[str, Any]:
     start = time.perf_counter()
-    ingest_start = time.perf_counter()
-    ingest = run_ingest(paths, limit=limit, only_paths=only_paths, per_file_timeout_sec=per_file_timeout_sec)
-    ingest_elapsed = time.perf_counter() - ingest_start
     chunk_start = time.perf_counter()
-    structured_paths = [Path(item["structured_path"]) for item in ingest.get("documents", []) if item.get("structured_path")]
     chunk = run_chunk(
         paths,
         max_chars=max_chars,
-        structured_paths=structured_paths,
+        rtf_paths=only_paths,
         scope=scope,
+        limit=limit if only_paths is None else None,
         use_registry=use_registry,
         registry_path=registry_path,
         registry_missing=registry_missing,
@@ -994,11 +1023,10 @@ def run_build_chunks(
         "scope": scope,
         "limit": limit,
         "smoke_diverse_paths": [str(p) for p in only_paths] if only_paths else None,
-        "ingest": ingest,
+        "mode": "direct_rtf_table_aware",
         "chunk": chunk,
         "timing": {
             "total_sec": round(time.perf_counter() - start, 3),
-            "rtf_processing_sec": round(ingest_elapsed, 3),
             "chunking_and_report_sec": round(chunk_elapsed, 3),
         },
     }

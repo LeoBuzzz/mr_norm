@@ -4,8 +4,9 @@ import sys
 import time
 import warnings
 import uuid
+from collections import Counter
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
@@ -140,15 +141,52 @@ def chunk_batches(items: list[Any], batch_size: int) -> Iterable[list[Any]]:
         yield items[start : start + batch_size]
 
 
-def print_index_progress(label: str, current: int, total: int, *, width: int = 32) -> None:
+def print_index_progress(
+    label: str,
+    current: int,
+    total: int,
+    *,
+    started_at: float | None = None,
+    chunks_done: int | None = None,
+    chunks_total: int | None = None,
+    documents_done: int | None = None,
+    documents_total: int | None = None,
+    width: int = 32,
+) -> None:
     total = max(total, 1)
     current = min(max(current, 0), total)
     ratio = current / total
     filled = int(width * ratio)
     bar = "#" * filled + "-" * (width - filled)
     percent = ratio * 100
-    end = "\n" if current >= total else "\r"
-    print(f"[index-build] {label} [{bar}] {current}/{total} {percent:6.2f}%", end=end, file=sys.stderr, flush=True)
+    details: list[str] = []
+    if documents_done is not None and documents_total is not None:
+        details.append(f"documents={documents_done}/{documents_total}")
+    if chunks_done is not None and chunks_total is not None:
+        details.append(f"chunks={chunks_done}/{chunks_total}")
+    if started_at is not None and current:
+        elapsed = time.perf_counter() - started_at
+        eta_seconds = elapsed / current * (total - current)
+        finishes_at = datetime.now().astimezone() + timedelta(seconds=eta_seconds)
+        details.extend(
+            [
+                f"elapsed={_format_duration(elapsed)}",
+                f"ETA={_format_duration(eta_seconds)} ({finishes_at:%H:%M:%S})",
+            ]
+        )
+    suffix = f" | {' | '.join(details)}" if details else ""
+    print(
+        f"[index-build] {label} [{bar}] {current}/{total} {percent:6.2f}%{suffix}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+def _format_duration(seconds: float) -> str:
+    seconds = max(0, round(seconds))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
 def build_index_verify_report(
@@ -158,6 +196,7 @@ def build_index_verify_report(
     source_path: Path | None = None,
 ) -> dict[str, Any]:
     payloads = [chunk.get("payload") or {} for chunk in chunks]
+    chunk_schema_versions = Counter(str(chunk.get("schema_version") or "") for chunk in chunks)
     qdrant_payload_errors = []
     point_ids: list[str] = []
     vector_text_empty = 0
@@ -187,6 +226,14 @@ def build_index_verify_report(
         blocking_defects.append({"code": "qdrant_payload_errors", "stage": "payload", "count": len(qdrant_payload_errors)})
     if vector_text_empty:
         blocking_defects.append({"code": "empty_vector_text", "stage": "embedding", "count": vector_text_empty})
+    if len(chunk_schema_versions) > 1:
+        blocking_defects.append(
+            {
+                "code": "mixed_chunk_schema_versions",
+                "stage": "indexing",
+                "schema_versions": dict(chunk_schema_versions),
+            }
+        )
     if duplicate_point_ids:
         blocking_defects.append({"code": "duplicate_qdrant_point_ids", "stage": "qdrant", "count": duplicate_point_ids})
     return {
@@ -195,6 +242,7 @@ def build_index_verify_report(
         "source_path": str(source_path) if source_path else "",
         "config": asdict(config),
         "chunks_total": len(chunks),
+        "chunk_schema_versions": dict(chunk_schema_versions),
         "required_payload_keys_coverage": 1.0 if not chunks else (len(chunks) - missing_key_chunks) / len(chunks),
         "qdrant_payload_errors": qdrant_payload_errors[:50],
         "duplicate_qdrant_point_ids": duplicate_point_ids,
@@ -271,6 +319,13 @@ def _suppress_incompatible_cuda_capability_warning() -> None:
 class SentenceTransformerEmbedder:
     def __init__(self, config: IndexingConfig):
         _suppress_incompatible_cuda_capability_warning()
+        if config.embedding_device.lower().startswith("cuda"):
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"embedding device {config.embedding_device!r} was requested, but CUDA is unavailable"
+                )
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:
@@ -282,6 +337,19 @@ class SentenceTransformerEmbedder:
     @property
     def dimension(self) -> int:
         return int(self.model.get_sentence_embedding_dimension())
+
+    @property
+    def device(self) -> str:
+        return str(self.model.device)
+
+    @property
+    def device_name(self) -> str:
+        if not self.device.startswith("cuda"):
+            return self.device
+        import torch
+
+        device_index = torch.device(self.device).index or 0
+        return torch.cuda.get_device_name(device_index)
 
     def encode(self, texts: list[str]) -> list[list[float]]:
         prepared = [f"passage: {text}" if self.config.use_query_passage_prefix else text for text in texts]
@@ -337,6 +405,17 @@ class QdrantIndexer:
             for record in records
         ]
         self.client.upsert(collection_name=self.config.collection_name, points=points)
+
+    def existing_point_ids(self, point_ids: list[str]) -> set[str]:
+        if not point_ids:
+            return set()
+        points = self.client.retrieve(
+            collection_name=self.config.collection_name,
+            ids=point_ids,
+            with_payload=False,
+            with_vectors=False,
+        )
+        return {str(point.id) for point in points}
 
     def payload_schema(self) -> dict[str, Any]:
         collection = self.client.get_collection(self.config.collection_name)
@@ -398,6 +477,7 @@ def build_qdrant_index(
     config: IndexingConfig,
     *,
     rebuild: bool = False,
+    resume: bool = False,
     limit: int | None = None,
     show_progress: bool = True,
     embedder_factory: Callable[[IndexingConfig], SentenceTransformerEmbedder] = SentenceTransformerEmbedder,
@@ -409,6 +489,13 @@ def build_qdrant_index(
     chunks = load_chunks(paths.chunks_json)
     if limit is not None:
         chunks = chunks[:limit]
+    schema_versions = {str(chunk.get("schema_version") or "") for chunk in chunks}
+    if rebuild and resume:
+        raise ValueError("rebuild and resume are mutually exclusive")
+    if "mr_chunks_v2" in schema_versions and not rebuild and not resume:
+        raise ValueError(
+            "mr_chunks_v2 requires rebuild=True for a new collection or resume=True for an interrupted build"
+        )
     if show_progress:
         print(f"[index-build] verifying {len(chunks)} chunks", file=sys.stderr, flush=True)
     verify = build_index_verify_report(chunks, config, source_path=paths.chunks_json)
@@ -424,6 +511,14 @@ def build_qdrant_index(
         print(f"[index-build] loading embedding model: {config.embedding_model_name}", file=sys.stderr, flush=True)
     embedder = embedder_factory(config)
     vector_size = config.vector_size or embedder.dimension
+    embedding_device = str(getattr(embedder, "device", config.embedding_device or "auto"))
+    embedding_device_name = str(getattr(embedder, "device_name", embedding_device))
+    if show_progress:
+        print(
+            f"[index-build] embedding device: {embedding_device} ({embedding_device_name})",
+            file=sys.stderr,
+            flush=True,
+        )
     if show_progress:
         print(
             f"[index-build] creating collection: {config.collection_name} "
@@ -434,14 +529,43 @@ def build_qdrant_index(
     indexer = indexer_factory(config)
     indexer.create_collection(vector_size=vector_size, rebuild=rebuild)
     indexed = 0
+    skipped_existing = 0
+    processed = 0
+    indexing_started_at = time.perf_counter()
+    document_names = [str((chunk.get("payload") or {}).get("filename") or "") for chunk in chunks]
+    total_documents = len(set(name for name in document_names if name))
+    indexed_documents: set[str] = set()
     total_batches = max(1, (len(chunks) + config.upsert_batch_size - 1) // config.upsert_batch_size)
     for batch_number, batch in enumerate(chunk_batches(chunks, config.upsert_batch_size), start=1):
-        embeddings = embedder.encode(chunks_to_texts(batch))
-        records = prepare_point_records(batch, embeddings, config)
-        indexer.upsert_records(records)
-        indexed += len(records)
+        batch_to_index = batch
+        if resume:
+            point_ids = [stable_qdrant_point_id(str(chunk.get("chunk_id") or "")) for chunk in batch]
+            existing_ids = indexer.existing_point_ids(point_ids)
+            batch_to_index = [
+                chunk for chunk, point_id in zip(batch, point_ids) if point_id not in existing_ids
+            ]
+            skipped_existing += len(batch) - len(batch_to_index)
+        if batch_to_index:
+            embeddings = embedder.encode(chunks_to_texts(batch_to_index))
+            records = prepare_point_records(batch_to_index, embeddings, config)
+            indexer.upsert_records(records)
+            indexed += len(records)
+        processed += len(batch)
+        indexed_documents.update(
+            str((chunk.get("payload") or {}).get("filename") or "") for chunk in batch
+        )
+        indexed_documents.discard("")
         if show_progress:
-            print_index_progress("embedding/upsert", batch_number, total_batches)
+            print_index_progress(
+                "embedding/upsert",
+                batch_number,
+                total_batches,
+                started_at=indexing_started_at,
+                chunks_done=processed,
+                chunks_total=len(chunks),
+                documents_done=len(indexed_documents),
+                documents_total=total_documents,
+            )
     if show_progress:
         print("[index-build] creating payload indexes", file=sys.stderr, flush=True)
     indexer.ensure_payload_indexes()
@@ -451,9 +575,14 @@ def build_qdrant_index(
         "collection_name": config.collection_name,
         "vector_name": config.vector_name,
         "embedding_model_name": config.embedding_model_name,
+        "embedding_device": embedding_device,
+        "embedding_device_name": embedding_device_name,
         "vector_size": vector_size,
         "points_indexed": indexed,
+        "points_skipped_existing": skipped_existing,
+        "chunks_processed": processed,
         "rebuild": rebuild,
+        "resume": resume,
         "elapsed_sec": round(time.perf_counter() - start, 3),
     }
 
