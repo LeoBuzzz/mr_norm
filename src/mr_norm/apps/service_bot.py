@@ -21,6 +21,7 @@ LOG_DIR = PROJECT_DIR / "tmp" / "service_bot"
 SERVICE_LOG = LOG_DIR / "service_bot.log"
 MUTEX_NAME = r"Global\MRNormServiceBot"
 DEFAULT_INTERVAL_SECONDS = 60
+RESTART_MARKER = LOG_DIR / "restart_bots.once"
 
 
 @dataclass(frozen=True)
@@ -90,6 +91,35 @@ def bot_is_running(spec: BotSpec) -> bool:
     return False
 
 
+def restart_bots_if_requested(logger: logging.Logger) -> None:
+    """Restart transports from the scheduled-task security context when requested."""
+    if not RESTART_MARKER.is_file():
+        return
+    targets = []
+    for process in psutil.process_iter(["cmdline"]):
+        try:
+            command_line = process.info["cmdline"] or []
+        except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess):
+            continue
+        if any(command_runs_module(command_line, spec.module) for spec in BOT_SPECS):
+            targets.append(process)
+
+    logger.warning("Запрошен управляемый перезапуск ботов; процессов: %s", len(targets))
+    for process in targets:
+        try:
+            process.terminate()
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            logger.exception("Не удалось остановить PID=%s", process.pid)
+    _, alive = psutil.wait_procs(targets, timeout=5)
+    for process in alive:
+        try:
+            process.kill()
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            logger.exception("Не удалось принудительно остановить PID=%s", process.pid)
+    RESTART_MARKER.unlink(missing_ok=True)
+    time.sleep(2)
+
+
 def _bot_environment() -> dict[str, str]:
     env = os.environ.copy()
     env.update(
@@ -157,6 +187,7 @@ def main() -> int:
         ", ".join(spec.name for spec in BOT_SPECS),
         interval,
     )
+    restart_bots_if_requested(logger)
     while True:
         try:
             check_and_start_bots(logger)
