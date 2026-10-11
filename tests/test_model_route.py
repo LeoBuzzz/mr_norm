@@ -163,6 +163,40 @@ def test_search_with_only_a_vector_query_is_incomplete():
     assert "missing_text_search" in result["problems"]
 
 
+def test_off_topic_plan_is_ready_without_tools():
+    raw = {
+        "complexity": "simple", "operation": "off_topic", "tools": [],
+        "final": None, "clarification": None,
+    }
+
+    result = route_question(
+        "Как приготовить шарлотку?",
+        lambda _system, _user: json.dumps(raw, ensure_ascii=False),
+    )
+
+    assert result["status"] == "ready"
+    assert result["operation"] == "off_topic"
+    assert result["tools"] == []
+    assert result["problems"] == []
+
+
+def test_direct_response_operation_rejects_tools():
+    raw = {
+        "complexity": "simple", "operation": "gratitude",
+        "tools": [{
+            "skill": "vector_search", "query": "спасибо", "doc_id": None,
+            "point_ref": None, "expansions": [], "after": [],
+        }],
+        "final": None, "clarification": None,
+    }
+
+    result = route_question(
+        "Спасибо!", lambda _system, _user: json.dumps(raw, ensure_ascii=False),
+    )
+
+    assert "direct_response_has_tools" in result["problems"]
+
+
 def test_explicit_final_is_not_a_skill_call():
     raw = {
         "complexity": "complex",

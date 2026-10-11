@@ -35,6 +35,29 @@ DEFAULT_ANSWER_FALLBACK_MODELS = (
 MAX_STEPS = 12
 MAX_EVIDENCE = 16
 FINAL_JSON_ATTEMPTS = 3
+DIRECT_OPERATIONS = {"gratitude", "off_topic"}
+
+GRATITUDE_ANSWERS = (
+    "Пожалуйста! Рад помочь 😊",
+    "Всегда пожалуйста! Обращайтесь с новыми вопросами 🙌",
+    "Рад, что ответ пригодился! 😊📚",
+    "Не за что! Готов помочь с нормативными документами ⚡",
+    "Спасибо за обратную связь! Обращайтесь 📚🙂",
+)
+OFF_TOPIC_ANSWERS = (
+    "Я специализируюсь на нормативных документах электроэнергетики. Задайте вопрос по требованиям, пунктам или терминам — помогу 📚⚡",
+    "Этот вопрос вне моей документальной специализации. Могу помочь найти норму, определение или конкретный пункт документа 🙂📖",
+    "Я работаю с нормативной базой по электроэнергетике и охране труда. Сформулируйте вопрос по документам — подключусь ⚡🔎",
+    "По этой теме у меня нет подтверждённых нормативных источников. Зато могу разобрать требования, правила и ГОСТы 📚😊",
+    "Моя область — поиск и анализ нормативных документов. Спросите о пункте, термине или обязательном требовании 🧭📄",
+)
+
+_GRATITUDE_RE = re.compile(
+    r"^(?:(?:большое|огромное|огромнейшее)\s+)?(?:спасибо|благодарю|спс|мерси)"
+    r"(?:\s+(?:большое|огромное|тебе|вам|за\s+(?:ответ|помощь|информацию|разъяснение|объяснение)|все\s+понятно|всё\s+понятно))*"
+    r"$",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -82,7 +105,15 @@ def validate_plan(plan: dict[str, Any]) -> None:
     if plan.get("problems"):
         raise ValueError("router contract: " + ", ".join(map(str, plan["problems"])))
     steps = plan.get("tools") or []
-    if not isinstance(steps, list) or not steps or len(steps) > MAX_STEPS:
+    if not isinstance(steps, list) or len(steps) > MAX_STEPS:
+        raise ValueError("router plan has no tools or exceeds step limit")
+    if plan.get("operation") in DIRECT_OPERATIONS:
+        if steps:
+            raise ValueError("direct response plan must not use tools")
+        if plan.get("final") is not None:
+            raise ValueError("direct response plan must not use final answer model")
+        return
+    if not steps:
         raise ValueError("router plan has no tools or exceeds step limit")
     for index, step in enumerate(steps, 1):
         if step.get("step") != index:
@@ -104,6 +135,24 @@ def validate_plan(plan: dict[str, Any]) -> None:
 
 def _model_chain(primary: str, fallbacks: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(model.strip() for model in (primary, *fallbacks) if model.strip()))
+
+
+def _is_gratitude(question: str) -> bool:
+    normalized = re.sub(r"[^A-Za-zА-ЯЁа-яё0-9]+", " ", question or "").strip()
+    return bool(_GRATITUDE_RE.fullmatch(normalized))
+
+
+def _direct_answer(operation: str, question: str) -> str:
+    variants = GRATITUDE_ANSWERS if operation == "gratitude" else OFF_TOPIC_ANSWERS
+    digest = hashlib.sha256(f"{operation}|{question.strip().casefold()}".encode("utf-8")).digest()
+    return variants[int.from_bytes(digest[:4], "big") % len(variants)]
+
+
+def _direct_plan(operation: str) -> dict[str, Any]:
+    return {
+        "status": "ready", "complexity": "simple", "operation": operation,
+        "tools": [], "final": None, "clarification": None, "problems": [],
+    }
 
 
 def _build_polza_client(model: str, keys_path: Path | None) -> Any:
@@ -479,6 +528,9 @@ def run_router2(
                 "query": str(step.get("query") or "").replace(source, selected_option),
                 "expansions": [{"abbreviation": source, "value": selected_option}],
             } for step in plan["tools"]]
+    elif _is_gratitude(question):
+        plan = _direct_plan("gratitude")
+        router_model_used = "deterministic"
     else:
         if route_complete is None:
             plan = None
@@ -515,12 +567,16 @@ def run_router2(
         status=str(plan.get("status")), question=question, plan=plan,
         router_model_used=router_model_used, model_failures=model_failures,
     )
-    if router_model_used != router_model:
+    if router_model_used not in {router_model, "deterministic"}:
         result.warnings.append(f"router model fallback: {router_model} -> {router_model_used}")
     if plan.get("status") == "needs_clarification" and not plan.get("problems"):
         result.clarification = plan.get("clarification")
         return result
     validate_plan(plan)
+    if plan.get("operation") in DIRECT_OPERATIONS:
+        result.answer = _direct_answer(str(plan["operation"]), question)
+        result.status = "answered"
+        return result
     backend = skill_backend or QdrantSkills(config or IndexingConfig.from_env(), documents)
     completed: dict[int, list[RetrievedItem]] = {}
     for step in plan["tools"]:

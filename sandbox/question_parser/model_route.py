@@ -18,7 +18,10 @@ from question_parser.prompts import SYSTEM_PROMPT, build_user_message
 
 TABLES = Path(__file__).resolve().parent / "tables"
 TOKEN_RE = re.compile(r"[A-Za-zА-ЯЁа-яё0-9-]{2,}")
-OPERATIONS = {"text", "search", "all", "define", "compare", "conclude", "summarize", "unknown"}
+OPERATIONS = {
+    "text", "search", "all", "define", "compare", "conclude", "summarize",
+    "gratitude", "off_topic", "unknown",
+}
 SKILLS = {"text": "exact_point", "search": "corpus_point_search", "all": "find_all", "define": "definition_search"}
 ALLOWED_SKILLS = set(SKILLS.values()) | {"vector_search"}
 ANSWER_OPERATIONS = {"compare", "conclude", "summarize"}
@@ -283,6 +286,8 @@ def _check(payload: dict[str, Any], documents: dict[str, Any], candidates: list[
             problems.append("missing_vector_search")
         if "corpus_point_search" not in skills:
             problems.append("missing_text_search")
+    if operation in {"gratitude", "off_topic"} and tools:
+        problems.append("direct_response_has_tools")
     executable = any(tool.get("skill") for tool in tools)
     status = "technical_error" if "bad_operation" in problems or "model_json" in problems else "needs_clarification" if clarification else "ready"
     if operation in ANSWER_OPERATIONS and not clarification and not executable:

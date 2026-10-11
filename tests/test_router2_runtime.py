@@ -82,6 +82,97 @@ def test_router_contract_problem_blocks_search():
     assert skills.calls == []
 
 
+@pytest.mark.parametrize(
+    "question",
+    ["Спасибо!", "Большое спасибо 😊", "Благодарю за помощь.", "Спс!"],
+)
+def test_gratitude_answers_without_router_search_or_final_model(question):
+    class NoSkills:
+        def run(self, _step):
+            raise AssertionError("gratitude must not search")
+
+    def no_router(_system, _user):
+        raise AssertionError("gratitude must not call router model")
+
+    def no_answer(_request, _items, _pack):
+        raise AssertionError("gratitude must not call final model")
+
+    result = run_router2(
+        question, route_complete=no_router, skill_backend=NoSkills(),
+        answer_provider=no_answer,
+    )
+
+    assert result.status == "answered"
+    assert result.plan["operation"] == "gratitude"
+    assert result.calls == []
+    assert result.citations == []
+    assert any(emoji in result.answer for emoji in "😊🙌📚🙂⚡")
+
+
+def test_gratitude_with_a_new_question_is_not_intercepted():
+    raw = {
+        "complexity": "simple", "operation": "search",
+        "tools": [
+            {"skill": "vector_search", "query": "заземление", "doc_id": None, "after": []},
+            {"skill": "corpus_point_search", "query": "требования к заземлению", "doc_id": None, "after": []},
+        ],
+        "final": None, "clarification": None,
+    }
+    skills = FakeSkills()
+
+    result = run_router2(
+        "Спасибо! А какие требования к заземлению?",
+        route_complete=lambda _s, _u: json.dumps(raw), skill_backend=skills,
+        answer_provider=lambda _request, _items, _pack: {
+            "answer": "Ответ", "citations": [{"chunk_id": "c1"}],
+        },
+    )
+
+    assert result.plan["operation"] == "search"
+    assert skills.calls == ["vector_search", "corpus_point_search"]
+
+
+def test_off_topic_answers_without_search_or_final_model():
+    raw = {
+        "complexity": "simple", "operation": "off_topic", "tools": [],
+        "final": None, "clarification": None,
+    }
+
+    class NoSkills:
+        def run(self, _step):
+            raise AssertionError("off-topic request must not search")
+
+    def no_answer(_request, _items, _pack):
+        raise AssertionError("off-topic request must not call final model")
+
+    result = run_router2(
+        "Какая сегодня погода?", route_complete=lambda _s, _u: json.dumps(raw),
+        skill_backend=NoSkills(), answer_provider=no_answer,
+    )
+
+    assert result.status == "answered"
+    assert result.plan["operation"] == "off_topic"
+    assert result.calls == []
+    assert "норматив" in result.answer.casefold() or "документ" in result.answer.casefold()
+    assert any(emoji in result.answer for emoji in "📚⚡🙂📖🔎😊🧭📄")
+
+
+def test_direct_answers_are_varied_but_stable():
+    gratitude_answers = {
+        run_router2(question, route_complete=lambda _s, _u: "").answer
+        for question in [
+            "Спасибо", "Большое спасибо", "Огромное спасибо", "Благодарю",
+            "Благодарю за ответ", "Спасибо за помощь", "Мерси", "Спс",
+        ]
+    }
+
+    first = run_router2("Спасибо", route_complete=lambda _s, _u: "").answer
+    second = run_router2("Спасибо", route_complete=lambda _s, _u: "").answer
+
+    assert len(gratitude_answers) >= 3
+    assert first == second
+
+
 def test_exact_point_limits_pue_chapter_by_filename(monkeypatch):
     import question_parser.router2_runtime as runtime
 
