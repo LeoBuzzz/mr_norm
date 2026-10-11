@@ -25,6 +25,8 @@ venv312/
 .env.*
 keys
 VK_token.txt
+bot_token.txt
+telegram_bot_runtime*.log
 
 # OS / IDE
 Thumbs.db
