@@ -63,11 +63,24 @@ def build(target: Path) -> None:
         'Write-Host "Setup complete. Import Qdrant data before starting the bots."\n',
         encoding="utf-8",
     )
+    (target / "compose.yaml").write_text(
+        "services:\n"
+        "  qdrant:\n"
+        "    image: qdrant/qdrant:v1.15.4\n"
+        "    ports:\n"
+        '      - "127.0.0.1:6333:6333"\n'
+        "    volumes:\n"
+        "      - qdrant_storage:/qdrant/storage\n"
+        "    restart: unless-stopped\n"
+        "volumes:\n"
+        "  qdrant_storage:\n",
+        encoding="utf-8",
+    )
     (target / "README.md").write_text(
         "# MR Norm Bot\n\n"
         "Windows package for the VK and Telegram bots. Python 3.12 and Qdrant are required.\n\n"
         "1. Run `powershell -ExecutionPolicy Bypass -File .\\setup_bot.ps1`.\n"
-        "2. Start Qdrant on localhost:6333.\n"
+        "2. Start Qdrant with `docker compose up -d qdrant` (Docker Desktop required).\n"
         "3. On the source machine, export with `python scripts/bot_db_transfer.py export --directory transfer`. "
         "Copy `transfer/` separately to this machine.\n"
         "4. Import with `.\\venv312\\Scripts\\python.exe scripts/bot_db_transfer.py import --directory transfer`. "

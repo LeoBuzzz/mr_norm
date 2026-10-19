@@ -85,6 +85,9 @@ def export_collection(directory: Path, collection: str) -> None:
                     written += 1
                 if offset is None:
                     break
+        live_count = qdrant.count(collection_name=collection, exact=True).count
+        if written != live_count:
+            raise RuntimeError(f"Export count mismatch: written={written}, Qdrant={live_count}")
         metadata["points_count"] = written
         temp_points.replace(points_path)
         metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
