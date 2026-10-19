@@ -63,7 +63,7 @@ def build(target: Path) -> None:
 
     (target / ".gitignore").write_text(
         "venv312/\n__pycache__/\n*.pyc\n.pytest_cache/\n"
-        "keys\nVK_token.txt\nbot_token.txt\n.env\n.env.*\n"
+        "keys\nVK_token.txt\nbot_token.txt\nkaring_current_config.txt\n.env\n.env.*\n"
         "output/\ninput/\ntmp/\ntransfer/\n*.log\n",
         encoding="utf-8",
     )
