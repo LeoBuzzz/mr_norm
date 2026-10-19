@@ -494,7 +494,7 @@ class MRNormVKBot:
         keys_ok = "найден" if self._keys_path else "не найден (keys в корне проекта)"
         text = _plain(
             "Статус MR Norm VK:\n\n"
-            f"• Qdrant collection: {os.getenv('MR_NORM_QDRANT_COLLECTION', 'mr_norm_docs_bge_m3')}\n"
+            f"• Qdrant collection: {os.getenv('MR_NORM_QDRANT_COLLECTION', 'mr_norm_docs_bge_m3_rtf_v2_20261011')}\n"
             f"• Конфиг индекса: {config_ok}\n"
             f"• LLM keys: {keys_ok}\n"
             "• Основной контур: Router2\n"
@@ -871,7 +871,7 @@ def _configure_logging() -> None:
 def _configure_env_defaults() -> None:
     os.environ.setdefault("QDRANT_HOST", "localhost")
     os.environ.setdefault("QDRANT_PORT", "6333")
-    os.environ.setdefault("MR_NORM_QDRANT_COLLECTION", "mr_norm_docs_bge_m3")
+    os.environ.setdefault("MR_NORM_QDRANT_COLLECTION", "mr_norm_docs_bge_m3_rtf_v2_20261011")
     os.environ.setdefault("RAG_EMBEDDING_DEVICE", "cpu")
 
 

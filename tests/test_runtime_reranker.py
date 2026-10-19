@@ -39,6 +39,66 @@ def test_score_reranker_sorts_by_score_desc() -> None:
     assert [item.chunk_id for item in result.items] == ["chunk_c", "chunk_b", "chunk_a"]
 
 
+def test_score_reranker_preserves_structural_header_and_body_before_high_score_noise() -> None:
+    header = RetrievedItem(
+        chunk_id="table_header",
+        score=0.2,
+        source_tool="payload",
+        chunk_index=61,
+        matched={"structural_target": "таблица 2"},
+    )
+    body = RetrievedItem(
+        chunk_id="table_body",
+        score=0.1,
+        source_tool="payload",
+        chunk_index=62,
+        matched={
+            "structural_target": "таблица 2",
+            "structural_parent_chunk_id": "table_header",
+        },
+    )
+    noise = [
+        RetrievedItem(chunk_id=f"point_{number}", score=0.99, source_tool="payload")
+        for number in (21, 11, 4, 10)
+    ]
+    request = RuntimeRequest(query="Дай содержание таблицы 2 приложения", limit=4)
+
+    result = ScoreReranker().rerank(request, make_runtime_result([*noise, body, header]))
+
+    assert [item.chunk_id for item in result.items[:2]] == ["table_header", "table_body"]
+    assert len(result.items) == 4
+
+
+def test_prompt_reranker_promotes_structural_group_after_provider_order() -> None:
+    header = RetrievedItem(
+        chunk_id="table_header",
+        score=0.2,
+        source_tool="payload",
+        chunk_index=61,
+        matched={"structural_target": "таблица 2"},
+    )
+    body = RetrievedItem(
+        chunk_id="table_body",
+        score=0.1,
+        source_tool="payload",
+        chunk_index=62,
+        matched={
+            "structural_target": "таблица 2",
+            "structural_parent_chunk_id": "table_header",
+        },
+    )
+    noise = RetrievedItem(chunk_id="point_21", score=0.99, source_tool="payload")
+    request = RuntimeRequest(query="Дай содержание таблицы 2 приложения", limit=2)
+    runtime = make_runtime_result([noise, body, header])
+
+    def provider(_request, _runtime, _pack):
+        return {"ranked_chunk_ids": ["point_21", "table_body", "table_header"]}
+
+    result = PromptPackReranker(provider=provider).rerank(request, runtime)
+
+    assert [item.chunk_id for item in result.items] == ["table_header", "table_body"]
+
+
 def test_prompt_pack_reranker_uses_provider_order() -> None:
     items = [
         RetrievedItem(chunk_id="chunk_a", score=0.2, source_tool="vector"),

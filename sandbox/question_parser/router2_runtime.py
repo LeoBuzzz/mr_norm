@@ -9,15 +9,21 @@ from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable
 
-from mr_norm.config.indexing import IndexingConfig
+from mr_norm.config.indexing import DEFAULT_COLLECTION_NAME, IndexingConfig
 from mr_norm.retrieval.contracts import RetrievedItem, ToolRequest
 from mr_norm.retrieval.point_assemble import assemble_point_parts
+from mr_norm.retrieval.query_intent import structural_reference_queries
 from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
 from mr_norm.runtime.contracts import RuntimeRequest
 from mr_norm.runtime.final_answer import build_final_answer
 from mr_norm.runtime.llm_clients import LLMRequest, build_chat_client, parse_json_object
+from mr_norm.runtime.tool_runner import (
+    STRUCTURAL_NEIGHBOR_CHUNK_CAP,
+    _matches_structural_target,
+    _truncate_at_next_structural_marker,
+)
 
 from question_parser.definitions import definition_search, lemma_key
 from question_parser.model_route import abbreviation_candidates, load_abbreviations, load_documents, route_question
@@ -85,13 +91,27 @@ def corpus_doc_id(registry_key: str) -> str:
     return f"doc_{digest}"
 
 
-def document_filters(doc_id: str | None, documents: dict[str, Any]) -> dict[str, str]:
+def _is_rtf_v2_collection(collection_name: str) -> bool:
+    return bool(re.search(r"_rtf_v2(?:_|$)", collection_name, flags=re.IGNORECASE))
+
+
+def document_filters(
+    doc_id: str | None,
+    documents: dict[str, Any],
+    *,
+    collection_name: str = DEFAULT_COLLECTION_NAME,
+) -> dict[str, str]:
     if not doc_id:
         return {}
     document = next((item for item in documents["documents"] if item["id"] == doc_id), None)
     if document is None:
         raise ValueError(f"unknown router2 document: {doc_id}")
     registry_key = str(document.get("registry_key") or document["id"])
+    if _is_rtf_v2_collection(collection_name):
+        # RTF v2 payloads use the registry key directly and may preserve an
+        # .rtf filename; the stable document id is sufficient and avoids
+        # filename normalization/encoding mismatches.
+        return {"doc_id": registry_key}
     filename = str(document.get("filename") or "")
     filters = {"doc_id": corpus_doc_id(registry_key)}
     if filename:
@@ -165,7 +185,16 @@ def expanded_query_variants(step: dict[str, Any]) -> list[str]:
     query = str(step.get("query") or "").strip()
     if not query:
         return []
-    variants = [query]
+    variants = []
+    user_question = str(step.get("_user_question") or query)
+    structural = structural_reference_queries(user_question)
+    if any(reference.startswith("таблица ") for reference in structural):
+        structural = [
+            reference for reference in structural
+            if reference != "приложение"
+        ]
+    variants.extend(structural)
+    variants.append(query)
     for expansion in step.get("expansions") or []:
         abbreviation = str(expansion.get("abbreviation") or "").strip()
         value = str(expansion.get("value") or "").strip()
@@ -183,7 +212,134 @@ def expanded_query_variants(step: dict[str, Any]) -> list[str]:
         candidate = candidate.strip()
         if candidate and candidate.casefold() not in {item.casefold() for item in variants}:
             variants.append(candidate)
-    return variants
+    return list(dict.fromkeys(variants))
+
+
+def _expand_structural_items(
+    items: list[RetrievedItem],
+    *,
+    question: str,
+    filters: dict[str, Any],
+    config: IndexingConfig,
+) -> tuple[list[RetrievedItem], list[str]]:
+    """Attach bounded legacy table/appendix body chunks to exact structural hits."""
+    references = structural_reference_queries(question)
+    if any(reference.startswith("таблица ") for reference in references):
+        references = [reference for reference in references if reference != "приложение"]
+    if not references or not (filters.get("doc_id") or filters.get("doc_name")):
+        return items, []
+
+    warnings: list[str] = []
+    direct_table_rows: list[RetrievedItem] = []
+    if _is_rtf_v2_collection(str(getattr(config, "collection_name", DEFAULT_COLLECTION_NAME))):
+        for reference in references:
+            if not reference.startswith("таблица "):
+                continue
+            label = reference.partition(" ")[2]
+            try:
+                found = run_payload_tool(
+                    ToolRequest(
+                        filters={**filters, "kind": "table_row", "table_label": label},
+                        limit=100,
+                    ),
+                    config,
+                    search_fields=["text"],
+                )
+            except Exception as exc:
+                warnings.append(f"structural table filter failed: {type(exc).__name__}: {exc}")
+                continue
+            warnings.extend(found.warnings)
+            direct_table_rows.extend(
+                replace(
+                    item,
+                    matched={**item.matched, "structural_target": reference},
+                )
+                for item in found.items
+            )
+
+    headers: dict[str, RetrievedItem] = {}
+    additions: dict[str, list[RetrievedItem]] = {}
+    for reference in references:
+        if direct_table_rows and reference.startswith("таблица "):
+            continue
+        for candidate in items:
+            if ":table:" in candidate.chunk_id or not _matches_structural_target(candidate, reference):
+                continue
+            if not candidate.chunk_id or candidate.chunk_index is None:
+                continue
+            headers[candidate.chunk_id] = replace(
+                candidate,
+                matched={**candidate.matched, "structural_target": reference},
+            )
+            stop = False
+            for offset in range(1, STRUCTURAL_NEIGHBOR_CHUNK_CAP + 1):
+                neighbor_filter = dict(filters)
+                neighbor_filter["chunk_index"] = candidate.chunk_index + offset
+                try:
+                    found = run_payload_tool(
+                        ToolRequest(filters=neighbor_filter, limit=1),
+                        config,
+                        search_fields=["text"],
+                    )
+                except Exception as exc:
+                    warnings.append(
+                        f"structural neighbor failed: {type(exc).__name__}: {exc}"
+                    )
+                    break
+                warnings.extend(found.warnings)
+                neighbor = next(
+                    (
+                        item for item in found.items
+                        if item.chunk_index == candidate.chunk_index + offset
+                        and (not candidate.doc_id or item.doc_id == candidate.doc_id)
+                    ),
+                    None,
+                )
+                if neighbor is None:
+                    break
+                bounded, stop = _truncate_at_next_structural_marker(neighbor, reference)
+                if bounded is not None and bounded.text.strip() and bounded.chunk_id != candidate.chunk_id:
+                    additions.setdefault(candidate.chunk_id, []).append(
+                        replace(
+                            bounded,
+                            matched={
+                                **bounded.matched,
+                                "structural_target": reference,
+                                "structural_parent_chunk_id": candidate.chunk_id,
+                            },
+                        )
+                    )
+                if stop:
+                    break
+            break
+
+    if not headers:
+        direct_ids = {item.chunk_id for item in direct_table_rows if item.chunk_id}
+        return [*direct_table_rows, *(item for item in items if item.chunk_id not in direct_ids)], warnings
+    replacement_ids = {
+        item.chunk_id for group in additions.values() for item in group if item.chunk_id
+    }
+    promoted: list[RetrievedItem] = []
+    promoted_ids: set[str] = set()
+    for header_id, header in headers.items():
+        promoted.append(header)
+        promoted_ids.add(header_id)
+        for addition in additions.get(header_id, []):
+            if addition.chunk_id and addition.chunk_id in promoted_ids:
+                continue
+            promoted.append(addition)
+            if addition.chunk_id:
+                promoted_ids.add(addition.chunk_id)
+    merged = list(promoted)
+    merged.extend(
+        headers.get(item.chunk_id, item)
+        for item in items
+        if item.chunk_id not in promoted_ids and item.chunk_id not in replacement_ids
+    )
+    if direct_table_rows:
+        direct_ids = {item.chunk_id for item in direct_table_rows if item.chunk_id}
+        merged = [*direct_table_rows, *(item for item in merged if item.chunk_id not in direct_ids)]
+    return merged, warnings
 
 
 def lexical_fallback_variants(step: dict[str, Any]) -> list[str]:
@@ -253,7 +409,11 @@ class QdrantSkills:
         query = str(step.get("query") or "")
         query_variants = expanded_query_variants(step) or [query]
         doc_id = step.get("doc_id")
-        filters = document_filters(doc_id, self.documents)
+        filters = document_filters(
+            doc_id,
+            self.documents,
+            collection_name=str(getattr(self.config, "collection_name", DEFAULT_COLLECTION_NAME)),
+        )
         if skill == "definition_search":
             groups: list[list[RetrievedItem]] = []
             for variant in query_variants:
@@ -346,6 +506,14 @@ class QdrantSkills:
                 warnings.append(
                     "corpus text search returned no hits; used original phrase fallback"
                 )
+        if skill in {"corpus_point_search", "vector_search"}:
+            items, structural_warnings = _expand_structural_items(
+                items,
+                question=str(step.get("_user_question") or query),
+                filters=filters,
+                config=self.config,
+            )
+            warnings.extend(structural_warnings)
         if skill == "find_all" and not items:
             fallback_query = str(step.get("_user_question") or query).strip()
             if fallback_query:

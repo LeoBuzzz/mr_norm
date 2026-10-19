@@ -20,7 +20,11 @@ from mr_norm.retrieval.document_catalog import (
     resolve_by_partial_order_hint,
 )
 from mr_norm.config.pue_aliases import PUE_ALIAS_KEY
-from mr_norm.retrieval.query_intent import detect_query_intent, intent_search_terms
+from mr_norm.retrieval.query_intent import (
+    detect_query_intent,
+    intent_search_terms,
+    structural_reference_queries,
+)
 from mr_norm.retrieval.document_knowledge import (
     DocumentKnowledgeIndex,
     KnowledgeCandidate,
@@ -685,6 +689,15 @@ def _normalize_tool_queries(
                 dict.fromkeys([*prefix, *queries[tool_name]])
             )[:MAX_QUERIES_PER_TOOL]
 
+    structural_queries = structural_reference_queries(original_query)
+    if structural_queries:
+        for tool_name in ("payload", "vector"):
+            current = queries[tool_name]
+            first = current[:1]
+            queries[tool_name] = list(
+                dict.fromkeys([*first, *structural_queries, *current[1:]])
+            )[:MAX_QUERIES_PER_TOOL]
+
     return queries
 
 
@@ -782,6 +795,10 @@ def _payload_required_tokens(
     significant_words: list[str] | None = None,
     question_type: str = "factual",
 ) -> tuple[str, ...]:
+    if structural_reference_queries(original_query):
+        # A structural label query (for example, "таблица 2") must remain
+        # searchable on its own when the table is embedded in a point chunk.
+        return ()
     primary = primary_exact_phrase(term_matches.exact_phrase_terms)
     if primary:
         return phrase_required_tokens(primary)

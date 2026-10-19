@@ -126,7 +126,7 @@ def _bot_environment() -> dict[str, str]:
         {
             "QDRANT_HOST": "localhost",
             "QDRANT_PORT": "6333",
-            "MR_NORM_QDRANT_COLLECTION": "mr_norm_docs_bge_m3",
+            "MR_NORM_QDRANT_COLLECTION": "mr_norm_docs_bge_m3_rtf_v2_20261011",
             "RAG_EMBEDDING_DEVICE": "cpu",
             "MR_NORM_ENABLE_TAIL_POINT_FALLBACK": "1",
             "PYTHONUTF8": "1",

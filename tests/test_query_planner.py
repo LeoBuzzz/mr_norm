@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -52,6 +53,74 @@ def test_prepare_query_point_lookup_prefers_likvidation_rules_not_investigation_
     assert plan.resolved_doc_names
     assert "ликвидации нарушений" in plan.resolved_doc_names[0].lower()
     assert "расследования" not in plan.resolved_doc_names[0].lower()
+    assert "point" in plan.selected_tools
+
+
+def test_prepare_query_targets_named_table_inside_point_chunk_without_point_route() -> None:
+    query = "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости"
+    plan = prepare_query(
+        query,
+        catalog=load_sample_catalog(),
+        knowledge=load_sample_knowledge(),
+        filters={"doc_id": "doc_e6915ad2d756375e"},
+        mode="auto",
+    )
+    payload_queries = next(entry.queries for entry in plan.tool_queries if entry.tool_name == "payload")
+    vector_queries = next(entry.queries for entry in plan.tool_queries if entry.tool_name == "vector")
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "table_appendix_legacy_chunk.json").read_text(encoding="utf-8")
+    )
+
+    assert plan.point_number_hints == ()
+    assert "point" not in plan.selected_tools
+    assert "таблица 2" in payload_queries
+    assert "таблица 2" in vector_queries
+    assert "приложение к" not in payload_queries
+    assert "приложение к" not in vector_queries
+    assert "таблица 2" in fixture["header"]["text"].casefold()
+    payload = next(entry for entry in plan.tool_queries if entry.tool_name == "payload")
+    assert payload.required_tokens == ()
+    _, filters = apply_prepared_plan(query, {"doc_id": fixture["header"]["doc_id"]}, plan)
+    assert filters["doc_id"] == fixture["header"]["doc_id"]
+    assert "point_number" not in filters
+
+
+def test_prepare_query_targets_named_appendix_without_treating_its_number_as_point() -> None:
+    plan = prepare_query(
+        "Дай содержание приложения 3 методических указаний",
+        catalog=load_sample_catalog(),
+        knowledge=load_sample_knowledge(),
+        mode="auto",
+    )
+
+    assert plan.point_number_hints == ()
+    assert "point" not in plan.selected_tools
+    assert "приложение 3" in next(entry.queries for entry in plan.tool_queries if entry.tool_name == "payload")
+    assert "приложение 3" in next(entry.queries for entry in plan.tool_queries if entry.tool_name == "vector")
+
+
+def test_prepare_query_targets_unlabelled_appendix() -> None:
+    plan = prepare_query(
+        "Дай содержание приложения к методическим указаниям",
+        catalog=load_sample_catalog(),
+        knowledge=load_sample_knowledge(),
+        mode="auto",
+    )
+
+    assert plan.point_number_hints == ()
+    assert "приложение" in next(entry.queries for entry in plan.tool_queries if entry.tool_name == "payload")
+    assert "приложение к" not in next(entry.queries for entry in plan.tool_queries if entry.tool_name == "payload")
+
+
+def test_prepare_query_preserves_point_number_route_for_actual_point_request() -> None:
+    plan = prepare_query(
+        "Дай текст пункта 6 методических указаний по устойчивости",
+        catalog=load_sample_catalog(),
+        knowledge=load_sample_knowledge(),
+        mode="auto",
+    )
+
+    assert plan.point_number_hints == ("6",)
     assert "point" in plan.selected_tools
 
 

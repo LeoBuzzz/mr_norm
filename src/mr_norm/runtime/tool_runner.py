@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
@@ -16,6 +17,7 @@ from mr_norm.retrieval.contracts import RetrievedItem, ToolMetrics, ToolRequest,
 from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import is_point_lookup_filters, run_point_tool
 from mr_norm.retrieval.tools.vector import run_vector_tool
+from mr_norm.retrieval.query_intent import structural_reference_queries
 from mr_norm.runtime.contracts import RuntimeMetrics, RuntimeRequest, RuntimeResult, RuntimeTrace, ToolCallPlan
 from mr_norm.runtime.pipeline_features import rrf_weights_enabled
 from mr_norm.runtime.profiles import get_profile_config
@@ -23,6 +25,252 @@ from mr_norm.runtime.router import route_runtime
 from mr_norm.tools.rtf_processor import atomic_write_json, atomic_write_text
 
 ToolRunner = Callable[[ToolRequest, IndexingConfig], ToolResult]
+
+STRUCTURAL_NEIGHBOR_CHUNK_CAP = 4
+_STRUCTURAL_MARKER = re.compile(
+    r"(?i:\b(таблиц\w*|приложен\w*)\s*(?:№\s*|n\s*)?)([0-9]+(?:[._][0-9]+)*|[А-ЯЁA-Z])?"
+)
+
+
+def _structural_target(reference: str) -> tuple[str, str]:
+    kind, _, label = reference.partition(" ")
+    return ("table" if kind == "таблица" else "appendix", label.strip().casefold())
+
+
+def _matches_structural_target(item: RetrievedItem, reference: str) -> bool:
+    kind, label = _structural_target(reference)
+    text = f"{item.text}\n{item.heading_path_text}"
+    for match in _STRUCTURAL_MARKER.finditer(text):
+        marker_kind = "table" if match.group(1).casefold().startswith("таблиц") else "appendix"
+        marker_label = (match.group(2) or "").replace("_", ".").casefold()
+        if marker_kind == kind and (marker_label == label or (kind == "appendix" and not label)):
+            return True
+    return False
+
+
+def _truncate_at_next_structural_marker(item: RetrievedItem, reference: str) -> tuple[RetrievedItem | None, bool]:
+    target_kind, target_label = _structural_target(reference)
+    for match in _STRUCTURAL_MARKER.finditer(item.text):
+        marker_kind = "table" if match.group(1).casefold().startswith("таблиц") else "appendix"
+        marker_label = (match.group(2) or "").replace("_", ".").casefold()
+        is_boundary = (
+            marker_kind == "appendix" and target_kind == "table"
+        ) or (
+            marker_kind == target_kind and marker_label != target_label
+        )
+        if not is_boundary:
+            continue
+        text = item.text[: match.start()].rstrip()
+        return (replace(item, text=text) if text else None), True
+    return item, False
+
+
+def _resolved_structural_doc_scope(request: RuntimeRequest) -> dict[str, str]:
+    filters = request.filters or {}
+    doc_id = str(filters.get("doc_id") or "").strip()
+    if doc_id:
+        return {"doc_id": doc_id}
+    doc_name = str(filters.get("doc_name") or "").strip()
+    if doc_name:
+        return {"doc_name": doc_name}
+    plan = request.prepared_plan
+    if plan is None or plan.ambiguous or len(plan.resolved_doc_names) != 1:
+        return {}
+    catalog_id = str(plan.document_resolution.catalog_id or "").strip()
+    if catalog_id and not catalog_id.startswith("knowledge:"):
+        return {"doc_id": catalog_id}
+    return {"doc_name": plan.resolved_doc_names[0]}
+
+
+def _expand_structural_neighbors(
+    request: RuntimeRequest,
+    config: IndexingConfig,
+    runners: dict[str, ToolRunner],
+    step_results: dict[str, ToolResult],
+) -> None:
+    references = structural_reference_queries(request.query)
+    has_table_target = any(reference.startswith("таблица ") for reference in references)
+    resolved_scope = _resolved_structural_doc_scope(request)
+    payload_result = step_results.get("payload")
+    payload_runner = runners.get("payload")
+    if (
+        not references
+        or not resolved_scope
+        or payload_result is None
+        or payload_runner is None
+    ):
+        return
+
+    candidates: list[RetrievedItem] = []
+    for tool_name in ("payload", "vector"):
+        result = step_results.get(tool_name)
+        if result:
+            candidates.extend(result.items)
+    seen_targets: set[tuple[str, str]] = set()
+    additions: dict[str, list[RetrievedItem]] = {}
+    headers: dict[str, RetrievedItem] = {}
+    added_items: list[RetrievedItem] = []
+    extra_calls = 0
+    extra_warnings: list[str] = []
+
+    for reference in references:
+        if reference == "приложение" and has_table_target:
+            continue
+        for header in candidates:
+            if ":table:" in header.chunk_id or not _matches_structural_target(header, reference):
+                continue
+            if resolved_scope.get("doc_id") and header.doc_id != resolved_scope["doc_id"]:
+                continue
+            if resolved_scope.get("doc_name") and header.doc_name != resolved_scope["doc_name"]:
+                continue
+            doc_key = header.doc_id or header.doc_name
+            if not doc_key:
+                continue
+            target_key = (reference, doc_key)
+            if target_key in seen_targets:
+                continue
+            seen_targets.add(target_key)
+            parent_id = header.chunk_id
+            headers[parent_id] = replace(
+                header,
+                source_tool="payload",
+                matched={**header.matched, "structural_target": reference},
+            )
+            if header.chunk_index is None:
+                break
+            doc_filter = {"doc_id": header.doc_id} if header.doc_id else {"doc_name": header.doc_name}
+            stop = False
+            for offset in range(1, STRUCTURAL_NEIGHBOR_CHUNK_CAP + 1):
+                try:
+                    neighbor_result = payload_runner(
+                        ToolRequest(
+                            filters={**doc_filter, "chunk_index": header.chunk_index + offset},
+                            limit=1,
+                            profile="fast",
+                            trace_id=f"{request.trace_id}:structural_neighbor",
+                        ),
+                        config,
+                    )
+                except Exception as exc:
+                    extra_warnings.append(
+                        f"structural_neighbor failed: {type(exc).__name__}: {exc}"
+                    )
+                    break
+                extra_calls += neighbor_result.metrics.qdrant_calls
+                extra_warnings.extend(neighbor_result.warnings)
+                neighbor = next(
+                    (
+                        item
+                        for item in neighbor_result.items
+                        if item.chunk_index == header.chunk_index + offset
+                        and (item.doc_id == header.doc_id if header.doc_id else item.doc_name == header.doc_name)
+                    ),
+                    None,
+                )
+                if neighbor is None:
+                    break
+                bounded, stop = _truncate_at_next_structural_marker(neighbor, reference)
+                if bounded is not None and bounded.text.strip() and bounded.chunk_id != parent_id:
+                    bounded = replace(
+                        bounded,
+                        matched={
+                            **bounded.matched,
+                            "structural_target": reference,
+                            "structural_parent_chunk_id": parent_id,
+                        },
+                    )
+                    additions.setdefault(parent_id, []).append(bounded)
+                    added_items.append(bounded)
+                if stop:
+                    break
+            break
+
+    if not added_items and not headers:
+        return
+    merged: list[RetrievedItem] = []
+    payload_ids = {item.chunk_id for item in payload_result.items if item.chunk_id}
+    replacements = {
+        item.chunk_id: item
+        for group in additions.values()
+        for item in group
+        if item.chunk_id
+    }
+    emitted_ids: set[str] = set()
+
+    def append_group(header_id: str, header: RetrievedItem) -> None:
+        if header_id not in emitted_ids:
+            merged.append(header)
+            if header_id:
+                emitted_ids.add(header_id)
+        for addition in additions.get(header_id, []):
+            if addition.chunk_id and addition.chunk_id in emitted_ids:
+                continue
+            merged.append(addition)
+            if addition.chunk_id:
+                emitted_ids.add(addition.chunk_id)
+
+    for header_id, header in headers.items():
+        if header_id not in payload_ids:
+            append_group(header_id, header)
+    for item in payload_result.items:
+        if item.chunk_id in replacements:
+            continue
+        item = headers.get(item.chunk_id, item)
+        if item.chunk_id and item.chunk_id in emitted_ids:
+            continue
+        merged.append(item)
+        if item.chunk_id:
+            emitted_ids.add(item.chunk_id)
+        if item.chunk_id in additions:
+            append_group(item.chunk_id, item)
+    step_results["payload"] = replace(
+        payload_result,
+        items=merged,
+        metrics=replace(
+            payload_result.metrics,
+            candidates_returned=len(merged),
+            qdrant_calls=payload_result.metrics.qdrant_calls + extra_calls,
+        ),
+        warnings=list(dict.fromkeys([*payload_result.warnings, *extra_warnings])),
+    )
+
+
+def _prioritize_structural_groups(
+    items: list[RetrievedItem],
+    payload_result: ToolResult | None,
+    query: str,
+) -> list[RetrievedItem]:
+    if not payload_result or not structural_reference_queries(query):
+        return items
+    grouped = [
+        item
+        for item in payload_result.items
+        if item.matched.get("structural_target")
+    ]
+    if not grouped:
+        return items
+    promoted: list[RetrievedItem] = []
+    for target in dict.fromkeys(str(item.matched.get("structural_target")) for item in grouped):
+        headers = [
+            item
+            for item in grouped
+            if item.matched.get("structural_target") == target
+            and not item.matched.get("structural_parent_chunk_id")
+        ]
+        for header in headers:
+            promoted.append(header)
+            promoted.extend(
+                sorted(
+                    (
+                        item
+                        for item in grouped
+                        if item.matched.get("structural_parent_chunk_id") == header.chunk_id
+                    ),
+                    key=lambda item: item.chunk_index if item.chunk_index is not None else 0,
+                )
+            )
+    promoted_ids = {item.chunk_id for item in promoted if item.chunk_id}
+    return [*promoted, *(item for item in items if not item.chunk_id or item.chunk_id not in promoted_ids)]
 
 
 class CachedQueryEmbedder:
@@ -217,6 +465,8 @@ def run_runtime(
             except Exception as exc:
                 step_errors[step.tool_name] = f"{step.tool_name} failed: {type(exc).__name__}: {exc}"
 
+    _expand_structural_neighbors(request, config, runners, step_results)
+
     for step, _runner, _queries in runnable_steps:
         error = step_errors.get(step.tool_name)
         if error:
@@ -237,6 +487,8 @@ def run_runtime(
     if profile.use_hybrid and len(tool_results) > 1:
         fusion_weights = None if rrf_weights_enabled() else {}
         fused = reciprocal_rank_fusion(tool_results, limit=retrieval_limit, weights=fusion_weights)
+        fused = _prioritize_structural_groups(fused, tool_results.get("payload"), request.query)
+        fused = fused[:retrieval_limit]
         items = fused
         fusion = "hybrid_rrf"
         tool_results["hybrid"] = ToolResult(
@@ -258,7 +510,8 @@ def run_runtime(
         for tool_name in ("point", "payload", "vector"):
             result = tool_results.get(tool_name)
             if result and result.items:
-                items = result.items[:retrieval_limit]
+                items = _prioritize_structural_groups(result.items, tool_results.get("payload"), request.query)
+                items = items[:retrieval_limit]
                 break
 
     empty_reason = ""

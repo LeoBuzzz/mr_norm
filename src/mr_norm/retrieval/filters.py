@@ -10,6 +10,8 @@ KEYWORD_FIELDS = {
     "filename",
     "point_identity_key",
     "point_number",
+    "kind",
+    "table_label",
 }
 EXCLUDE_FILTER_KEYS = {
     "exclude_doc_id": "doc_id",
@@ -18,7 +20,8 @@ EXCLUDE_FILTER_KEYS = {
     "doc_name_not": "doc_name",
 }
 TEXT_FIELDS = {"heading_path_text", "text"}
-SUPPORTED_FILTER_FIELDS = KEYWORD_FIELDS | TEXT_FIELDS
+INTEGER_FIELDS = {"chunk_index"}
+SUPPORTED_FILTER_FIELDS = KEYWORD_FIELDS | TEXT_FIELDS | INTEGER_FIELDS
 
 
 def doc_name_variants(value: Any) -> list[str] | str:
@@ -63,6 +66,9 @@ def normalize_filters(filters: dict[str, Any] | None) -> dict[str, Any]:
             prepared_list = [str(item).strip() for item in value if str(item).strip()]
             if prepared_list:
                 normalized[key] = prepared_list
+        elif normalized_key in INTEGER_FIELDS:
+            if isinstance(value, int) and not isinstance(value, bool):
+                normalized[key] = value
         elif value is not None:
             normalized[key] = str(value).strip()
     return normalized
@@ -73,7 +79,7 @@ def build_filter_spec(filters: dict[str, Any] | None) -> dict[str, Any]:
     must_not: list[dict[str, Any]] = []
     for key, value in normalize_filters(filters).items():
         target_key = EXCLUDE_FILTER_KEYS.get(key, key)
-        kind = "text" if target_key in TEXT_FIELDS else "keyword"
+        kind = "text" if target_key in TEXT_FIELDS else "integer" if target_key in INTEGER_FIELDS else "keyword"
         destination = must_not if key in EXCLUDE_FILTER_KEYS else must
         if isinstance(value, list):
             destination.append({"field": target_key, "kind": kind, "any": value})

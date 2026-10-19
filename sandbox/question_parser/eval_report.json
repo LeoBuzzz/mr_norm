@@ -6,7 +6,7 @@
   "model_calls": 0,
   "cost": null,
   "vector_store": "not_used",
-  "elapsed_ms": 6.718,
+  "elapsed_ms": 6.557,
   "unexpected_errors": [],
   "layer_counts": {
     "parser": 1,

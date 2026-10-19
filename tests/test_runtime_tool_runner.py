@@ -10,7 +10,7 @@ from mr_norm.apps import main as app_main
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.config.paths import ProjectPaths
 from mr_norm.retrieval.contracts import RetrievedItem, ToolMetrics, ToolRequest, ToolResult, ToolTrace
-from mr_norm.runtime.contracts import RuntimeRequest, ToolCallPlan
+from mr_norm.runtime.contracts import DocumentResolution, PreparedQueryPlan, PreparedToolQuery, RuntimeRequest, ToolCallPlan
 from mr_norm.runtime.tool_runner import (
     CachedQueryEmbedder,
     render_runtime_markdown,
@@ -83,6 +83,212 @@ def test_run_runtime_returns_contract_fields() -> None:
     assert "payload" in payload["tool_results"]
     assert payload["trace"]["profile"] == "fast"
     assert payload["metrics"]["items_returned"] == 1
+
+
+def test_run_runtime_adds_legacy_table_body_neighbor_and_stops_at_next_table() -> None:
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "table_appendix_legacy_chunk.json").read_text(encoding="utf-8")
+    )
+    header = RetrievedItem(**fixture["header"], source_tool="payload")
+    neighbors = {item["chunk_index"]: RetrievedItem(**item, source_tool="payload") for item in fixture["following_chunks"]}
+    noise = [
+        RetrievedItem(chunk_id="chunk_point_21", doc_id=header.doc_id, point_number="21", text="Пункт 21."),
+        RetrievedItem(chunk_id="chunk_point_11", doc_id=header.doc_id, point_number="11", text="Пункт 11."),
+    ]
+    neighbor_filters: list[dict[str, object]] = []
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        if "chunk_index" in req.filters:
+            neighbor_filters.append(dict(req.filters))
+            items = [neighbors[req.filters["chunk_index"]]] if req.filters["chunk_index"] in neighbors else []
+        else:
+            items = [*noise, header]
+        return ToolResult(
+            items=items,
+            trace=ToolTrace(tool_name="payload", collection_name=cfg.collection_name, query=req.query),
+            metrics=ToolMetrics(elapsed_sec=0.001, candidates_returned=len(items), qdrant_calls=1),
+        )
+
+    query = "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости"
+    plan = PreparedQueryPlan(
+        original_query=query,
+        question_type="factual",
+        selected_tools=("payload",),
+        tool_queries=(PreparedToolQuery(tool_name="payload", queries=(query, "таблица 2")),),
+    )
+    result = run_runtime(
+        RuntimeRequest(query=query, filters={"doc_id": header.doc_id}, profile="fast", prepared_plan=plan),
+        IndexingConfig(collection_name="test_collection"),
+        tool_runners={"payload": payload_runner},
+    )
+
+    assert [item.chunk_id for item in result.items] == [
+        header.chunk_id,
+        neighbors[62].chunk_id,
+        "chunk_point_21",
+        "chunk_point_11",
+    ]
+    assert "Отключение одной СШ" in result.items[1].text
+    assert "Таблица 3" not in result.items[1].text
+    assert neighbor_filters == [{"doc_id": header.doc_id, "chunk_index": 62}]
+    assert result.metrics.qdrant_calls == 3
+
+
+def test_run_runtime_expands_vector_only_table_header_when_payload_has_only_noise() -> None:
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "table_appendix_legacy_chunk.json").read_text(encoding="utf-8")
+    )
+    header = RetrievedItem(**fixture["header"], source_tool="vector")
+    body = RetrievedItem(**fixture["following_chunks"][0], source_tool="payload")
+    noise = RetrievedItem(
+        chunk_id="chunk_point_21",
+        doc_id=header.doc_id,
+        doc_name=header.doc_name,
+        point_number="21",
+        text="Пункт 21.",
+        source_tool="payload",
+    )
+    neighbor_filters: list[dict[str, object]] = []
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        if "chunk_index" in req.filters:
+            neighbor_filters.append(dict(req.filters))
+            items = [body] if req.filters["chunk_index"] == body.chunk_index else []
+        else:
+            items = [noise]
+        return ToolResult(
+            items=items,
+            trace=ToolTrace(tool_name="payload", collection_name=cfg.collection_name, query=req.query),
+            metrics=ToolMetrics(elapsed_sec=0.001, candidates_returned=len(items), qdrant_calls=1),
+        )
+
+    def vector_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        return ToolResult(
+            items=[header],
+            trace=ToolTrace(tool_name="vector", collection_name=cfg.collection_name, query=req.query),
+            metrics=ToolMetrics(elapsed_sec=0.001, candidates_returned=1, qdrant_calls=1),
+        )
+
+    query = "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости"
+    plan = PreparedQueryPlan(
+        original_query=query,
+        document_resolution=DocumentResolution(catalog_id="knowledge:methodical", doc_name=header.doc_name),
+        resolved_doc_names=(header.doc_name,),
+        question_type="factual",
+        selected_tools=("payload", "vector"),
+        tool_queries=(
+            PreparedToolQuery(tool_name="payload", queries=(query, "таблица 2")),
+            PreparedToolQuery(tool_name="vector", queries=(query, "таблица 2")),
+        ),
+    )
+
+    result = run_runtime(
+        RuntimeRequest(query=query, profile="balanced", prepared_plan=plan, limit=4),
+        IndexingConfig(collection_name="test_collection"),
+        tool_runners={"payload": payload_runner, "vector": vector_runner},
+    )
+
+    assert [item.chunk_id for item in result.items[:2]] == [header.chunk_id, body.chunk_id]
+    assert "Отключение одной СШ" in result.items[1].text
+    assert neighbor_filters == [{"doc_id": header.doc_id, "chunk_index": body.chunk_index}]
+
+
+def test_run_runtime_replaces_existing_legacy_body_with_bounded_marked_neighbor() -> None:
+    fixture = json.loads(
+        (Path(__file__).parent / "fixtures" / "table_appendix_legacy_chunk.json").read_text(encoding="utf-8")
+    )
+    header = RetrievedItem(**fixture["header"], source_tool="payload")
+    raw_body = RetrievedItem(**fixture["following_chunks"][0], source_tool="payload")
+    noise = RetrievedItem(
+        chunk_id="chunk_point_21",
+        doc_id=header.doc_id,
+        doc_name=header.doc_name,
+        point_number="21",
+        text="Пункт 21.",
+        source_tool="payload",
+    )
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        if "chunk_index" in req.filters:
+            items = [raw_body] if req.filters["chunk_index"] == raw_body.chunk_index else []
+        else:
+            items = [noise, header, raw_body]
+        return ToolResult(
+            items=items,
+            trace=ToolTrace(tool_name="payload", collection_name=cfg.collection_name, query=req.query),
+            metrics=ToolMetrics(elapsed_sec=0.001, candidates_returned=len(items), qdrant_calls=1),
+        )
+
+    query = "Дай содержание таблицы 2 приложения"
+    plan = PreparedQueryPlan(
+        original_query=query,
+        question_type="factual",
+        selected_tools=("payload",),
+        tool_queries=(PreparedToolQuery(tool_name="payload", queries=(query, "таблица 2")),),
+    )
+    result = run_runtime(
+        RuntimeRequest(query=query, filters={"doc_id": header.doc_id}, profile="fast", prepared_plan=plan),
+        IndexingConfig(collection_name="test_collection"),
+        tool_runners={"payload": payload_runner},
+    )
+
+    body_items = [item for item in result.items if item.chunk_id == raw_body.chunk_id]
+    assert len(body_items) == 1
+    assert result.items[0].chunk_id == header.chunk_id
+    assert result.items[1].chunk_id == raw_body.chunk_id
+    assert body_items[0].matched["structural_target"] == "таблица 2"
+    assert body_items[0].matched["structural_parent_chunk_id"] == header.chunk_id
+    assert "Таблица 3" not in body_items[0].text
+
+
+def test_run_runtime_expands_unlabelled_appendix_until_next_appendix_marker() -> None:
+    header = RetrievedItem(
+        chunk_id="chunk_appendix_header",
+        doc_id="doc_appendix",
+        doc_name="Методические указания",
+        chunk_index=9,
+        text="Приложение",
+        source_tool="payload",
+    )
+    body = RetrievedItem(
+        chunk_id="chunk_appendix_body",
+        doc_id=header.doc_id,
+        doc_name=header.doc_name,
+        chunk_index=10,
+        text="Содержание приложения. Требование X. Приложение 2 — другое приложение.",
+        source_tool="payload",
+    )
+    neighbor_filters: list[dict[str, object]] = []
+
+    def payload_runner(req: ToolRequest, cfg: IndexingConfig) -> ToolResult:
+        if "chunk_index" in req.filters:
+            neighbor_filters.append(dict(req.filters))
+            items = [body] if req.filters["chunk_index"] == body.chunk_index else []
+        else:
+            items = [header]
+        return ToolResult(
+            items=items,
+            trace=ToolTrace(tool_name="payload", collection_name=cfg.collection_name, query=req.query),
+            metrics=ToolMetrics(elapsed_sec=0.001, candidates_returned=len(items), qdrant_calls=1),
+        )
+
+    query = "Дай содержание приложения к методическим указаниям"
+    plan = PreparedQueryPlan(
+        original_query=query,
+        question_type="factual",
+        selected_tools=("payload",),
+        tool_queries=(PreparedToolQuery(tool_name="payload", queries=(query, "приложение")),),
+    )
+    result = run_runtime(
+        RuntimeRequest(query=query, filters={"doc_id": header.doc_id}, profile="fast", prepared_plan=plan),
+        IndexingConfig(collection_name="test_collection"),
+        tool_runners={"payload": payload_runner},
+    )
+
+    assert [item.chunk_id for item in result.items] == [header.chunk_id, body.chunk_id]
+    assert "Требование X" in result.items[1].text
+    assert "Приложение 2" not in result.items[1].text
+    assert neighbor_filters == [{"doc_id": header.doc_id, "chunk_index": 10}]
 
 
 def test_run_runtime_batch_reuses_runners(monkeypatch) -> None:

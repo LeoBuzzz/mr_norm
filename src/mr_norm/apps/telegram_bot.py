@@ -199,7 +199,7 @@ class MRNormTelegramBot:
         await self.bot.reply_to(
             message,
             "Статус MR Norm Telegram:\n\n"
-            f"• Qdrant: {os.getenv('MR_NORM_QDRANT_COLLECTION', 'mr_norm_docs_bge_m3')}\n"
+            f"• Qdrant: {os.getenv('MR_NORM_QDRANT_COLLECTION', 'mr_norm_docs_bge_m3_rtf_v2_20261011')}\n"
             "• Основной контур: Router2\n"
             f"• Router: {os.getenv('MR_NORM_ROUTER2_ROUTER_MODEL', DEFAULT_ROUTER_MODEL)}\n"
             f"• Answer: {os.getenv('MR_NORM_ROUTER2_ANSWER_MODEL', DEFAULT_ANSWER_MODEL)}\n"

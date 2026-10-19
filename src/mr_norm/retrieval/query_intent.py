@@ -28,6 +28,16 @@ FREQUENCY_PATTERNS = (
     "частота осмотр",
 )
 
+_STRUCTURAL_REFERENCE_PATTERNS = (
+    ("table", re.compile(r"\bтаблиц\w*\s*(?:№\s*|n\s*)?(\d+(?:[._]\d+)*)", re.IGNORECASE)),
+    ("appendix", re.compile(r"(?i:\bприложен\w*\s*(?:№\s*|n\s*)?)(\d+(?:[._]\d+)*)")),
+    (
+        "appendix",
+        re.compile(r"(?i:\bприложен\w*\s*(?:№\s*)?)([А-ЯЁA-Z])(?=\s*(?:$|[.,:;!?—–-]|к\b))"),
+    ),
+)
+_APPENDIX_MENTION_PATTERN = re.compile(r"\bприложени(?:е|я|ю|ем|и)\b", re.IGNORECASE)
+
 DOMAIN_TERM_HINTS: dict[str, tuple[str, ...]] = {
     "электроэнергет": (
         "об электроэнергетике",
@@ -76,6 +86,27 @@ def detect_query_intent(query: str) -> str:
     if any(pattern in norm for pattern in DOCUMENT_LOOKUP_PATTERNS):
         return "document_lookup"
     return "factual"
+
+
+def structural_reference_queries(query: str) -> list[str]:
+    """Return exact search strings for explicitly named tables or appendices.
+
+    Structural labels are retrieval targets, not point numbers. Keeping their
+    short labels as separate queries lets payload and vector search find a
+    table embedded in a larger point chunk without weakening document scope.
+    """
+    references: list[str] = []
+    for kind, pattern in _STRUCTURAL_REFERENCE_PATTERNS:
+        for match in pattern.finditer(query or ""):
+            label = match.group(1).replace("_", ".")
+            reference = f"таблица {label}" if kind == "table" else f"приложение {label}"
+            if reference not in references:
+                references.append(reference)
+    if _APPENDIX_MENTION_PATTERN.search(query or "") and not any(
+        reference.startswith("приложение ") for reference in references
+    ):
+        references.append("приложение")
+    return references
 
 
 _REGULATION_SUBJECT_RE = re.compile(

@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT / "sandbox")]
 
 from mr_norm.retrieval.contracts import RetrievedItem
+from mr_norm.config.indexing import IndexingConfig
 from mr_norm.tools.chunker import stable_id
 from question_parser.model_route import load_documents
 from question_parser.router2_runtime import (
@@ -41,6 +42,109 @@ def test_document_id_and_filename_match_corpus_contract():
     assert filters["doc_id"] == stable_id("doc", "gost_19431_24102023")
     assert corpus_doc_id("gost_19431_24102023") == filters["doc_id"]
     assert filters["filename"].endswith(".txt")
+
+
+def test_document_filters_use_registry_key_only_for_rtf_v2_collections():
+    documents = load_documents()
+    filters = document_filters(
+        "pr_630_03082018",
+        documents,
+        collection_name="mr_norm_docs_bge_m3_rtf_v2_20261011",
+    )
+
+    assert filters == {"doc_id": "pr_630_03082018"}
+
+
+def test_qdrant_skills_uses_rtf_v2_document_filter(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    documents = load_documents()
+    captured = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        captured.append(dict(request.filters))
+        return SimpleNamespace(items=[], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    backend = QdrantSkills(
+        IndexingConfig(collection_name="mr_norm_docs_bge_m3_rtf_v2_20261011"),
+        documents,
+    )
+    backend.run({
+        "skill": "corpus_point_search",
+        "query": "обычный запрос",
+        "doc_id": "pr_630_03082018",
+    })
+
+    assert captured == [{"doc_id": "pr_630_03082018"}]
+
+
+def test_qdrant_skills_v2_table_search_uses_exact_payload_label_filter(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    documents = load_documents()
+    doc = next(item for item in documents["documents"] if item["id"] == "pr_630_03082018")
+    row = RetrievedItem(
+        chunk_id="pr_630_03082018:table:13:row:2",
+        doc_id="pr_630_03082018",
+        filename=doc["filename"],
+        text="2.1 Отключение одной СШ — группы III | II | II",
+    )
+    requests = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        if request.filters.get("kind") == "table_row":
+            requests.append((request.query, dict(request.filters)))
+            return SimpleNamespace(items=[row], warnings=[])
+        return SimpleNamespace(items=[], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    backend = QdrantSkills(
+        IndexingConfig(collection_name="mr_norm_docs_bge_m3_rtf_v2_20261011"),
+        documents,
+    )
+    items, warnings = backend.run({
+        "skill": "corpus_point_search",
+        "query": "содержание таблицы 2 приложения по устойчивости",
+        "doc_id": doc["id"],
+        "_user_question": "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости",
+    })
+
+    assert requests == [(
+        "",
+        {"doc_id": "pr_630_03082018", "kind": "table_row", "table_label": "2"},
+    )]
+    assert [item.chunk_id for item in items] == [row.chunk_id]
+    assert items[0].matched["structural_target"] == "таблица 2"
+    assert warnings == []
+
+
+def test_qdrant_skills_exact_point_uses_rtf_v2_registry_doc_id(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    documents = load_documents()
+    doc = next(item for item in documents["documents"] if item["id"] == "pr_630_03082018")
+    captured = []
+
+    def fake_point_tool(request, _config):
+        captured.append(dict(request.filters))
+        return SimpleNamespace(items=[RetrievedItem(
+            chunk_id="point-6", doc_id="pr_630_03082018", point_number="6",
+            text="6. Текст пункта.",
+        )], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_point_tool", fake_point_tool)
+    backend = QdrantSkills(
+        IndexingConfig(collection_name="mr_norm_docs_bge_m3_rtf_v2_20261011"),
+        documents,
+    )
+    items, warnings = backend.run({
+        "skill": "exact_point", "doc_id": doc["id"], "point_ref": "6",
+    })
+
+    assert captured == [{"doc_id": "pr_630_03082018", "point_number": "6"}]
+    assert items[0].text == "6. Текст пункта."
+    assert warnings == []
 
 
 def test_live_route_runs_sandbox_skills_and_main_final_answer():
@@ -195,6 +299,126 @@ def test_exact_point_limits_pue_chapter_by_filename(monkeypatch):
     assert captured[0]["filename"] == expected["filename"]
     assert captured[0]["point_number"] == "1.2.18"
     assert items[0].text == "Текст пункта."
+    assert warnings == []
+
+
+def test_qdrant_skills_searches_structural_label_and_attaches_bounded_legacy_body(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    documents = load_documents()
+    doc = next(item for item in documents["documents"] if item["id"] == "pr_630_03082018")
+    expected_filters = document_filters(doc["id"], documents)
+    doc_id = expected_filters["doc_id"]
+    filename = expected_filters["filename"]
+    header = RetrievedItem(
+        chunk_id="legacy-table-header", doc_id=doc_id, filename=filename,
+        doc_name=doc["title"], point_number="6", chunk_index=61,
+        text="6. Контекст пункта. Таблица 2 — Показатель | Режим 1",
+    )
+    raw_body = RetrievedItem(
+        chunk_id="legacy-table-body", doc_id=doc_id, filename=filename,
+        doc_name=doc["title"], point_number="2", chunk_index=62,
+        text="2.1 Отключение одной СШ — группы III | II | II. Таблица 3 — другой набор.",
+    )
+    noise = RetrievedItem(
+        chunk_id="point-21", doc_id=doc_id, filename=filename,
+        point_number="21", text="Пункт 21.",
+    )
+    queries = []
+    neighbor_filters = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        queries.append(request.query)
+        if "chunk_index" in request.filters:
+            neighbor_filters.append(dict(request.filters))
+            items = [raw_body] if request.filters["chunk_index"] == 62 else []
+        elif request.query == "таблица 2":
+            items = [header]
+        else:
+            items = [noise]
+        return SimpleNamespace(items=items, warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    question = "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости"
+    backend = QdrantSkills(None, documents)
+    items, warnings = backend.run({
+        "skill": "corpus_point_search",
+        "query": "содержание таблицы 2 приложения по устойчивости",
+        "doc_id": doc["id"],
+        "_user_question": question,
+    })
+
+    assert queries == ["таблица 2", "содержание таблицы 2 приложения по устойчивости", ""]
+    assert neighbor_filters == [{**expected_filters, "chunk_index": 62}]
+    assert [item.chunk_id for item in items] == [header.chunk_id, raw_body.chunk_id, noise.chunk_id]
+    assert items[0].matched["structural_target"] == "таблица 2"
+    assert items[1].matched["structural_parent_chunk_id"] == header.chunk_id
+    assert "Отключение одной СШ" in items[1].text
+    assert "Таблица 3" not in items[1].text
+    assert warnings == []
+
+
+def test_qdrant_skills_ordinary_corpus_search_does_not_add_structural_queries(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    queries = []
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        queries.append(request.query)
+        return SimpleNamespace(items=[RetrievedItem(chunk_id="point-5", text="Пункт 5.")], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    backend = QdrantSkills(None, load_documents())
+    items, warnings = backend.run({
+        "skill": "corpus_point_search", "query": "заземление защитное",
+        "doc_id": None, "_user_question": "Как выполнить защитное заземление?",
+    })
+
+    assert queries == ["заземление защитное"]
+    assert [item.chunk_id for item in items] == ["point-5"]
+    assert warnings == []
+
+
+def test_qdrant_skills_vector_search_attaches_structural_neighbor(monkeypatch):
+    import question_parser.router2_runtime as runtime
+
+    documents = load_documents()
+    doc = next(item for item in documents["documents"] if item["id"] == "pr_630_03082018")
+    filters = document_filters(doc["id"], documents)
+    header = RetrievedItem(
+        chunk_id="vector-table-header", doc_id=filters["doc_id"],
+        filename=filters["filename"], chunk_index=61,
+        text="Таблица 2 — Показатель | Режим 1",
+    )
+    body = RetrievedItem(
+        chunk_id="vector-table-body", doc_id=filters["doc_id"],
+        filename=filters["filename"], chunk_index=62,
+        text="2.1 Отключение одной СШ — группы III | II | II. Таблица 3 — следующий набор.",
+    )
+
+    def fake_vector_tool(request, _config):
+        item = header if request.query == "таблица 2" else RetrievedItem(
+            chunk_id="vector-noise", doc_id=filters["doc_id"], text="Пункт 21.",
+        )
+        return SimpleNamespace(items=[item], warnings=[])
+
+    def fake_payload_tool(request, _config, *, search_fields):
+        item = body if request.filters.get("chunk_index") == 62 else None
+        return SimpleNamespace(items=[item] if item else [], warnings=[])
+
+    monkeypatch.setattr(runtime, "run_vector_tool", fake_vector_tool)
+    monkeypatch.setattr(runtime, "run_payload_tool", fake_payload_tool)
+    question = "Дай содержание таблицы 2 приложения к методическим указаниям по устойчивости"
+    items, warnings = QdrantSkills(None, documents).run({
+        "skill": "vector_search",
+        "query": "содержание таблицы 2 приложения по устойчивости",
+        "doc_id": doc["id"],
+        "_user_question": question,
+    })
+
+    assert [item.chunk_id for item in items[:2]] == [header.chunk_id, body.chunk_id]
+    assert items[1].matched["structural_parent_chunk_id"] == header.chunk_id
+    assert "Таблица 3" not in items[1].text
     assert warnings == []
 
 

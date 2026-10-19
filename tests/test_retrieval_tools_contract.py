@@ -6,7 +6,7 @@ from mr_norm.apps import main as app_main
 from mr_norm.config.indexing import IndexingConfig
 from mr_norm.indexing.qdrant_adapter import EXPECTED_PAYLOAD_INDEXES
 from mr_norm.retrieval.contracts import RetrievedItem, ToolMetrics, ToolRequest, ToolResult, ToolTrace
-from mr_norm.retrieval.filters import doc_name_variants
+from mr_norm.retrieval.filters import build_filter_spec, build_payload_filter_spec, doc_name_variants
 from mr_norm.retrieval.tools.payload import run_payload_tool
 from mr_norm.retrieval.tools.point import run_point_tool, select_point_filters
 from mr_norm.retrieval.tools.vector import run_vector_tool
@@ -78,6 +78,27 @@ class FakeEmbedder:
     def encode(self, texts: list[str]) -> list[list[float]]:
         self.texts = texts
         return [[0.1, 0.2, 0.3]]
+
+
+def test_chunk_index_filter_preserves_integer_match_value() -> None:
+    spec = build_filter_spec({"doc_id": "doc_1", "chunk_index": 62})
+
+    assert {"field": "chunk_index", "kind": "integer", "value": 62} in spec["must"]
+
+
+def test_table_row_payload_filters_are_exact_keyword_matches_without_text_should() -> None:
+    spec = build_payload_filter_spec(
+        "",
+        {"doc_id": "pr_630_03082018", "kind": "table_row", "table_label": "2"},
+    )
+
+    assert spec == {
+        "must": [
+            {"field": "doc_id", "kind": "keyword", "value": "pr_630_03082018"},
+            {"field": "kind", "kind": "keyword", "value": "table_row"},
+            {"field": "table_label", "kind": "keyword", "value": "2"},
+        ]
+    }
 
 
 def test_payload_tool_contract_builds_filters_results_and_trace() -> None:

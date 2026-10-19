@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from mr_norm.config.indexing import IndexingConfig
-from mr_norm.retrieval.qdrant_adapter import QdrantRetrievalClient, _is_transient_qdrant_error
+from mr_norm.retrieval.qdrant_adapter import QdrantRetrievalClient, _is_transient_qdrant_error, point_to_item
 
 
 def test_qdrant_adapter_recognizes_winerror_10054() -> None:
@@ -73,3 +73,11 @@ def test_remote_qdrant_keeps_environment_proxy_support() -> None:
     client._new_client()
 
     assert "trust_env" not in captured[0]
+
+
+def test_point_to_item_preserves_chunk_index_for_structural_neighbor_fetch() -> None:
+    point = SimpleNamespace(payload={"chunk_id": "chunk_62", "chunk_index": 62})
+
+    item = point_to_item(point, source_tool="payload")
+
+    assert item.chunk_index == 62

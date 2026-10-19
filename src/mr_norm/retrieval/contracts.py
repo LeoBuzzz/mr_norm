@@ -32,6 +32,7 @@ class RetrievedItem:
     total_parts: int = 1
     is_split: bool = False
     is_complete_point: bool = True
+    chunk_index: int | None = None
     matched: dict[str, Any] = field(default_factory=dict)
 
 

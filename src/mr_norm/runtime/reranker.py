@@ -6,6 +6,7 @@ from typing import Any, Protocol
 from mr_norm.retrieval.contracts import RetrievedItem
 from mr_norm.retrieval.intent_boost import rerank_items_for_intent
 from mr_norm.retrieval.phrase_boost import rerank_items_for_exact_phrase
+from mr_norm.retrieval.query_intent import structural_reference_queries
 from mr_norm.runtime.contracts import RerankResult, RuntimeRequest, RuntimeResult
 from mr_norm.runtime.pipeline_diagnostics import rerank_items_for_doc_point, should_apply_doc_point_boost
 from mr_norm.runtime.prompts import load_prompt_pack_by_role
@@ -61,6 +62,54 @@ def _apply_doc_point_boost(
     )
 
 
+def _prioritize_structural_items(
+    items: list[RetrievedItem],
+    request: RuntimeRequest,
+) -> list[RetrievedItem]:
+    """Keep exact structural matches and their legacy body chunks in evidence."""
+    if not structural_reference_queries(request.query):
+        return items
+
+    marked = [
+        item for item in items
+        if item.matched.get("structural_target")
+        or item.matched.get("structural_parent_chunk_id")
+    ]
+    if not marked:
+        return items
+
+    promoted: list[RetrievedItem] = []
+    promoted_ids: set[str] = set()
+    targets = dict.fromkeys(
+        str(item.matched.get("structural_target"))
+        for item in marked
+        if item.matched.get("structural_target")
+    )
+    for target in targets:
+        headers = [
+            item for item in marked
+            if item.matched.get("structural_target") == target
+            and not item.matched.get("structural_parent_chunk_id")
+        ]
+        for header in headers:
+            if header.chunk_id not in promoted_ids:
+                promoted.append(header)
+                promoted_ids.add(header.chunk_id)
+            children = [
+                item for item in marked
+                if item.matched.get("structural_parent_chunk_id") == header.chunk_id
+            ]
+            children.sort(key=lambda item: (item.chunk_index is None, item.chunk_index or 0))
+            for child in children:
+                if child.chunk_id not in promoted_ids:
+                    promoted.append(child)
+                    promoted_ids.add(child.chunk_id)
+
+    if not promoted:
+        return items
+    return promoted + [item for item in items if item.chunk_id not in promoted_ids]
+
+
 def _postprocess_ranked_items(
     items: list[RetrievedItem],
     request: RuntimeRequest,
@@ -83,6 +132,7 @@ def _postprocess_ranked_items(
         limit=max(effective_limit, len(items)),
         question_type=str(request.prepared_plan.question_type or "") if request.prepared_plan else "",
     )
+    items = _prioritize_structural_items(items, request)
     return items[:effective_limit], boost_moves, warnings
 
 
@@ -195,7 +245,7 @@ class PromptPackReranker:
                 warnings=warnings + ["prompt reranker returned no valid items; used passthrough ordering"],
             )
 
-        items = items[:effective_limit]
+        items = _prioritize_structural_items(items, request)[:effective_limit]
         scores = {item.chunk_id: _item_score(item) for item in items if item.chunk_id}
         return RerankResult(items=items, scores=scores, warnings=warnings)
 

@@ -135,6 +135,7 @@ def point_to_item(point: Any, *, source_tool: str) -> RetrievedItem:
         total_parts=int(total_parts) if total_parts is not None else 1,
         is_split=bool(is_split) if is_split is not None else False,
         is_complete_point=bool(is_complete_point) if is_complete_point is not None else True,
+        chunk_index=(int(payload["chunk_index"]) if payload.get("chunk_index") is not None else None),
         matched={},
     )
 
