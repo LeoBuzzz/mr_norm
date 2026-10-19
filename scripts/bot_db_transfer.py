@@ -20,15 +20,29 @@ ARTIFACTS = (
 )
 
 
-def transfer_artifacts(directory: Path, *, restore: bool) -> None:
+def transfer_artifacts(directory: Path, *, restore: bool, collection: str) -> None:
     root = Path(__file__).resolve().parents[1]
     for relative in ARTIFACTS:
         source = directory / "artifacts" / relative if restore else root / relative
+        if not restore and relative == Path("output/qdrant_chunks.json") and "rtf_v2" in collection:
+            v2_chunks = root / "output/new_pipeline_20261011/qdrant_chunks.json"
+            if v2_chunks.is_file():
+                source = v2_chunks
+        if not restore and relative == Path("output/document_catalog.json") and "rtf_v2" in collection:
+            continue
         target = root / relative if restore else directory / "artifacts" / relative
         if source.is_file():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
             print(f"{'Restored' if restore else 'Exported'} {relative}")
+    chunks = root / "output/qdrant_chunks.json" if restore else directory / "artifacts/output/qdrant_chunks.json"
+    if chunks.is_file():
+        from mr_norm.retrieval.document_catalog import build_catalog_from_chunks, save_catalog_snapshot
+
+        catalog = build_catalog_from_chunks(chunks)
+        destination = root / "output/document_catalog.json" if restore else directory / "artifacts/output/document_catalog.json"
+        save_catalog_snapshot(catalog, destination)
+        print(f"Built output/document_catalog.json ({len(catalog.entries)} documents)")
 
 
 def client():
@@ -93,7 +107,7 @@ def export_collection(directory: Path, collection: str) -> None:
         metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     finally:
         temp_points.unlink(missing_ok=True)
-    transfer_artifacts(directory, restore=False)
+    transfer_artifacts(directory, restore=False, collection=collection)
     print(f"Exported {written} points from {collection} to {directory}")
 
 
@@ -142,7 +156,7 @@ def import_collection(directory: Path, rebuild: bool) -> None:
     expected = metadata["points_count"]
     if count != expected or actual != expected:
         raise RuntimeError(f"Point count mismatch: file={expected}, read={count}, Qdrant={actual}")
-    transfer_artifacts(directory, restore=True)
+    transfer_artifacts(directory, restore=True, collection=collection)
     print(f"Imported and verified {actual} points in {collection}")
 
 

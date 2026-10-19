@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 from pathlib import Path
 
 
@@ -37,12 +38,24 @@ def build(target: Path) -> None:
         shutil.copy2(ROOT / relative, destination)
     for name in ("input", "output", "planning", "tmp"):
         (target / name).mkdir(exist_ok=True)
-    for relative in ("output/qdrant_chunks.json", "output/document_catalog.json", "tmp/knowledge_catalog_mapping.json"):
+    for relative in ("output/qdrant_chunks.json", "tmp/knowledge_catalog_mapping.json"):
         source = ROOT / relative
+        if relative == "output/qdrant_chunks.json":
+            v2_chunks = ROOT / "output/new_pipeline_20261011/qdrant_chunks.json"
+            if v2_chunks.is_file():
+                source = v2_chunks
         if source.is_file():
             destination = target / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
+    if (target / "output/qdrant_chunks.json").is_file():
+        sys.path.insert(0, str(ROOT / "src"))
+        from mr_norm.retrieval.document_catalog import build_catalog_from_chunks, save_catalog_snapshot
+
+        save_catalog_snapshot(
+            build_catalog_from_chunks(target / "output/qdrant_chunks.json"),
+            target / "output/document_catalog.json",
+        )
     for name in ("keys", "VK_token.txt", "bot_token.txt"):
         source = ROOT / name
         if source.is_file():
