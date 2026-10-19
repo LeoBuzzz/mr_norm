@@ -89,22 +89,7 @@ def build(target: Path) -> None:
         "  qdrant_storage:\n",
         encoding="utf-8",
     )
-    (target / "README.md").write_text(
-        "# MR Norm Bot\n\n"
-        "Windows package for the VK and Telegram bots. Python 3.12 and Qdrant are required.\n\n"
-        "1. Run `powershell -ExecutionPolicy Bypass -File .\\setup_bot.ps1`.\n"
-        "2. Start Qdrant with `docker compose up -d qdrant` (Docker Desktop required).\n"
-        "3. On the source machine, export with `python scripts/bot_db_transfer.py export --directory transfer`. "
-        "Copy `transfer/` separately to this machine.\n"
-        "4. Import with `.\\venv312\\Scripts\\python.exe scripts/bot_db_transfer.py import --directory transfer`. "
-        "This restores the Qdrant collection, chunks, document catalog and optional mapping.\n"
-        "5. Provide `keys`, `VK_token.txt` and `bot_token.txt` locally (they are ignored by Git).\n"
-        "6. Run `run_bots.bat`, or one transport with `run_vk_bot.bat` / `run_telegram_bot.bat`.\n\n"
-        "Bot launchers use collection `mr_norm_docs_bge_m3_rtf_v2_20261011`. "
-        "On a machine without the local Telegram proxy, set `TELEGRAM_PROXY` to an empty string. "
-        "Do not run both source and migrated bots with the same tokens at once.\n",
-        encoding="utf-8",
-    )
+    shutil.copy2(ROOT / "scripts/bot_package_readme.md", target / "README.md")
     print(f"Built bot package in {target}")
 
 
